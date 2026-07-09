@@ -1,0 +1,225 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// 1. ตารางผู้ใช้งาน (User & Auth)
+// ==========================================
+model User {
+  id             Int             @id @default(autoincrement())
+  email          String          @unique
+  username       String
+  password       String          // เก็บแบบแฮชผ่าน bcrypt เพื่อความปลอดภัย
+  createdAt      DateTime        @default(now())
+  
+  // Relations
+  projectsOwned  Project[]       @relation("ProjectOwner") // โปรเจกต์ที่เราเป็นคนสร้าง
+  projectMembers ProjectMember[] // โปรเจกต์ทั้งหมดที่เราเป็นสมาชิกอยู่ (รวมถึงที่ถูกเชิญ)
+  assignedTasks  Task[]          @relation("TaskAssignee") // การ์ดงานทั้งหมดที่ถูกมอบหมายให้เราทำ
+  activityLogs   TaskLog[]       // ประวัติการย้ายการ์ด/แก้ไขงานที่เราเป็นคนทำ
+  comments       Comment[]
+  notifications  Notification[]
+}
+
+// ==========================================
+// 2. ตารางโปรเจกต์/บอร์ดงาน (Project)
+// ==========================================
+model Project {
+  id          Int             @id @default(autoincrement())
+  name        String
+  description String?
+  ownerId     Int
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  inviteCode  String          @unique
+
+  // Relations
+  owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     ProjectMember[] // รายชื่อสมาชิกในโปรเจกต์นี้
+  tasks       Task[]          // การ์ดงานทั้งหมดในโปรเจกต์นี้
+  roles       Role[]          // ยศทั้งหมดที่มีในโปรเจกต์นี้ (สไตล์ Discord Server)
+  inviteCodes InviteCode[]    // รหัสเชิญเพื่อนเข้าโปรเจกต์นี้
+  columns     Column[]
+  labels      Label[]
+}
+
+// ==========================================
+// 3. ตารางสมาชิกโปรเจกต์และยศสิทธิ์ (Workspace Members & Roles)
+// ==========================================
+model ProjectMember {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  projectId Int
+  roleId    Int?     // ยศสิทธิ์ในโปรเจกต์นี้ (ถ้า NULL แปลว่าเป็นสมาชิกทั่วไปที่ยังไม่มียศ)
+  joinedAt  DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      Role?    @relation(fields: [roleId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, projectId]) // ป้องกันไม่ให้ยูสเซอร์คนเดิมซ้ำซ้อนในโปรเจกต์เดียวกัน
+}
+
+model Role {
+  id          Int             @id @default(autoincrement())
+  name        String          // เช่น "Admin", "QA Tester", "Developer" สามารถเปลี่ยนชื่อได้ภายหลัง
+  projectId   Int
+  permissions String[]        // เก็บสิทธิ์การใช้งาน เช่น ["CREATE_TASK", "DELETE_TASK", "MANAGE_ROLE"]
+  
+  // Relations
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  members     ProjectMember[] // ยูสเซอร์ทั้งหมดที่มียศนี้
+}
+
+// ==========================================
+// 4. ตารางรหัสเชิญเข้าโปรเจกต์ (Invite System)
+// ==========================================
+model InviteCode {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique // รหัสสุ่มสั้นๆ เช่น "INV-XYZ789"
+  projectId  Int
+  expiresAt  DateTime // วันหมดอายุของลิงก์เชิญ
+  createdAt  DateTime @default(now())
+
+  // Relations
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 5. ตารางการ์ดงาน (Advanced Task)
+// ==========================================
+model Task {
+  id          Int       @id @default(autoincrement())
+  projectId   Int
+  columnId    Int?      // 👈 ผูกกับคอลัมน์แทนฟิลด์ status (เริ่มต้นให้เป็น Null เพื่อป้องกันการย้ายข้อมูลพัง)
+  title       String
+  description String?
+  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  assigneeId  Int?      // ID ของยูสเซอร์ที่ได้รับมอบหมายงาน (เป็น Null ได้ถ้ายังไม่สั่งงานใคร)
+  dueDate     DateTime? // วันกำหนดส่งงาน / เส้นตาย
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  column      Column?   @relation(fields: [columnId], references: [id], onDelete: Cascade) // 👈
+  assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  logs        TaskLog[] // ประวัติ Timeline ความเคลื่อนไหวของการ์ดใบนี้
+  subtasks    Subtask[]
+  comments    Comment[]
+  attachments Attachment[]
+  labels      Label[]   @relation("TaskLabels")
+}
+
+// ==========================================
+// 6. ตารางบันทึกประวัติความเคลื่อนไหว (Activity & Time Log)
+// ==========================================
+model TaskLog {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  userId    Int      // ใครเป็นคนทำข้อความนี้
+  action    String   // ประเภทการกระทำ เช่น "MOVED_STATUS", "UPDATED_TITLE", "CREATED_TASK"
+  details   String   // ข้อความอธิบาย เช่น "ย้ายจาก To Do ไป Doing"
+  createdAt DateTime @default(now())
+
+  // Relations
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 7. ตารางคอลัมน์แบบปรับแต่งอิสระ (Custom Board Columns)
+// ==========================================
+model Column {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  title     String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  // Relations
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+}
+
+// ==========================================
+// 8. ตารางป้ายกำกับสี (Custom Labels/Tags)
+// ==========================================
+model Label {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  name      String
+  color     String
+  createdAt DateTime @default(now())
+
+  // Relations
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     Task[]   @relation("TaskLabels")
+}
+
+// ==========================================
+// 9. ตารางเช็คลิสต์งานย่อย (Card Checklists/Subtasks)
+// ==========================================
+model Subtask {
+  id          Int      @id @default(autoincrement())
+  taskId      Int
+  title       String
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 10. ตารางคอมเมนต์พูดคุยใต้การ์ด (Card Comments)
+// ==========================================
+model Comment {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  userId    Int
+  content   String
+  createdAt DateTime @default(now())
+
+  // Relations
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 11. ตารางแนบไฟล์ (Card Attachments)
+// ==========================================
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  fileName  String
+  filePath  String
+  fileSize  Int
+  createdAt DateTime @default(now())
+
+  // Relations
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 12. ตารางศูนย์รวมการแจ้งเตือน (Notifications System)
+// ==========================================
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

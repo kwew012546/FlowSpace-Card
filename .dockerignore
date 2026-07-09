@@ -1,0 +1,24 @@
+# Exclude folders that contain local secrets, packages or logs
+node_modules
+npm-debug.log
+.env
+.env.*
+!.env.example
+
+# Nuxt / Nitro build outputs
+.nuxt
+.output
+.nitro
+.cache
+dist
+
+# Test specs and reports
+tests
+test-results
+playwright-report
+blob-report
+.playwright
+
+# Git assets
+.git
+.gitignore
