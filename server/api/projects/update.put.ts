@@ -1,6 +1,7 @@
 // server/api/projects/update.put.ts
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
+  const { id, name, description } = body
   if (!event.context.auth?.user) {
     throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบ' })
   }

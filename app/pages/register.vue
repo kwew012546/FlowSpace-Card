@@ -57,9 +57,15 @@
           :disabled="isLoading" 
           class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-stone-400 disabled:to-stone-400 text-white font-bold py-2.5 rounded-lg transition-all shadow-md shadow-amber-600/20 mt-2 transform hover:-translate-y-0.5 active:translate-y-0"
         >
-          {{ isLoading ? 'กำลังบันทึกข้อมูล...' : 'สมัครสมาชิก สำเร็จ ✨' }}
+          {{ isLoading ? 'กำลังบันทึกข้อมูล...' : 'สมัครสมาชิก ✨' }}
         </button>
       </form>
+
+      <!-- ปุ่มยืนยันด่วนในโหมดพัฒนาเครื่อง Local -->
+      <div v-if="verifyLink" class="mt-4 p-4 bg-amber-50/80 border border-amber-200 rounded-xl text-center text-xs font-bold text-stone-700">
+        <p class="mb-2.5 flex items-center justify-center gap-1"><span>💻</span> (โหมดพัฒนาในเครื่อง) ยืนยันอีเมลได้ทันที:</p>
+        <a :href="verifyLink" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black px-4 py-2 rounded-lg inline-block shadow-sm transition-all">คลิกเพื่อยืนยันอีเมล ✉️</a>
+      </div>
 
       <p class="text-center text-sm text-stone-500 mt-6 font-medium">
         มีบัญชีอยู่แล้วใช่ไหม? 
@@ -86,10 +92,12 @@ const password = ref('')
 const message = ref('')
 const isSuccess = ref(false)
 const isLoading = ref(false)
+const verifyLink = ref('')
 
 const handleRegister = async () => {
   isLoading.value = true
   message.value = ''
+  verifyLink.value = ''
   try {
     const response = await $fetch('/api/auth/register', {
       method: 'POST',
@@ -97,8 +105,11 @@ const handleRegister = async () => {
     })
     isSuccess.value = true
     message.value = response.message
-    localStorage.setItem('user', JSON.stringify(response.user))
-    setTimeout(() => { navigateTo('/') }, 1500)
+    if (response.verifyUrl) {
+      verifyLink.value = response.verifyUrl
+    } else {
+      setTimeout(() => { navigateTo('/login') }, 4000)
+    }
   } catch (error) {
     isSuccess.value = false
     message.value = error.data?.message || 'เกิดข้อผิดพลาดในการสมัครสมาชิก'

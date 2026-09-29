@@ -838,6 +838,9 @@ const fetchColumns = async () => {
     }
   } catch (err) {
     console.error('Error fetching columns:', err)
+    if (err.statusCode === 403 || err.statusCode === 401) {
+      navigateTo('/dashboard')
+    }
   }
 }
 
@@ -849,7 +852,6 @@ const addColumn = async () => {
       body: { projectId, title: newColumnTitle.value.trim() }
     })
     if (res.success) {
-      showToast(res.message, 'success')
       newColumnTitle.value = ''
       isAddingColumn.value = false
       // Instant UI reactivity update
@@ -877,7 +879,6 @@ const confirmDeleteColumn = async () => {
       method: 'DELETE'
     })
     if (res.success) {
-      showToast(res.message, 'success')
       isDeleteColumnModalOpen.value = false
       // Instant UI reactivity update
       columns.value = columns.value.filter(c => c.id !== idToDelete)
@@ -899,7 +900,6 @@ const saveColumnName = async (columnId) => {
       body: { id: columnId, title: editingColumnTitle.value.trim() }
     })
     if (res.success) {
-      showToast(res.message, 'success')
       editingColumnId.value = null
       await fetchColumns()
     }
@@ -917,7 +917,12 @@ const fetchTasks = async () => {
       projectName.value = response.projectName
       projectOwnerId.value = response.ownerId
     }
-  } catch (error) { console.error(error) }
+  } catch (error) {
+    console.error(error)
+    if (error.statusCode === 403 || error.statusCode === 401) {
+      navigateTo('/dashboard')
+    }
+  }
 }
 
 const fetchLabels = async () => {
@@ -938,7 +943,6 @@ const createProjectLabel = async () => {
       projectLabels.value.push(res.data)
       newLabelName.value = ''
       isCreatingLabel.value = false
-      showToast('สร้างป้ายกำกับสีสำเร็จแล้ว!', 'success')
     }
   } catch (err) {
     showToast(err.message || 'สร้างป้ายกำกับไม่สำเร็จ', 'error')
@@ -967,7 +971,6 @@ const markAllNotificationsRead = async () => {
     const res = await $fetch('/api/notifications', { method: 'PUT', body: { all: true } })
     if (res.success) {
       notifications.value = notifications.value.map(n => ({ ...n, isRead: true }))
-      showToast('อ่านข้อความแจ้งเตือนทั้งหมดแล้ว 🔔', 'success')
     }
   } catch (err) { console.error(err) }
 }
@@ -1077,7 +1080,6 @@ const handleFileUpload = async (event) => {
     })
     if (res.success) {
       attachments.value.push(res.data)
-      showToast('อัปโหลดไฟล์แนบสำเร็จ! 📎', 'success')
       fetchTasks()
       fetchTaskLogs(editingTaskId.value)
     }
@@ -1128,9 +1130,24 @@ const fetchTeamAndRoles = async () => {
       $fetch(`/api/members?projectId=${projectId}`),
       $fetch(`/api/roles?projectId=${projectId}`)
     ])
-    if (membersRes.success) projectMembers.value = membersRes.data
+    if (membersRes.success) {
+      projectMembers.value = membersRes.data
+      // Check if current user is kicked
+      if (currentUser.value && projectOwnerId.value !== currentUser.value.id) {
+        const isStillMember = projectMembers.value.some(m => m.user.id === currentUser.value.id)
+        if (!isStillMember) {
+          navigateTo('/dashboard')
+          return
+        }
+      }
+    }
     if (rolesRes.success) projectRoles.value = rolesRes.data
-  } catch (error) { console.error('Error fetching team or roles:', error) }
+  } catch (error) {
+    console.error('Error fetching team or roles:', error)
+    if (error.statusCode === 403 || error.statusCode === 401) {
+      navigateTo('/dashboard')
+    }
+  }
 }
 
 let eventSource = null
@@ -1222,7 +1239,6 @@ const saveProjectName = async () => {
     if (response.success) {
       projectName.value = response.project.name
       isEditingProjectName.value = false
-      showToast('แก้ไขชื่อโปรเจกต์สำเร็จ! ✨', 'success')
     }
   } catch (error) { showToast('ไม่สามารถเปลี่ยนชื่อโปรเจกต์ได้ ❌', 'error') }
 }
@@ -1237,7 +1253,6 @@ const createNewRole = async () => {
     if (response.success) {
       newRoleName.value = ''
       await fetchTeamAndRoles()
-      showToast('สร้างยศใหม่สำเร็จแล้ว! ⚔️', 'success')
     }
   } catch (error) { showToast('เกิดข้อผิดพลาดในการสร้างยศ ❌', 'error') }
 }
@@ -1259,7 +1274,6 @@ const togglePermission = async (role, permissionStr) => {
     role.permissions.push(permissionStr)
   }
   await updateRoleData(role)
-  showToast('อัปเดตสิทธิ์บทบาทสำเร็จ ✨', 'success')
 }
 
 const isDeleteRoleModalOpen = ref(false)
@@ -1278,7 +1292,6 @@ const confirmDeleteRole = async () => {
       await fetchTeamAndRoles()
       isDeleteRoleModalOpen.value = false
       roleToDeleteId.value = null
-      showToast('ลบยศตำแหน่งสำเร็จแล้ว 👋', 'success')
     }
   } catch (error) { showToast('ไม่สามารถลบยศนี้ได้ ❌', 'error') }
 }
@@ -1291,7 +1304,6 @@ const changeMemberRole = async (memberId, targetRoleId) => {
     })
     if (response.success) {
       await fetchTeamAndRoles()
-      showToast('เปลี่ยนยศสมาชิกบอร์ดสำเร็จ! ⚔️', 'success')
     }
   } catch (error) { showToast('เปลี่ยนยศไม่สำเร็จ ❌', 'error') }
 }
@@ -1313,7 +1325,6 @@ const confirmKickMember = async () => {
       isKickModalOpen.value = false
       memberToKickId.value = null
       memberToKickUsername.value = ''
-      showToast('เนรเทศสมาชิกเรียบร้อยแล้ว 👋', 'success')
     }
   } catch (error) { showToast('เตะคนออกไม่สำเร็จ ❌', 'error') }
 }
@@ -1321,7 +1332,6 @@ const confirmKickMember = async () => {
 const copyInviteCode = () => {
   if (!currentInviteCode.value) return
   navigator.clipboard.writeText(currentInviteCode.value)
-  showToast(`คัดลอกรหัสเชิญ: ${currentInviteCode.value} ไปยังคลิปบอร์ดแล้ว! 📋`, 'success')
 }
 
 const fetchTaskLogs = async (taskId) => {

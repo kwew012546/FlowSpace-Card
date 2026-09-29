@@ -3,18 +3,21 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "prisma generate && nuxt build",
     "dev": "npx prisma generate && nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "db:migrate": "npx prisma migrate dev --name init"
+    "postinstall": "prisma generate && nuxt prepare",
+    "db:migrate": "npx prisma migrate dev --name init",
+    "db:push": "npx prisma db push"
   },
   "dependencies": {
     "@prisma/client": "^5.15.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^8.0.1",
     "bcrypt": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^9.0.4",
     "nuxt": "^4.4.8",
     "vue": "^3.5.35",
     "vue-router": "^5.1.0",

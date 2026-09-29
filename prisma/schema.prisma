@@ -17,6 +17,7 @@ model User {
   email          String          @unique
   username       String
   password       String          // เก็บแบบแฮชผ่าน bcrypt เพื่อความปลอดภัย
+  isVerified     Boolean         @default(false)
   createdAt      DateTime        @default(now())
   
   // Relations

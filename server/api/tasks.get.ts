@@ -10,16 +10,31 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  if (!event.context.auth?.user) {
+    throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบ' })
+  }
+  const userId = event.context.auth.user.id
+
+  // 1. ตรวจสอบสิทธิ์การเข้าใช้งานบอร์ด
+  const isMember = await prisma.projectMember.findFirst({
+    where: { projectId: Number(projectId), userId }
+  })
+  const projectInfo = await prisma.project.findUnique({
+    where: { id: Number(projectId) },
+    select: {
+      name: true,
+      inviteCode: true,
+      ownerId: true
+    }
+  })
+
+  const isOwner = projectInfo && projectInfo.ownerId === userId
+
+  if (!isMember && !isOwner) {
+    throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์เข้าถึงโปรเจกต์นี้ ❌' })
+  }
+
   try {
-    // 1. ดึงข้อมูลรายละเอียดของโปรเจกต์ (ชื่อ, รหัสเชิญ, และไอดีเจ้าของ)
-    const projectInfo = await prisma.project.findUnique({
-      where: { id: Number(projectId) },
-      select: {
-        name: true,
-        inviteCode: true,
-        ownerId: true
-      }
-    })
 
     if (!projectInfo) {
       throw createError({
