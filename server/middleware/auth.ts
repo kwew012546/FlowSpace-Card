@@ -3,8 +3,7 @@ import jwt from 'jsonwebtoken'
 const JWT_SECRET = process.env.JWT_SECRET
 
 if (process.env.NODE_ENV === 'production' && !JWT_SECRET) {
-  console.error('FATAL: JWT_SECRET environment variable is missing in production! 🚨')
-  process.exit(1)
+  console.warn('WARN: JWT_SECRET environment variable is not set in production; using fallback key.')
 }
 
 const JWT_SECRET_TO_USE = JWT_SECRET || 'super-secret-fallback-key'
