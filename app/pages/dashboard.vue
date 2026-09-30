@@ -51,10 +51,24 @@
 
       <div v-else-if="projects.length === 0" class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl p-12 text-center max-w-xl mx-auto shadow-xl shadow-amber-900/5 mt-8">
         <div class="text-5xl mb-4">🏜️</div>
-        <h3 class="text-xl font-extrabold text-stone-800 mb-2">ยังไม่มีโปรเจกต์ในระบบ</h3>
+        <h3 class="text-xl font-extrabold text-stone-800 mb-2">คุณยังไม่มีโปรเจกต์ในขณะนี้</h3>
         <p class="text-stone-500 text-sm font-medium mb-6 max-w-md mx-auto">
-          เริ่มต้นสร้างบอร์ดใหม่ หรือขอรหัสเชิญ 6 หลักจากเพื่อนมาตอกใส่ปุ่มด้านบนเพื่อจอยตี้ได้เลยครับ!
+          เริ่มต้นสร้างบอร์ดใหม่เพื่อจัดระเบียบงาน หรือนำรหัสเชิญ 6 หลักจากเพื่อนมากรอกเพื่อเข้าร่วมทีมได้ทันที
         </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <button 
+            @click="openCreateProjectModal"
+            class="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md text-sm flex items-center justify-center gap-1.5"
+          >
+            ➕ สร้างโปรเจกต์ใหม่
+          </button>
+          <button 
+            @click="isJoinModalOpen = true"
+            class="w-full sm:w-auto bg-white hover:bg-stone-50 text-amber-950 font-bold px-5 py-2.5 rounded-xl transition-all border border-amber-300 text-sm flex items-center justify-center gap-1.5"
+          >
+            🔑 กรอกรหัสเข้าร่วม
+          </button>
+        </div>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
