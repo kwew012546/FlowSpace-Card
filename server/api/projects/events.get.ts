@@ -14,12 +14,16 @@ export default defineEventHandler(async (event) => {
   }
   const userId = event.context.auth.user.id
 
-  const isMember = await prisma.projectMember.findFirst({
-    where: { projectId, userId }
-  })
-  const project = await prisma.project.findUnique({
-    where: { id: projectId }
-  })
+  const [isMember, project] = await Promise.all([
+    prisma.projectMember.findFirst({
+      where: { projectId, userId },
+      select: { id: true }
+    }),
+    prisma.project.findUnique({
+      where: { id: projectId },
+      select: { ownerId: true }
+    })
+  ])
   const isOwner = project && project.ownerId === userId
 
   if (!isMember && !isOwner) {

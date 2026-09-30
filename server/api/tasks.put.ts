@@ -43,20 +43,23 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // ตรวจสอบสิทธิ์แก้ไขงาน/ย้ายงาน
-    const hasPerm = await checkPermission(userId, existingTask.projectId, 'CREATE_TASK')
+    // ตรวจสอบสิทธิ์แก้ไขงาน และตรวจสอบผู้รับผิดชอบพร้อมกันในรอบเดียว
+    const [hasPerm, isAssigneeMember] = await Promise.all([
+      checkPermission(userId, existingTask.projectId, 'CREATE_TASK'),
+      assigneeId
+        ? prisma.projectMember.findFirst({
+            where: { projectId: existingTask.projectId, userId: Number(assigneeId) },
+            select: { id: true }
+          })
+        : Promise.resolve(true)
+    ])
+
     if (!hasPerm) {
       throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์ในการแก้ไขหรือย้ายงานในโปรเจกต์นี้ ❌' })
     }
 
-    // ตรวจสอบความถูกต้องของสิทธิ์สมาชิกผู้รับผิดชอบงาน
-    if (assigneeId) {
-      const isMember = await prisma.projectMember.findFirst({
-        where: { projectId: existingTask.projectId, userId: Number(assigneeId) }
-      })
-      if (!isMember) {
-        throw createError({ statusCode: 400, message: 'ผู้รับผิดชอบที่เลือกไม่จัดอยู่ในสมาชิกของโปรเจกต์นี้ ❌' })
-      }
+    if (assigneeId && !isAssigneeMember) {
+      throw createError({ statusCode: 400, message: 'ผู้รับผิดชอบที่เลือกไม่จัดอยู่ในสมาชิกของโปรเจกต์นี้ ❌' })
     }
 
     // 4. สั่งอัปเดตข้อมูลจริง
@@ -77,23 +80,27 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    // 5. บันทึกกิจกรรมการเปลี่ยนแปลงลงใน TaskLog
-    if (columnId && columnId !== existingTask.columnId) {
-      const [oldCol, newCol] = await Promise.all([
-        prisma.column.findUnique({ where: { id: existingTask.columnId || 0 } }),
-        prisma.column.findUnique({ where: { id: columnId } })
-      ])
-      const oldName = oldCol ? oldCol.title : 'ไม่มี'
-      const newName = newCol ? newCol.title : 'ไม่มี'
+    // 5. บันทึกกิจกรรมการเปลี่ยนแปลงและการแจ้งเตือนแบบขนาน (Parallel)
+    const sideEffects: Promise<any>[] = []
 
-      await prisma.taskLog.create({
-        data: {
-          taskId: Number(id),
-          userId: userId,
-          action: 'MOVED_STATUS',
-          details: `ย้ายงานจาก "${oldName}" ไปยัง "${newName}"`
-        }
-      })
+    if (columnId && columnId !== existingTask.columnId) {
+      sideEffects.push(
+        Promise.all([
+          prisma.column.findUnique({ where: { id: existingTask.columnId || 0 }, select: { title: true } }),
+          prisma.column.findUnique({ where: { id: columnId }, select: { title: true } })
+        ]).then(([oldCol, newCol]) => {
+          const oldName = oldCol ? oldCol.title : 'ไม่มี'
+          const newName = newCol ? newCol.title : 'ไม่มี'
+          return prisma.taskLog.create({
+            data: {
+              taskId: Number(id),
+              userId: userId,
+              action: 'MOVED_STATUS',
+              details: `ย้ายงานจาก "${oldName}" ไปยัง "${newName}"`
+            }
+          })
+        })
+      )
     }
 
     const hasTitleChanged = title !== undefined && title.trim() !== existingTask.title
@@ -113,25 +120,33 @@ export default defineEventHandler(async (event) => {
       if (hasLabelsChanged) logDetails += ' ป้ายกำกับสี'
       logDetails = logDetails.replace(/,$/, '') // ลบลูกน้ำตัวสุดท้าย
 
-      await prisma.taskLog.create({
-        data: {
-          taskId: Number(id),
-          userId: userId,
-          action: 'UPDATED_TASK',
-          details: logDetails
-        }
-      })
+      sideEffects.push(
+        prisma.taskLog.create({
+          data: {
+            taskId: Number(id),
+            userId: userId,
+            action: 'UPDATED_TASK',
+            details: logDetails
+          }
+        })
+      )
     }
 
     // ส่งการแจ้งเตือนเมื่อมีการมอบหมายผู้รับผิดชอบงานคนใหม่
     if (hasAssigneeChanged && assigneeId && assigneeId !== userId) {
-      await prisma.notification.create({
-        data: {
-          userId: assigneeId,
-          title: 'ได้รับมอบหมายงานใหม่ 👤',
-          message: `คุณได้รับมอบหมายงาน "${title || existingTask.title}"`
-        }
-      })
+      sideEffects.push(
+        prisma.notification.create({
+          data: {
+            userId: assigneeId,
+            title: 'ได้รับมอบหมายงานใหม่ 👤',
+            message: `คุณได้รับมอบหมายงาน "${title || existingTask.title}"`
+          }
+        })
+      )
+    }
+
+    if (sideEffects.length > 0) {
+      await Promise.all(sideEffects)
     }
 
     broadcastProjectUpdate(updatedTask.projectId, 'TASKS_UPDATED')

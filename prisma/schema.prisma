@@ -49,6 +49,8 @@ model Project {
   inviteCodes InviteCode[]    // รหัสเชิญเพื่อนเข้าโปรเจกต์นี้
   columns     Column[]
   labels      Label[]
+
+  @@index([ownerId])
 }
 
 // ==========================================
@@ -67,6 +69,8 @@ model ProjectMember {
   role      Role?    @relation(fields: [roleId], references: [id], onDelete: SetNull)
 
   @@unique([userId, projectId]) // ป้องกันไม่ให้ยูสเซอร์คนเดิมซ้ำซ้อนในโปรเจกต์เดียวกัน
+  @@index([projectId])
+  @@index([userId])
 }
 
 model Role {
@@ -78,6 +82,8 @@ model Role {
   // Relations
   project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   members     ProjectMember[] // ยูสเซอร์ทั้งหมดที่มียศนี้
+
+  @@index([projectId])
 }
 
 // ==========================================
@@ -92,6 +98,8 @@ model InviteCode {
 
   // Relations
   project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
 }
 
 // ==========================================
@@ -118,6 +126,10 @@ model Task {
   comments    Comment[]
   attachments Attachment[]
   labels      Label[]   @relation("TaskLabels")
+
+  @@index([projectId])
+  @@index([columnId])
+  @@index([assigneeId])
 }
 
 // ==========================================
@@ -134,6 +146,9 @@ model TaskLog {
   // Relations
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
 }
 
 // ==========================================
@@ -149,6 +164,8 @@ model Column {
   // Relations
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks     Task[]
+
+  @@index([projectId])
 }
 
 // ==========================================
@@ -164,6 +181,8 @@ model Label {
   // Relations
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks     Task[]   @relation("TaskLabels")
+
+  @@index([projectId])
 }
 
 // ==========================================
@@ -178,6 +197,8 @@ model Subtask {
 
   // Relations
   task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
 }
 
 // ==========================================
@@ -193,6 +214,9 @@ model Comment {
   // Relations
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
 }
 
 // ==========================================
@@ -208,6 +232,8 @@ model Attachment {
 
   // Relations
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
 }
 
 // ==========================================
@@ -223,4 +249,6 @@ model Notification {
 
   // Relations
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

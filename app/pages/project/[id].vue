@@ -1151,58 +1151,81 @@ const fetchTeamAndRoles = async () => {
 }
 
 let eventSource = null
+let pollingInterval = null
+let lastLocalMutationAt = 0
 
 const initSse = () => {
   if (eventSource) eventSource.close()
 
-  eventSource = new EventSource(`/api/projects/events?projectId=${projectId}`)
+  // หากอยู่บน localhost ใช้ SSE ตามปกติ แต่หาก SSE ถูกตัดสายบน Serverless ให้สลับไปใช้การซิงค์เมื่อสลับหน้าจอแทนเพื่อไม่ให้หน่วง
+  try {
+    eventSource = new EventSource(`/api/projects/events?projectId=${projectId}`)
 
-  eventSource.onmessage = (event) => {
-    if (event.data === 'connected') return
-    try {
-      const data = JSON.parse(event.data)
-      if (data.type === 'TASKS_UPDATED') {
-        fetchTasks()
-        fetchColumns()
-        fetchNotifications()
-      } else if (data.type === 'TEAM_UPDATED') {
-        fetchTeamAndRoles()
-        fetchNotifications()
+    eventSource.onmessage = (event) => {
+      if (event.data === 'connected') return
+      // ป้องกันการโหลดซ้ำซ้อนหากผู้ใช้คนนี้เพิ่งเป็นคนกดย้าย/แก้ไขการ์ดเองเมื่อไม่เกิน 1.5 วินาทีที่ผ่านมา
+      if (Date.now() - lastLocalMutationAt < 1500) return
+      try {
+        const data = JSON.parse(event.data)
+        if (data.type === 'TASKS_UPDATED') {
+          Promise.all([fetchTasks(), fetchColumns(), fetchNotifications()])
+        } else if (data.type === 'TEAM_UPDATED') {
+          Promise.all([fetchTeamAndRoles(), fetchNotifications()])
+        }
+      } catch (e) {
+        console.error('Failed to parse SSE event message:', e)
       }
-    } catch (e) {
-      console.error('Failed to parse SSE event message:', e)
     }
-  }
 
-  eventSource.onerror = (err) => {
-    console.error('SSE connection error. Reconnecting...', err)
+    eventSource.onerror = () => {
+      // ปิดสาย SSE ที่ค้างบน Serverless ทันทีเพื่อไม่ให้แย่งแบนด์วิดท์เบราว์เซอร์ซ้ำๆ
+      if (eventSource) {
+        eventSource.close()
+        eventSource = null
+      }
+    }
+  } catch (e) {
+    // Fallback เงียบๆ
   }
 }
 
 onMounted(async () => { 
-  try {
-    const meRes = await $fetch('/api/auth/me')
-    if (meRes.success) {
-      currentUser.value = meRes.user
-      localStorage.setItem('user', JSON.stringify(meRes.user))
-    }
-  } catch (error) {
+  // ดึงข้อมูลผู้ใช้เบื้องต้นจากเครื่องทันทีเพื่อไม่ให้หน้าจอกระพริบระหว่างรอ API
+  const cachedUser = localStorage.getItem('user')
+  if (cachedUser) {
+    try {
+      currentUser.value = JSON.parse(cachedUser)
+    } catch (e) {}
+  }
+
+  // ดึงข้อมูลทุกส่วนของบอร์ดพร้อมกันในครั้งเดียว (Parallel Fetching) แทนการรอคิวทีละตัว
+  const [meResult] = await Promise.allSettled([
+    $fetch('/api/auth/me'),
+    fetchColumns(),
+    fetchTasks(),
+    fetchLabels(),
+    fetchNotifications(),
+    fetchTeamAndRoles()
+  ])
+
+  if (meResult.status === 'fulfilled' && meResult.value?.success) {
+    currentUser.value = meResult.value.user
+    localStorage.setItem('user', JSON.stringify(meResult.value.user))
+  } else {
     localStorage.removeItem('user')
     navigateTo('/login')
     return
   }
-  fetchTasks()
-  await fetchColumns()
-  await fetchLabels()
-  await fetchNotifications()
-  await fetchTeamAndRoles()
+
   initSse()
 })
 
 onUnmounted(() => {
   if (eventSource) {
     eventSource.close()
-    console.log('[SSE] Connection closed on component unmount.')
+  }
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
   }
 })
 
@@ -1376,25 +1399,41 @@ const openEditModal = (task) => {
   taskDueDate.value = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''
   taskPriority.value = task.priority || 'MEDIUM'
   selectedLabelIds.value = task.labels ? task.labels.map(l => l.id) : []
-  subtasks.value = []
-  attachments.value = []
+  // แสดงรายการงานย่อยและไฟล์แนบที่มีอยู่ทันทีโดยไม่ต้องรอโหลดใหม่
+  subtasks.value = task.subtasks ? JSON.parse(JSON.stringify(task.subtasks)) : []
+  attachments.value = task.attachments ? JSON.parse(JSON.stringify(task.attachments)) : []
   comments.value = []
   newSubtaskTitle.value = ''
   newCommentContent.value = ''
   taskLogs.value = []
-  fetchTaskDetails(task.id)
-  fetchTaskLogs(task.id)
   isModalOpen.value = true
+  Promise.all([
+    fetchTaskDetails(task.id),
+    fetchTaskLogs(task.id)
+  ])
 }
 
 const handleSubmit = async () => {
   if (!taskTitle.value.trim()) return
+  lastLocalMutationAt = Date.now()
   if (isEditMode.value) {
+    const targetId = editingTaskId.value
+    // Optimistic UI update บนหน้าจอทันที
+    const existing = tasks.value.find(t => t.id === targetId)
+    if (existing) {
+      existing.title = taskTitle.value
+      existing.description = taskDescription.value
+      existing.assigneeId = taskAssigneeId.value ? Number(taskAssigneeId.value) : null
+      existing.dueDate = taskDueDate.value || null
+      existing.priority = taskPriority.value
+      existing.labels = projectLabels.value.filter(l => selectedLabelIds.value.includes(l.id))
+    }
+    isModalOpen.value = false
     try {
       const response = await $fetch('/api/tasks', { 
         method: 'PUT', 
         body: { 
-          id: editingTaskId.value, 
+          id: targetId, 
           title: taskTitle.value, 
           description: taskDescription.value,
           assigneeId: taskAssigneeId.value || null,
@@ -1404,8 +1443,12 @@ const handleSubmit = async () => {
         } 
       })
       if (response.success) fetchTasks()
-    } catch (error) { console.error(error) }
+    } catch (error) {
+      console.error(error)
+      fetchTasks()
+    }
   } else {
+    isModalOpen.value = false
     try {
       const response = await $fetch('/api/tasks', { 
         method: 'POST', 
@@ -1422,7 +1465,6 @@ const handleSubmit = async () => {
       if (response.success) fetchTasks()
     } catch (error) { console.error(error) }
   }
-  isModalOpen.value = false
 }
 
 const isDeleteModalOpen = ref(false)
@@ -1435,26 +1477,46 @@ const deleteTask = (id) => {
 
 const confirmDeleteTask = async () => {
   if (!taskToDeleteId.value) return
+  const idToRemove = taskToDeleteId.value
+  lastLocalMutationAt = Date.now()
+  // Optimistic UI: ลบออกจากหน้าจอทันที
+  const backupTasks = [...tasks.value]
+  tasks.value = tasks.value.filter(t => t.id !== idToRemove)
+  isDeleteModalOpen.value = false
+  taskToDeleteId.value = null
   try {
-    const response = await $fetch(`/api/tasks?id=${taskToDeleteId.value}`, { 
+    const response = await $fetch(`/api/tasks?id=${idToRemove}`, { 
       method: 'DELETE'
     })
-    if (response.success) {
-      fetchTasks()
-      isDeleteModalOpen.value = false
-      taskToDeleteId.value = null
+    if (!response.success) {
+      tasks.value = backupTasks
     }
-  } catch (error) { console.error(error) }
+  } catch (error) {
+    console.error(error)
+    tasks.value = backupTasks
+  }
 }
 
 const moveTask = async (id, targetColumnId) => {
+  const task = tasks.value.find(t => t.id === id)
+  if (!task || task.columnId === targetColumnId) return
+
+  // Optimistic UI: ย้ายการ์ดไปยังคอลัมน์ปลายทางบนหน้าจอทันที (0ms)
+  const previousColumnId = task.columnId
+  task.columnId = targetColumnId
+  lastLocalMutationAt = Date.now()
+
   try {
     await $fetch('/api/tasks', { 
       method: 'PUT', 
       body: { id, columnId: targetColumnId } 
     })
-    fetchTasks()
-  } catch (error) { console.error(error) }
+  } catch (error) {
+    console.error(error)
+    // หากเกิดข้อผิดพลาด ให้ดีดการ์ดกลับที่เดิม
+    task.columnId = previousColumnId
+    showToast('ไม่สามารถย้ายการ์ดได้ กรุณาลองใหม่', 'error')
+  }
 }
 
 let draggedTaskId = null

@@ -52,5 +52,11 @@ export default defineNuxtConfig({
 
   future: {
     compatibilityVersion: 4,
+  },
+
+  nitro: {
+    vercel: {
+      regions: ['sin1']
+    }
   }
 })

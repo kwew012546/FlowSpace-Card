@@ -232,12 +232,23 @@ const fetchProjects = async () => {
 }
 
 onMounted(async () => {
+  const cachedUser = localStorage.getItem('user')
+  if (cachedUser) {
+    try {
+      currentUser.value = JSON.parse(cachedUser)
+      fetchProjects()
+    } catch (e) {}
+  }
+
   try {
     const meRes = await $fetch('/api/auth/me')
     if (meRes.success) {
+      const prevId = currentUser.value?.id
       currentUser.value = meRes.user
       localStorage.setItem('user', JSON.stringify(meRes.user))
-      fetchProjects()
+      if (!prevId || prevId !== meRes.user.id) {
+        fetchProjects()
+      }
     }
   } catch (error) {
     localStorage.removeItem('user')
