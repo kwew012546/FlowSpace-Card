@@ -17,16 +17,22 @@ export default defineEventHandler(async (event) => {
 
   try {
     // ดึงสิทธิ์สมาชิก, ข้อมูลโปรเจกต์ และรายการการ์ดงานพร้อมกันในรอบเดียว (ลด Latency 3 เท่า)
-    const [isMember, projectInfo, tasks] = await Promise.all([
+    const [memberRecord, projectInfo, tasks] = await Promise.all([
       prisma.projectMember.findFirst({
         where: { projectId: Number(projectId), userId },
-        select: { id: true }
+        select: {
+          id: true,
+          role: {
+            select: { permissions: true }
+          }
+        }
       }),
       prisma.project.findUnique({
         where: { id: Number(projectId) },
         select: {
           name: true,
           inviteCode: true,
+          isInviteActive: true,
           ownerId: true
         }
       }),
@@ -54,7 +60,7 @@ export default defineEventHandler(async (event) => {
 
     const isOwner = projectInfo && projectInfo.ownerId === userId
 
-    if (!isMember && !isOwner) {
+    if (!memberRecord && !isOwner) {
       throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์เข้าถึงโปรเจกต์นี้ ❌' })
     }
 
@@ -65,11 +71,17 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // ตรวจสอบสิทธิ์การมองเห็นรหัสเชิญ (Owner หรือมียศ INVITE_MEMBERS / MANAGE_PROJECT)
+    const canInvite = isOwner || 
+      memberRecord?.role?.permissions.includes('INVITE_MEMBERS') || 
+      memberRecord?.role?.permissions.includes('MANAGE_PROJECT')
+
     // 3. ส่งข้อมูลทั้งหมดกลับไปให้หน้าบ้านแบบจัดเต็ม
     return {
       success: true,
       projectName: projectInfo.name,     // 👈 ส่งชื่อโปรเจกต์กลับไป
-      inviteCode: projectInfo.inviteCode,   // 👈 ส่งรหัส 6 หลักกลับไป
+      inviteCode: canInvite ? projectInfo.inviteCode : null,   // 👈 ส่งรหัส 6 หลักเฉพาะผู้มีสิทธิ์
+      isInviteActive: projectInfo.isInviteActive, // 👈 ส่งสถานะเปิด/ปิดรับคน
       ownerId: projectInfo.ownerId,       // 👈 ส่งไอดีเจ้าของโปรเจกต์กลับไป
       data: tasks
     }

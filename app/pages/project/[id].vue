@@ -25,11 +25,19 @@
           </h1>
         </div>
 
-        <div class="flex items-center gap-2 bg-white border border-amber-200 rounded-xl p-1.5 shadow-sm">
+        <div v-if="hasPermission('INVITE_MEMBERS')" class="flex items-center gap-2 bg-white border border-amber-200 rounded-xl p-1.5 shadow-sm">
           <div class="px-2">
-            <p class="text-[10px] text-stone-400 font-bold uppercase tracking-wider">รหัสเชิญเข้าตี้</p>
             <div class="flex items-center gap-1.5">
-              <p class="text-sm font-mono font-black text-amber-900 tracking-wider">
+              <p class="text-[10px] text-stone-400 font-bold uppercase tracking-wider">รหัสเชิญเข้าตี้</p>
+              <span v-if="!isInviteActive" class="text-[9px] font-black bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full">
+                🔒 ปิดรับชั่วคราว
+              </span>
+              <span v-else class="text-[9px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
+                🟢 เปิดรับ
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <p class="text-sm font-mono font-black tracking-wider" :class="isInviteActive ? 'text-amber-900' : 'text-stone-400 line-through'">
                 {{ !currentInviteCode ? 'กำลังโหลด...' : (isInviteCodeVisible ? currentInviteCode : '••••••') }}
               </p>
               <button 
@@ -50,7 +58,35 @@
               </button>
             </div>
           </div>
-          <button @click="copyInviteCode" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold px-3 py-2 rounded-lg transition-all self-center">📋 คัดลอกรหัส</button>
+          <button 
+            @click="copyInviteCode" 
+            :disabled="!isInviteActive"
+            :class="isInviteActive ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 cursor-pointer' : 'bg-stone-100 text-stone-400 cursor-not-allowed'"
+            class="text-xs font-bold px-3 py-2 rounded-lg transition-all self-center"
+          >
+            {{ isCopied ? '✅ คัดลอกแล้ว' : '📋 คัดลอกรหัส' }}
+          </button>
+
+          <!-- ตัวเลือกจัดการสำหรับผู้มีสิทธิ์จัดการบอร์ด (Owner หรือ MANAGE_PROJECT) -->
+          <div v-if="hasPermission('MANAGE_PROJECT')" class="flex items-center gap-1 border-l border-amber-200/80 pl-1.5 ml-0.5">
+            <button 
+              @click="toggleInviteActive" 
+              :disabled="isUpdatingInviteSettings"
+              :title="isInviteActive ? 'คลิกเพื่อปิดรับสมาชิกผ่านรหัส' : 'คลิกเพื่อเปิดรับสมาชิกผ่านรหัส'" 
+              class="p-1.5 rounded-lg text-xs font-bold transition-all border shrink-0"
+              :class="isInviteActive ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border-emerald-200'"
+            >
+              {{ isInviteActive ? '🔒 ปิดรับ' : '🔓 เปิดรับ' }}
+            </button>
+            <button 
+              @click="regenerateInviteCode" 
+              :disabled="isUpdatingInviteSettings"
+              title="สุ่มรหัสเชิญใหม่ (รหัสเดิมจะใช้ไม่ได้)" 
+              class="bg-stone-100 hover:bg-stone-200 text-stone-700 p-1.5 rounded-lg text-xs font-bold transition-all border border-stone-250 flex items-center gap-0.5 shrink-0"
+            >
+              <span :class="{ 'animate-spin': isUpdatingInviteSettings }">🔄</span> สุ่มใหม่
+            </button>
+          </div>
         </div>
 
         <div class="flex items-center gap-2.5 relative">
@@ -539,6 +575,9 @@
                     <label class="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" :checked="role.permissions.includes('MANAGE_PROJECT')" @change="togglePermission(role, 'MANAGE_PROJECT')" class="rounded text-amber-600 focus:ring-amber-400" /> สิทธิ์จัดการบอร์ด/แก้ไขชื่อ
                     </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" :checked="role.permissions.includes('INVITE_MEMBERS')" @change="togglePermission(role, 'INVITE_MEMBERS')" class="rounded text-amber-600 focus:ring-amber-400" /> สิทธิ์ดู/แชร์รหัสเชิญ (Invite)
+                    </label>
                   </div>
                 </div>
               </div>
@@ -746,6 +785,9 @@ const currentUser = ref(null)
 const projectOwnerId = ref(null)
 const tasks = ref([])
 const currentInviteCode = ref('')
+const isInviteActive = ref(true)
+const isUpdatingInviteSettings = ref(false)
+const isCopied = ref(false)
 const isEditingProjectName = ref(false)
 const newProjectName = ref('')
 const isInviteCodeVisible = ref(false)
@@ -926,6 +968,9 @@ const fetchTasks = async () => {
     if (response.success) {
       tasks.value = response.data
       currentInviteCode.value = response.inviteCode
+      if (typeof response.isInviteActive === 'boolean') {
+        isInviteActive.value = response.isInviteActive
+      }
       projectName.value = response.projectName
       projectOwnerId.value = response.ownerId
     }
@@ -1182,7 +1227,7 @@ const initSse = () => {
         if (data.type === 'TASKS_UPDATED') {
           Promise.all([fetchTasks(), fetchColumns(), fetchNotifications()])
         } else if (data.type === 'TEAM_UPDATED') {
-          Promise.all([fetchTeamAndRoles(), fetchNotifications()])
+          Promise.all([fetchTeamAndRoles(), fetchNotifications(), fetchTasks()])
         }
       } catch (e) {
         console.error('Failed to parse SSE event message:', e)
@@ -1248,6 +1293,7 @@ const hasPermission = (permission) => {
   const myMemberInfo = projectMembers.value.find(m => m.user.id === currentUser.value.id)
   if (!myMemberInfo) return false
   
+  if (myMemberInfo.role?.permissions.includes('MANAGE_PROJECT')) return true
   return myMemberInfo.role?.permissions.includes(permission) || false
 }
 
@@ -1365,8 +1411,56 @@ const confirmKickMember = async () => {
 }
 
 const copyInviteCode = () => {
-  if (!currentInviteCode.value) return
+  if (!currentInviteCode.value || !isInviteActive.value) return
   navigator.clipboard.writeText(currentInviteCode.value)
+  isCopied.value = true
+  setTimeout(() => { isCopied.value = false }, 2000)
+}
+
+const toggleInviteActive = async () => {
+  if (isUpdatingInviteSettings.value) return
+  isUpdatingInviteSettings.value = true
+  try {
+    const res = await $fetch('/api/projects/invite-settings', {
+      method: 'PUT',
+      body: {
+        projectId,
+        isInviteActive: !isInviteActive.value
+      }
+    })
+    if (res.success && res.data) {
+      isInviteActive.value = res.data.isInviteActive
+    }
+  } catch (err) {
+    console.error('Failed to update invite settings:', err)
+  } finally {
+    isUpdatingInviteSettings.value = false
+  }
+}
+
+const regenerateInviteCode = async () => {
+  if (isUpdatingInviteSettings.value) return
+  if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการสุ่มรหัสเชิญใหม่? รหัสเดิมจะไม่สามารถใช้งานได้อีกต่อไป')) return
+  isUpdatingInviteSettings.value = true
+  try {
+    const res = await $fetch('/api/projects/invite-settings', {
+      method: 'PUT',
+      body: {
+        projectId,
+        regenerateCode: true
+      }
+    })
+    if (res.success && res.data) {
+      currentInviteCode.value = res.data.inviteCode
+      if (typeof res.data.isInviteActive === 'boolean') {
+        isInviteActive.value = res.data.isInviteActive
+      }
+    }
+  } catch (err) {
+    console.error('Failed to regenerate invite code:', err)
+  } finally {
+    isUpdatingInviteSettings.value = false
+  }
 }
 
 const fetchTaskLogs = async (taskId) => {

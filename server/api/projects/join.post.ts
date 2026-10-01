@@ -25,6 +25,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // ตรวจสอบว่าโปรเจกต์เปิดรับสมาชิกผ่านรหัสเชิญหรือไม่
+  if (!project.isInviteActive) {
+    throw createError({
+      statusCode: 403,
+      message: '🔒 ขณะนี้โปรเจกต์นี้ปิดรับสมาชิกใหม่ผ่านรหัสเชิญชั่วคราว'
+    })
+  }
+
   // 2. ตรวจสอบสถานะการเป็นสมาชิก
   const isMember = await prisma.projectMember.findFirst({
     where: {
