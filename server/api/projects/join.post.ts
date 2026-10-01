@@ -1,7 +1,8 @@
 // server/api/projects/join.post.ts
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { inviteCode, userId } = body
+  const { inviteCode } = body
+  const userId = event.context.auth?.user?.id || body.userId
 
   if (!inviteCode || !userId) {
     throw createError({
@@ -47,6 +48,35 @@ export default defineEventHandler(async (event) => {
         userId: Number(userId)
       }
     })
+
+    // ดึงชื่อผู้ใช้ที่เข้าร่วมเพื่อสร้างการแจ้งเตือน
+    const joiningUser = await prisma.user.findUnique({
+      where: { id: Number(userId) },
+      select: { username: true }
+    })
+    const username = joiningUser?.username || 'สมาชิกใหม่'
+
+    // ค้นหาสมาชิกคนอื่นๆ ในโปรเจกต์และเจ้าของบอร์ดเพื่อส่งแจ้งเตือน
+    const members = await prisma.projectMember.findMany({
+      where: { projectId: project.id },
+      select: { userId: true }
+    })
+    const recipientIds = new Set(members.map(m => m.userId))
+    recipientIds.add(project.ownerId)
+    recipientIds.delete(Number(userId)) // ไม่ต้องส่งแจ้งเตือนหาคนที่เพิ่งกดเข้าร่วมเอง
+
+    if (recipientIds.size > 0) {
+      await prisma.notification.createMany({
+        data: Array.from(recipientIds).map(rId => ({
+          userId: rId,
+          title: 'มีสมาชิกใหม่เข้าร่วมโปรเจกต์ 👥',
+          message: `${username} ได้เข้าร่วมโปรเจกต์ "${project.name}"`
+        }))
+      })
+    }
+
+    // ส่งสัญญาณ Real-time บรอดแคสต์ให้อัปเดตสมาชิกและกล่องแจ้งเตือน
+    broadcastProjectUpdate(project.id, 'TEAM_UPDATED')
 
     return { 
       success: true, 

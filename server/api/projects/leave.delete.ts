@@ -35,6 +35,26 @@ export default defineEventHandler(async (event) => {
     where: { id: memberRecord.id }
   })
 
+  // ส่งการแจ้งเตือนหาสมาชิกที่เหลือในโปรเจกต์และเจ้าของบอร์ด
+  const remainingMembers = await prisma.projectMember.findMany({
+    where: { projectId },
+    select: { userId: true }
+  })
+  const recipientIds = new Set(remainingMembers.map(m => m.userId))
+  recipientIds.add(project.ownerId)
+  recipientIds.delete(userId) // ไม่ส่งหาคนที่เพิ่งกดออกเอง
+
+  if (recipientIds.size > 0) {
+    const leaverUsername = event.context.auth.user.username || 'สมาชิก'
+    await prisma.notification.createMany({
+      data: Array.from(recipientIds).map(rId => ({
+        userId: rId,
+        title: 'สมาชิกออกจากโปรเจกต์ 🚪',
+        message: `${leaverUsername} ได้ออกจากโปรเจกต์ "${project.name}"`
+      }))
+    })
+  }
+
   // ส่งสัญญาณให้บอร์ดอัปเดตแบบเรียลไทม์
   broadcastProjectUpdate(projectId, 'TEAM_UPDATED')
 

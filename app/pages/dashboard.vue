@@ -30,7 +30,7 @@
         
         <div class="flex gap-3 w-full md:w-auto">
           <button 
-            @click="isJoinModalOpen = true"
+            @click="openJoinModal"
             class="bg-white hover:bg-stone-50 text-amber-950 font-bold px-5 py-2.5 rounded-xl transition-all border border-amber-300 text-sm flex items-center justify-center gap-1.5"
           >
             🔑 กรอกรหัสเข้าบอร์ด
@@ -63,7 +63,7 @@
             ➕ สร้างโปรเจกต์ใหม่
           </button>
           <button 
-            @click="isJoinModalOpen = true"
+            @click="openJoinModal"
             class="w-full sm:w-auto bg-white hover:bg-stone-50 text-amber-950 font-bold px-5 py-2.5 rounded-xl transition-all border border-amber-300 text-sm flex items-center justify-center gap-1.5"
           >
             🔑 กรอกรหัสเข้าร่วม
@@ -146,7 +146,14 @@
           <p v-if="joinError" class="text-xs text-center text-rose-600 font-bold bg-rose-50 py-1.5 rounded border border-rose-100">{{ joinError }}</p>
           <div class="flex justify-end gap-3 pt-2">
             <button type="button" @click="isJoinModalOpen = false; codeToJoin = ''; joinError = ''" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-bold text-sm transition-all">ยกเลิก</button>
-            <button type="submit" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-bold text-sm transition-all shadow-md shadow-amber-500/10">เข้าร่วมบอร์ด 🚀</button>
+            <button 
+              type="submit" 
+              :disabled="isJoining"
+              class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold text-sm transition-all shadow-md shadow-amber-500/10 flex items-center gap-1.5"
+            >
+              <span v-if="isJoining" class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+              {{ isJoining ? 'กำลังเข้าร่วม...' : 'เข้าร่วมบอร์ด 🚀' }}
+            </button>
           </div>
         </form>
       </div>
@@ -215,6 +222,7 @@ const isEditProjectMode = ref(false)
 const editingProjectId = ref(null)
 
 const isJoinModalOpen = ref(false)
+const isJoining = ref(false)
 const codeToJoin = ref('')
 const joinError = ref('')
 const isLogoutModalOpen = ref(false)
@@ -302,8 +310,15 @@ const openEditProjectModal = (project) => {
   isModalOpen.value = true
 }
 
+const openJoinModal = () => {
+  codeToJoin.value = ''
+  joinError.value = ''
+  isJoinModalOpen.value = true
+}
+
 const handleJoinProject = async () => {
-  if (!codeToJoin.value.trim() || !currentUser.value) return
+  if (!codeToJoin.value.trim() || !currentUser.value || isJoining.value) return
+  isJoining.value = true
   joinError.value = ''
   try {
     const response = await $fetch('/api/projects/join', {
@@ -311,10 +326,17 @@ const handleJoinProject = async () => {
       body: { inviteCode: codeToJoin.value.trim(), userId: currentUser.value.id }
     })
     if (response.success) {
-      isJoinModalOpen.value = false; codeToJoin.value = '';
-      showToast(response.message, 'success'); await fetchProjects()
+      isJoinModalOpen.value = false
+      codeToJoin.value = ''
+      showToast(response.message, 'success')
+      // พาเข้าไปยังหน้าโปรเจกต์ทันที
+      navigateTo(`/project/${response.projectId}`)
     }
-  } catch (error) { joinError.value = error.data?.message || 'รหัสเชิญไม่ถูกต้องหรือหมดอายุ' }
+  } catch (error) { 
+    joinError.value = error.data?.message || 'รหัสเชิญไม่ถูกต้องหรือหมดอายุ' 
+  } finally {
+    isJoining.value = false
+  }
 }
 
 const closeModal = () => {

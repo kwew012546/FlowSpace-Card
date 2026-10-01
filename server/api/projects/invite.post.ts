@@ -38,6 +38,11 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    const project = await prisma.project.findUnique({
+      where: { id: Number(projectId) },
+      select: { id: true, name: true, ownerId: true }
+    })
+
     // 3. เพิ่มบันทึกลงตาราง ProjectMember
     await prisma.projectMember.create({
       data: {
@@ -46,6 +51,36 @@ export default defineEventHandler(async (event) => {
         // roleId สามารถเพิ่มเพื่อแบ่งสิทธิ์ Admin/Member ได้ในอนาคต
       }
     })
+
+    // แจ้งเตือนผู้ใช้ที่ได้รับเชิญ
+    await prisma.notification.create({
+      data: {
+        userId: targetUser.id,
+        title: 'คุณได้รับเชิญเข้าร่วมโปรเจกต์ 🎉',
+        message: `คุณได้ถูกเพิ่มเข้าสู่โปรเจกต์ "${project?.name || ''}"`
+      }
+    }).catch(() => {})
+
+    // แจ้งเตือนสมาชิกคนอื่นในโปรเจกต์
+    const members = await prisma.projectMember.findMany({
+      where: { projectId: Number(projectId) },
+      select: { userId: true }
+    })
+    const recipientIds = new Set(members.map(m => m.userId))
+    if (project?.ownerId) recipientIds.add(project.ownerId)
+    recipientIds.delete(targetUser.id)
+
+    if (recipientIds.size > 0) {
+      await prisma.notification.createMany({
+        data: Array.from(recipientIds).map(rId => ({
+          userId: rId,
+          title: 'มีสมาชิกใหม่เข้าร่วมโปรเจกต์ 👥',
+          message: `${targetUser.username} ได้เข้าร่วมโปรเจกต์ "${project?.name || ''}"`
+        }))
+      }).catch(() => {})
+    }
+
+    broadcastProjectUpdate(Number(projectId), 'TEAM_UPDATED')
 
     return { success: true, message: `เชิญ ${targetUser.username} เข้าสู่โปรเจกต์เรียบร้อยแล้ว!` }
 

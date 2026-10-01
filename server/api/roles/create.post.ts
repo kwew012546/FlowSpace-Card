@@ -35,6 +35,25 @@ export default defineEventHandler(async (event) => {
       }
     })
 
+    // ส่งการแจ้งเตือนไปยังสมาชิกในโปรเจกต์
+    const members = await prisma.projectMember.findMany({
+      where: { projectId: Number(projectId) },
+      select: { userId: true }
+    })
+    const recipientIds = new Set(members.map(m => m.userId))
+    if (project?.ownerId) recipientIds.add(project.ownerId)
+    recipientIds.delete(userId)
+
+    if (recipientIds.size > 0) {
+      await prisma.notification.createMany({
+        data: Array.from(recipientIds).map(rId => ({
+          userId: rId,
+          title: 'มีการเพิ่มยศใหม่ในโปรเจกต์ 🎖️',
+          message: `ยศ "${newRole.name}" ถูกสร้างขึ้นในโปรเจกต์ "${project?.name || ''}"`
+        }))
+      }).catch(() => {})
+    }
+
     broadcastProjectUpdate(Number(projectId), 'TEAM_UPDATED')
 
     return { success: true, message: 'สร้างยศใหม่สำเร็จแล้ว! ⚔️', data: newRole }

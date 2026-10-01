@@ -19,9 +19,36 @@ export default defineEventHandler(async (event) => {
         roleId: roleId ? Number(roleId) : null
       },
       include: {
-        role: true
+        role: true,
+        user: { select: { id: true, username: true } }
       }
     })
+
+    const project = await prisma.project.findUnique({
+      where: { id: updatedMember.projectId },
+      select: { name: true }
+    })
+
+    // แจ้งเตือนไปยังสมาชิกที่ได้รับการมอบหมายหรือปรับเปลี่ยนยศ
+    if (updatedMember.role) {
+      await prisma.notification.create({
+        data: {
+          userId: updatedMember.userId,
+          title: 'คุณได้รับมอบหมายยศใหม่ 🎖️',
+          message: `คุณได้รับยศ "${updatedMember.role.name}" ในโปรเจกต์ "${project?.name || ''}"`
+        }
+      }).catch(() => {})
+    } else {
+      await prisma.notification.create({
+        data: {
+          userId: updatedMember.userId,
+          title: 'ยศของคุณถูกเปลี่ยนแปลง 🎖️',
+          message: `ยศของคุณในโปรเจกต์ "${project?.name || ''}" ถูกปรับเป็นสมาชิกทั่วไป`
+        }
+      }).catch(() => {})
+    }
+
+    broadcastProjectUpdate(updatedMember.projectId, 'TEAM_UPDATED')
 
     return {
       success: true,

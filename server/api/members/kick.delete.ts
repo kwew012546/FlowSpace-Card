@@ -18,21 +18,27 @@ export default defineEventHandler(async (event) => {
       where: { id: Number(projectId) }
     })
 
-    // ถ้าคนกดคือเจ้าของบอร์ดตัวจริง... ให้ปล่อยผ่านไปสั่งเตะได้ทันที
-    if (project && project.ownerId === userId) {
-      await prisma.projectMember.delete({ where: { id: Number(memberId) } })
-      broadcastProjectUpdate(Number(projectId), 'TEAM_UPDATED')
-      return { success: true, message: 'เตะสมาชิกออกจากทีมเรียบร้อยแล้ว! 🚪' }
-    }
-
-    // 🔍 สเต็ปที่ 2: ถ้าไม่ใช่ Owner ให้ไปเช็คยศ (Role) ของคนกดว่ามียศที่มีสิทธิ์คุมบอร์ดไหม
-    const requesterMember = await prisma.projectMember.findFirst({
-      where: { projectId: Number(projectId), userId: userId },
-      include: { role: true }
+    const targetMember = await prisma.projectMember.findUnique({
+      where: { id: Number(memberId) },
+      include: { user: { select: { id: true, username: true } } }
     })
 
-    // ตรวจสอบสิทธิ์ว่ามียศไหม และในอาร์เรย์ permissions มียศคำว่า 'MANAGE_PROJECT' หรือเปล่า
-    if (!requesterMember?.role || !requesterMember.role.permissions.includes('MANAGE_PROJECT')) {
+    const isOwner = project && project.ownerId === userId
+    let hasManagePermission = false
+
+    if (!isOwner) {
+      // 🔍 สเต็ปที่ 2: ถ้าไม่ใช่ Owner ให้ไปเช็คยศ (Role) ของคนกดว่ามียศที่มีสิทธิ์คุมบอร์ดไหม
+      const requesterMember = await prisma.projectMember.findFirst({
+        where: { projectId: Number(projectId), userId: userId },
+        include: { role: true }
+      })
+
+      if (requesterMember?.role && requesterMember.role.permissions.includes('MANAGE_PROJECT')) {
+        hasManagePermission = true
+      }
+    }
+
+    if (!isOwner && !hasManagePermission) {
       throw createError({
         statusCode: 403,
         message: 'คุณไม่มีสิทธิ์ระดับยศในการจัดการสมาชิกในโปรเจกต์นี้! ❌'
@@ -43,6 +49,37 @@ export default defineEventHandler(async (event) => {
     await prisma.projectMember.delete({
       where: { id: Number(memberId) }
     })
+
+    if (targetMember) {
+      // 1. แจ้งเตือนผู้ใช้ที่ถูกนำออก
+      await prisma.notification.create({
+        data: {
+          userId: targetMember.userId,
+          title: 'คุณถูกนำออกจากโปรเจกต์ 🚪',
+          message: `คุณถูกนำออกจากโปรเจกต์ "${project?.name || ''}"`
+        }
+      }).catch(() => {})
+
+      // 2. แจ้งเตือนสมาชิกคนอื่นในโปรเจกต์
+      const remainingMembers = await prisma.projectMember.findMany({
+        where: { projectId: Number(projectId) },
+        select: { userId: true }
+      })
+      const recipientIds = new Set(remainingMembers.map(m => m.userId))
+      if (project?.ownerId) recipientIds.add(project.ownerId)
+      recipientIds.delete(userId)
+      recipientIds.delete(targetMember.userId)
+
+      if (recipientIds.size > 0) {
+        await prisma.notification.createMany({
+          data: Array.from(recipientIds).map(rId => ({
+            userId: rId,
+            title: 'สมาชิกออกจากโปรเจกต์ 🚪',
+            message: `${targetMember.user.username} ถูกนำออกจากโปรเจกต์ "${project?.name || ''}"`
+          }))
+        }).catch(() => {})
+      }
+    }
 
     broadcastProjectUpdate(Number(projectId), 'TEAM_UPDATED')
 

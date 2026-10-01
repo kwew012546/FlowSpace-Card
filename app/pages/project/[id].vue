@@ -820,8 +820,20 @@ const isOverdue = (dueDateStr) => {
 
 const formatDate = (dueDateStr) => {
   if (!dueDateStr) return ''
+  // จัดการกรณีเป็นสตริงวันที่รูปแบบ YYYY-MM-DD
+  if (typeof dueDateStr === 'string' && dueDateStr.includes('-') && !dueDateStr.includes('T')) {
+    const parts = dueDateStr.split('-')
+    if (parts.length === 3) {
+      const [y, m, d] = parts
+      return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`
+    }
+  }
   const date = new Date(dueDateStr)
-  return date.toLocaleDateString('th-TH', { month: 'short', day: 'numeric' })
+  if (isNaN(date.getTime())) return ''
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
 }
 
 const getInitials = (username) => {
