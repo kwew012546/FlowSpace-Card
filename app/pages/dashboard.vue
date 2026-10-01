@@ -28,12 +28,12 @@
           <p class="text-stone-500 font-medium text-sm mt-0.5">เลือกบอร์ดของคุณ หรือใช้รหัสเข้าร่วมทีมของเพื่อนเพื่อลุยงาน</p>
         </div>
         
-        <div class="flex gap-3 w-full md:w-auto">
+        <div v-if="!isLoading && projects.length > 0" class="flex gap-3 w-full md:w-auto">
           <button 
             @click="openJoinModal"
             class="bg-white hover:bg-stone-50 text-amber-950 font-bold px-5 py-2.5 rounded-xl transition-all border border-amber-300 text-sm flex items-center justify-center gap-1.5"
           >
-            🔑 กรอกรหัสเข้าบอร์ด
+            🔑 กรอกรหัสเข้าร่วม
           </button>
           <button 
             @click="openCreateProjectModal"
