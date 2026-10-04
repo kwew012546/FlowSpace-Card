@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คู่มือการใช้งานระบบ FlowSpace (User Manual)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #d97706;
+      --primary-dark: #b45309;
+      --primary-light: #fef3c7;
+      --accent: #f59e0b;
+      --dark: #1c1917;
+      --stone-800: #292524;
+      --stone-600: #57534e;
+      --stone-500: #78716c;
+      --stone-200: #e7e5e4;
+      --stone-100: #f5f5f4;
+      --bg: #fdfaf5;
+      --card-bg: #ffffff;
+      --border: #fde68a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Sarabun', 'Prompt', sans-serif;
+      background-color: #f3f4f6;
+      color: var(--stone-800);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .no-print-bar {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background: #1c1917;
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .no-print-bar button {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .no-print-bar button:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .doc-container {
+      max-width: 850px;
+      margin: 24px auto 40px auto;
+      background: white;
+      padding: 60px 70px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    /* Cover Page */
+    .cover-page {
+      min-height: 900px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+      border-bottom: 2px dashed var(--stone-200);
+      padding-bottom: 40px;
+      margin-bottom: 50px;
+      page-break-after: always;
+    }
+
+    .cover-badge {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      border: 1px solid #fde68a;
+      margin-bottom: 20px;
+    }
+
+    .cover-title {
+      font-family: 'Prompt', sans-serif;
+      font-size: 38px;
+      font-weight: 900;
+      color: #78350f;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .cover-subtitle {
+      font-size: 18px;
+      color: var(--stone-600);
+      font-weight: 500;
+      max-width: 600px;
+      margin: 0 auto 30px auto;
+    }
+
+    .cover-hero-box {
+      background: linear-gradient(145deg, #fdfaf5, #fef3c7);
+      border: 2px solid #fde68a;
+      border-radius: 20px;
+      padding: 35px 25px;
+      margin: 20px 0;
+      box-shadow: 0 10px 25px rgba(217, 119, 6, 0.08);
+    }
+
+    .cover-icon {
+      font-size: 64px;
+      margin-bottom: 10px;
+    }
+
+    .cover-meta {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      text-align: left;
+      background: #fafaf9;
+      padding: 20px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--stone-200);
+      font-size: 13px;
+    }
+
+    .cover-meta strong {
+      color: var(--stone-800);
+      display: block;
+      font-family: 'Prompt', sans-serif;
+    }
+
+    .cover-meta span {
+      color: var(--stone-500);
+    }
+
+    /* Headings */
+    h1, h2, h3, h4 {
+      font-family: 'Prompt', sans-serif;
+      color: #78350f;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 800;
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 8px;
+      margin: 36px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      page-break-after: avoid;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #92400e;
+      margin: 20px 0 10px 0;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: var(--stone-800);
+      text-align: justify;
+    }
+
+    /* Table of contents */
+    .toc-box {
+      background: #fafaf9;
+      border: 1px solid var(--stone-200);
+      border-left: 4px solid var(--primary);
+      border-radius: 10px;
+      padding: 20px 25px;
+      margin-bottom: 35px;
+      page-break-after: always;
+    }
+
+    .toc-title {
+      font-family: 'Prompt', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      color: #78350f;
+      margin-bottom: 14px;
+    }
+
+    .toc-list {
+      list-style: none;
+    }
+
+    .toc-list li {
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dotted var(--stone-200);
+      padding-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .toc-list a {
+      color: var(--stone-800);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .toc-list a:hover {
+      color: var(--primary);
+    }
+
+    /* Feature Cards & Boxes */
+    .step-card {
+      background: #ffffff;
+      border: 1px solid #fed7aa;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 14px 0 18px 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      page-break-inside: avoid;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .step-number {
+      background: var(--primary);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      font-family: 'Prompt', sans-serif;
+    }
+
+    .step-title {
+      font-family: 'Prompt', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: #78350f;
+    }
+
+    /* Info Alert Box */
+    .alert-box {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 14px 0;
+      font-size: 13.5px;
+      page-break-inside: avoid;
+    }
+
+    .alert-box.success {
+      background: #f0fdf4;
+      border-left-color: #22c55e;
+      color: #14532d;
+    }
+
+    .alert-box strong {
+      color: #92400e;
+      font-family: 'Prompt', sans-serif;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+      page-break-inside: avoid;
+    }
+
+    table th {
+      background: #fef3c7;
+      color: #78350f;
+      font-family: 'Prompt', sans-serif;
+      font-weight: 700;
+      text-align: left;
+      padding: 10px 12px;
+      border: 1px solid #fde68a;
+    }
+
+    table td {
+      padding: 10px 12px;
+      border: 1px solid #e7e5e4;
+      vertical-align: top;
+    }
+
+    table tr:nth-child(even) {
+      background-color: #fafaf9;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Prompt', sans-serif;
+    }
+
+    .badge-urgent { background: #fee2e2; color: #991b1b; }
+    .badge-high { background: #ffedd5; color: #9a3412; }
+    .badge-medium { background: #fef3c7; color: #92400e; }
+    .badge-low { background: #e0f2fe; color: #075985; }
+
+    /* Footer */
+    .doc-footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid var(--stone-200);
+      text-align: center;
+      color: var(--stone-500);
+      font-size: 12px;
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white;
+        color: #111;
+        font-size: 11.5pt;
+      }
+
+      .no-print-bar {
+        display: none !important;
+      }
+
+      .doc-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .cover-page {
+        height: 100vh;
+        min-height: 100vh;
+        margin-bottom: 0;
+        border-bottom: none;
+      }
+
+      h2 {
+        margin-top: 24pt;
+        page-break-before: auto;
+      }
+
+      .page-break {
+        page-break-after: always;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 18mm 15mm 18mm 15mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Action Bar (Hidden when printing/saving to PDF) -->
+  <div class="no-print-bar">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 20px;">🌌</span>
+      <strong style="font-family: 'Prompt'; font-size: 16px;">FlowSpace User Manual</strong>
+      <span style="background: #374151; padding: 2px 8px; border-radius: 4px; font-size: 11px;">v1.0 Official</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="window.print()">
+        🖨️ พิมพ์ / บันทึกเป็น PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="doc-container">
+
+    <!-- COVER PAGE -->
+    <div class="cover-page">
+      <div>
+        <div class="cover-badge">DOCUMENTATION & USER GUIDE</div>
+        <div class="cover-hero-box">
+          <div class="cover-icon">🌌 📋 🚀</div>
+          <h1 class="cover-title">คู่มือการใช้งานระบบ<br>FlowSpace Kanban Workspace</h1>
+          <p class="cover-subtitle">
+            คู่มือแนะนำการใช้งานระบบบริหารจัดการ มอบหมายงาน และทำงานร่วมกันในทีมแบบครบวงจร
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <div class="cover-meta">
+          <div>
+            <strong>ชื่อโปรเจกต์:</strong>
+            <span>FlowSpace (Kanban Task Management)</span>
+          </div>
+          <div>
+            <strong>แพลตฟอร์ม:</strong>
+            <span>Nuxt 4 + PostgreSQL (Neon) บน Vercel</span>
+          </div>
+          <div>
+            <strong>ประเภทเอกสาร:</strong>
+            <span>คู่มือการใช้งานระบบ (User Manual)</span>
+          </div>
+          <div>
+            <strong>ลิงก์เข้าใช้งาน:</strong>
+            <span>flow-space-card.vercel.app</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size: 12px; color: var(--stone-500); margin-top: 20px;">
+        © 2026 FlowSpace System. เอกสารนี้จัดทำขึ้นเพื่อเป็นแนวทางการใช้งานสำหรับสมาชิกในทีมและผู้ดูแลบอร์ด
+      </div>
+    </div>
+
+    <!-- TABLE OF CONTENTS -->
+    <div class="toc-box">
+      <div class="toc-title">📑 สารบัญเนื้อหา (Table of Contents)</div>
+      <ul class="toc-list">
+        <li><span>1. บทนำและภาพรวมระบบ (Introduction & Overview)</span> <span>หน้า 2</span></li>
+        <li><span>2. การสมัครสมาชิกและการยืนยันตัวตน (Account & Authentication)</span> <span>หน้า 3</span></li>
+        <li><span>3. การสร้างโปรเจกต์และการเชิญสมาชิกด้วยรหัส 6 หลัก (Workspaces & Invites)</span> <span>หน้า 4</span></li>
+        <li><span>4. ระบบยศตำแหน่งและการจัดสรรสิทธิ์ (Roles & Permissions)</span> <span>หน้า 5</span></li>
+        <li><span>5. การปรับแต่งคอลัมน์บนกระดานงาน (Custom Kanban Columns)</span> <span>หน้า 6</span></li>
+        <li><span>6. การจัดการการ์ดงานและการมอบหมายเชิงลึก (Advanced Task Cards)</span> <span>หน้า 7</span></li>
+        <li><span>7. ระบบติดตามงานแบบเรียลไทม์ และประวัติกิจกรรม (Real-time & Logs)</span> <span>หน้า 8</span></li>
+        <li><span>8. คำถามที่พบบ่อยและข้อแนะนำ (FAQ & Best Practices)</span> <span>หน้า 9</span></li>
+      </ul>
+    </div>
+
+    <!-- SECTION 1 -->
+    <h2 id="section1">🌟 1. บทนำและภาพรวมระบบ (Introduction & Overview)</h2>
+    <p>
+      <strong>FlowSpace</strong> คือเว็บแอปพลิเคชันบริหารจัดการและติดตามความคืบหน้าของงาน (Kanban Board) ที่ได้รับการออกแบบมาเพื่อตอบโจทย์การทำงานร่วมกันเป็นทีมในยุคดิจิทัลอย่างแท้จริง โดยผสมผสานความเรียบง่ายในการใช้งานเข้ากับระบบกำหนดสิทธิ์การเข้าถึงที่มีความยืดหยุ่นสูง
+    </p>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">✓</span>
+        <span class="step-title">จุดเด่นสำคัญของ FlowSpace</span>
+      </div>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>ระบบเชิญด้วยรหัส 6 หลัก (Quick Invite):</strong> ไม่ต้องขออีเมลเพื่อแอดเข้ากลุ่ม เจ้าของบอร์ดเพียงส่งรหัส 6 หลักให้เพื่อนกรอกเพื่อเข้าบอร์ดได้ทันที</li>
+        <li><strong>ระบบยศสไตล์ Discord (Custom Roles):</strong> ตั้งชื่อยศและติ๊กเลือกสิทธิ์ได้อย่างอิสระ เช่น Admin, Developer, Designer, Tester</li>
+        <li><strong>คอลัมน์ที่ยืดหยุ่น (Dynamic Columns):</strong> เพิ่ม ลบ เปลี่ยนชื่อ และจัดลำดับขั้นตอนการทำงานได้ไม่จำกัด</li>
+        <li><strong>การ์ดงานแบบครบเครื่อง:</strong> รองรับการระบุผู้รับผิดชอบ, กำหนดส่ง (Due Date), ความเร่งด่วน, งานย่อย (Checklist), แนบรูปภาพ, และคอมเมนต์</li>
+        <li><strong>การทำงานที่ลื่นไหล (Optimistic UI):</strong> ลากวางย้ายการ์ดได้ทันใจแบบ 0 วินาที โดยไม่ต้องรอโหลดหน้าเว็บใหม่</li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SECTION 2 -->
+    <h2 id="section2">👤 2. การสมัครสมาชิกและการยืนยันตัวตน (Authentication)</h2>
+    <p>
+      เพื่อความปลอดภัยของข้อมูลทุกโปรเจกต์ ระบบกำหนดให้ผู้ใช้ต้องลงทะเบียนบัญชีและยืนยันตัวตนก่อนเข้าใช้งาน
+    </p>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">1</span>
+        <span class="step-title">ขั้นตอนการสมัครสมาชิก (Sign Up)</span>
+      </div>
+      <p>1. เข้าสู่หน้าเว็บไซต์ เลือกเมนู <strong>"สมัครสมาชิก" (Register)</strong></p>
+      <p>2. กรอกข้อมูลให้ครบถ้วน ได้แก่ <strong>อีเมล (Email)</strong>, <strong>ชื่อผู้ใช้งาน (Username)</strong>, และ <strong>รหัสผ่าน (Password)</strong></p>
+      <p>3. กดปุ่ม <strong>"สร้างบัญชีผู้ใช้ ✨"</strong></p>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <span class="step-title">ขั้นตอนการยืนยันอีเมล (Email Verification)</span>
+      </div>
+      <p>ระบบมีระบบความปลอดภัยสองชั้นเพื่อตรวจสอบความถูกต้องของบัญชี:</p>
+      <ul style="padding-left: 20px; margin-bottom: 10px;">
+        <li><strong>กรณีต่อกับระบบอีเมล (SMTP):</strong> ระบบจะส่งลิงก์ยืนยันตัวตนไปยังอีเมลของผู้ใช้ (ลิงก์มีอายุ 15 นาที)</li>
+        <li><strong>กรณีบนเว็บไซต์สาธิต:</strong> จะมีปุ่มทางลัด <em>"คลิกเพื่อยืนยันอีเมลทันที ✉️"</em> ปรากฏบนหน้าจอ เพื่อให้สามารถเปิดใช้งานบัญชีได้สะดวกทันที</li>
+      </ul>
+      <div class="alert-box success">
+        <strong>เมื่อยืนยันสำเร็จ:</strong> ระบบจะนำท่านเข้าสู่หน้าจอเข้าสู่ระบบอัตโนมัติ และสามารถนำอีเมลกับรหัสผ่านเดิมมาล็อกอินได้ทันที
+      </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <h2 id="section3">🗂️ 3. การสร้างโปรเจกต์และการเชิญสมาชิก (Workspaces & Invites)</h2>
+    <p>
+      เมื่อเข้าสู่ระบบเรียบร้อยแล้ว ระบบจะนำท่านมาที่หน้า <strong>"My Workspaces" (แดชบอร์ดส่วนตัว)</strong> ซึ่งเป็นศูนย์รวมโปรเจกต์ทั้งหมดของท่าน
+    </p>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">➕</span>
+        <span class="step-title">วิธีสร้างโปรเจกต์ใหม่ (Create Project)</span>
+      </div>
+      <p>1. กดปุ่มสีส้ม <strong>"➕ สร้างโปรเจกต์ใหม่"</strong> ที่มุมขวาบนของหน้าแดชบอร์ด</p>
+      <p>2. ตั้งชื่อโปรเจกต์ (เช่น <em>"พัฒนาแอปมือถือ 2026"</em>) และใส่คำอธิบายสั้นๆ</p>
+      <p>3. กด <strong>"สร้างสำเร็จ ✨"</strong> ระบบจะสร้างบอร์ดงานพร้อมคอลัมน์มาตรฐาน (To Do, Doing, Done) และสร้างรหัสเชิญประจำบอร์ดให้ทันที</p>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">🔑</span>
+        <span class="step-title">การเชิญลูกทีมด้วยรหัส 6 หลัก (Invite System)</span>
+      </div>
+      <p>1. เมื่อเข้าไปในหน้าบอร์ด ให้สังเกตแถบข้อมูลโปรเจกต์ด้านบน จะมีรหัสภาษาอังกฤษผสมตัวเลข 6 หลัก (เช่น <code>A9X3F1</code>)</p>
+      <p>2. กดปุ่ม <strong>"คัดลอกรหัส"</strong> แล้วส่งรหัสนี้ให้เพื่อนร่วมทีม</p>
+      <p>3. เพื่อนร่วมทีมเพียงกดปุ่ม <strong>"🔑 กรอกรหัสเข้าบอร์ด"</strong> ที่หน้าแดชบอร์ดของตนเอง แล้วนำรหัสมาวาง ก็จะกลายเป็นสมาชิกของบอร์ดทันที!</p>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SECTION 4 -->
+    <h2 id="section4">🛡️ 4. ระบบยศตำแหน่งและการจัดสรรสิทธิ์ (Roles & Permissions)</h2>
+    <p>
+      FlowSpace มาพร้อมระบบสิทธิ์แบบ Role-Based สไตล์ Discord Server เพื่อให้เจ้าของโปรเจกต์สามารถกำหนดขอบเขตอำนาจหน้าที่ของสมาชิกแต่ละคนได้อย่างปลอดภัย
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 25%;">ชื่อสิทธิ์ (Permission)</th>
+          <th style="width: 45%;">คำอธิบายการใช้งาน</th>
+          <th style="width: 30%;">คำแนะนำการมอบสิทธิ์</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>CREATE_TASK</strong></td>
+          <td>สิทธิ์สร้างการ์ดงานใหม่, แก้ไขข้อมูลการ์ด และลากย้ายการ์ดระหว่างคอลัมน์</td>
+          <td>ควรเปิดให้สมาชิกทุกคนที่ทำงานจริง</td>
+        </tr>
+        <tr>
+          <td><strong>DELETE_TASK</strong></td>
+          <td>สิทธิ์ในการลบการ์ดงานออกจากบอร์ดถาวร</td>
+          <td>มอบให้ระดับหัวหน้าทีมหรือ QA</td>
+        </tr>
+        <tr>
+          <td><strong>MANAGE_COLUMNS</strong></td>
+          <td>สิทธิ์เพิ่มคอลัมน์ใหม่, แก้ไขชื่อคอลัมน์ หรือลบคอลัมน์</td>
+          <td>มอบให้ Project Manager / Scrum Master</td>
+        </tr>
+        <tr>
+          <td><strong>MANAGE_ROLES</strong></td>
+          <td>สิทธิ์สร้างยศใหม่ และเปลี่ยนยศตำแหน่งให้เพื่อนในทีม</td>
+          <td>มอบเฉพาะรองหัวหน้าหรือ Admin</td>
+        </tr>
+        <tr>
+          <td><strong>KICK_MEMBERS</strong></td>
+          <td>สิทธิ์ในการถอนหรือเนรเทศสมาชิกออกจากโปรเจกต์</td>
+          <td>สิทธิ์ระดับสูงเฉพาะผู้ดูแลความปลอดภัย</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="alert-box">
+      <strong>ข้อสังเกต:</strong> ผู้สร้างโปรเจกต์ (Project Owner) จะมีสถานะสูงสุดเสมอ สามารถทำได้ทุกอย่างและไม่มีใครสามารถลดตำแหน่งหรือเตะเจ้าของบอร์ดได้
+    </div>
+
+    <!-- SECTION 5 -->
+    <h2 id="section5">📊 5. การปรับแต่งคอลัมน์บนกระดานงาน (Kanban Columns)</h2>
+    <p>
+      ทุกขั้นตอนการทำงานของแต่ละทีมมีความแตกต่างกัน FlowSpace จึงเปิดให้ปรับแต่งโครงสร้างบอร์ดได้อย่างอิสระ:
+    </p>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">📂</span>
+        <span class="step-title">การจัดการคอลัมน์ (Column Operations)</span>
+      </div>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>คอลัมน์เริ่มต้น:</strong> เมื่อสร้างบอร์ดใหม่ จะมีคอลัมน์มาตรฐาน 3 คอลัมน์ ได้แก่ <em>📋 จะทำ (To Do)</em>, <em>⚙️ กำลังทำ (Doing)</em>, และ <em>✅ ทำเสร็จแล้ว (Done)</em></li>
+        <li><strong>เพิ่มคอลัมน์ใหม่:</strong> เลื่อนไปขวาสุดของบอร์ด กดปุ่ม <strong>"+ เพิ่มคอลัมน์ใหม่"</strong> พิมพ์ชื่อ เช่น <em>"Testing / QA"</em> หรือ <em>"รอตรวจงาน"</em></li>
+        <li><strong>แก้ไขชื่อคอลัมน์:</strong> ดับเบิ้ลคลิกหรือกดไอคอนดินสอที่หัวคอลัมน์เพื่อพิมพ์ชื่อใหม่ได้ทันที</li>
+        <li><strong>ลบคอลัมน์:</strong> กดไอคอนถังขยะที่หัวคอลัมน์ <em>(ระบบจะอนุญาตให้ลบได้เฉพาะคอลัมน์ที่ไม่มีการ์ดงานค้างอยู่เท่านั้น เพื่อป้องกันงานสูญหาย)</em></li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SECTION 6 -->
+    <h2 id="section6">📝 6. การจัดการการ์ดงานแบบละเอียด (Advanced Task Cards)</h2>
+    <p>
+      การ์ดงานใน FlowSpace ได้รับการออกแบบให้บรรจุข้อมูลที่จำเป็นสำหรับการทำงานจริงได้อย่างสมบูรณ์แบบ:
+    </p>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">1</span>
+        <span class="step-title">การสร้างการ์ดงาน (Create Card)</span>
+      </div>
+      <p>กดปุ่ม <strong>"+ เพิ่มการ์ดงาน"</strong> ใต้คอลัมน์ที่ต้องการ จากนั้นกรอกรายละเอียด:</p>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>หัวข้องาน (Title):</strong> สรุปสิ่งที่จะทำสั้นกระชับ</li>
+        <li><strong>รายละเอียด (Description):</strong> รายละเอียดขั้นตอนหรือข้อกำหนด</li>
+        <li><strong>ผู้รับผิดชอบ (Assignee):</strong> เลือกสมาชิกจากรายชื่อเพื่อนในบอร์ด</li>
+        <li><strong>กำหนดส่ง (Due Date):</strong> วันที่ต้องส่งงาน (ระบบจะขึ้นเตือนสีแดงหากเกินกำหนด)</li>
+        <li><strong>ระดับความสำคัญ (Priority):</strong> เลือกระดับความเร่งด่วน:
+          <span class="badge badge-low">LOW</span>
+          <span class="badge badge-medium">MEDIUM</span>
+          <span class="badge badge-high">HIGH</span>
+          <span class="badge badge-urgent">URGENT</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <span class="step-title">ฟีเจอร์ภายในตัวการ์ด (Card Modal Features)</span>
+      </div>
+      <p>เมื่อคลิกที่ตัวการ์ดเพื่อเปิดดูรายละเอียด จะพบฟังก์ชันเสริมดังนี้:</p>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>☑️ เช็คลิสต์งานย่อย (Subtasks):</strong> ซอยงานใหญ่เป็นขั้นตอนย่อย สามารถติ๊กถูกเพื่อดูเปอร์เซ็นต์ความคืบหน้าได้</li>
+        <li><strong>📎 แนบไฟล์และรูปภาพผลงาน (Attachments):</strong> อัปโหลดรูปภาพผลงาน หรือไฟล์เอกสารแนบประกอบงานเพื่อให้เพื่อนในทีมตรวจสอบได้โดยตรง</li>
+        <li><strong>💬 คอมเมนต์พูดคุย (Card Comments):</strong> พิมพ์สอบถามหรือส่งอัปเดตงานกับเพื่อนร่วมงานใต้การ์ดใบนั้นๆ</li>
+        <li><strong>📜 ประวัติกิจกรรม (Task Activity Logs):</strong> ดูประวัติอย่างละเอียดว่าใครเป็นคนสร้าง ใครย้ายการ์ดจากไหนไปไหน และแก้ไขอะไรไปบ้างเมื่อไหร่</li>
+      </ul>
+    </div>
+
+    <!-- SECTION 7 -->
+    <h2 id="section7">⚡ 7. ระบบติดตามงานและประวัติกิจกรรม (Real-time & Logs)</h2>
+    <p>
+      FlowSpace มีระบบจัดการสถานะงานที่รวดเร็วเพื่อไม่ให้รบกวนสมาธิในการทำงานของทีม:
+    </p>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">🖱️</span>
+        <span class="step-title">การลากวางการ์ด (Drag and Drop with Optimistic UI)</span>
+      </div>
+      <p>
+        สมาชิกสามารถคลิกค้างที่การ์ดงานแล้วลากข้ามไปวางในคอลัมน์ถัดไปได้ทันที โดยหน้าจอจะย้ายการ์ดให้เห็นผลใน <strong>0 วินาที</strong> ทันทีที่ปล่อยเมาส์ และระบบจะบันทึกสถานะลงฐานข้อมูล Neon Cloud พร้อมอัปเดตประวัติการย้ายงานอัตโนมัติ
+      </p>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">🔔</span>
+        <span class="step-title">ระบบแจ้งเตือนส่วนบุคคล (Notification Bell)</span>
+      </div>
+      <p>
+        ไอคอนกระดิ่งที่มุมขวาบนของบอร์ดจะแสดงตัวเลขแจ้งเตือนเมื่อ:
+      </p>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li>มีคนมอบหมายการ์ดงานใหม่ให้ท่าน</li>
+        <li>มีคนเปลี่ยนยศตำแหน่งของท่านในโปรเจกต์</li>
+        <li>งานที่ได้รับมอบหมายใกล้ถึงวันครบกำหนดส่ง</li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SECTION 8 -->
+    <h2 id="section8">❓ 8. คำถามที่พบบ่อย (FAQ & Best Practices)</h2>
+
+    <div class="step-card">
+      <h3 style="margin-top: 0;">Q1: จะแชร์บอร์ดให้เพื่อนร่วมงานได้อย่างไรให้เร็วที่สุด?</h3>
+      <p><strong>ตอบ:</strong> ส่งรหัส 6 หลักที่แสดงอยู่บนแถบหัวบอร์ดให้เพื่อน จากนั้นให้เพื่อนกดปุ่ม <em>"🔑 กรอกรหัสเข้าบอร์ด"</em> บนหน้าแดชบอร์ดของตนเอง แล้วกรอกรหัส เพื่อนจะเข้าร่วมทีมได้ทันทีโดยไม่ต้องรอให้อนุมัติ</p>
+    </div>
+
+    <div class="step-card">
+      <h3 style="margin-top: 0;">Q2: ทำไมจึงกดลบคอลัมน์ไม่ได้?</h3>
+      <p><strong>ตอบ:</strong> เพื่อความปลอดภัยของข้อมูล ระบบจะไม่อนุญาตให้ลบคอลัมน์ที่มีการ์ดงานค้างอยู่ กรุณาลากการ์ดทั้งหมดในคอลัมน์นั้นไปไว้ที่คอลัมน์อื่นก่อน จากนั้นจึงจะสามารถกดลบคอลัมน์ได้</p>
+    </div>
+
+    <div class="step-card">
+      <h3 style="margin-top: 0;">Q3: ถ้าต้องการให้อาจารย์หรือหัวหน้าดูงานได้อย่างเดียว ไม่ให้ขยับการ์ด ต้องทำอย่างไร?</h3>
+      <p><strong>ตอบ:</strong> ให้เจ้าของโปรเจกต์สร้างยศชื่อ <em>"Viewer"</em> หรือ <em>"Observer"</em> โดย<strong>ไม่ต้องติ๊กสิทธิ์ CREATE_TASK</strong> จากนั้นมอบยศนี้ให้ท่านนั้น เมื่อเข้ามาที่บอร์ดจะสามารถดูข้อมูลได้ทั้งหมด แต่จะไม่สามารถสร้าง ย้าย หรือลบการ์ดงานได้</p>
+    </div>
+
+    <div class="step-card">
+      <h3 style="margin-top: 0;">Q4: สมาชิกที่ไม่ใช้งานแล้ว สามารถนำออกจากโปรเจกต์ได้ไหม?</h3>
+      <p><strong>ตอบ:</strong> เจ้าของโปรเจกต์หรือผู้ที่มียศที่มีสิทธิ์ <code>KICK_MEMBERS</code> สามารถเปิดเมนูจัดการทีม (Manage Team) แล้วกดปุ่ม <em>"เนรเทศออก"</em> ที่ข้างชื่อสมาชิกคนนั้นได้ทันที</p>
+    </div>
+
+    <!-- DOCUMENT FOOTER -->
+    <div class="doc-footer">
+      <p><strong>FlowSpace Kanban Workspace - Official User Guide & Technical Manual</strong></p>
+      <p>Deploy Address: <a href="https://flow-space-card.vercel.app" style="color: var(--primary);">https://flow-space-card.vercel.app</a></p>
+      <p>จัดทำเพื่อการใช้งานระบบและประกอบการนำเสนอโครงงาน เวอร์ชัน 1.0 (Production)</p>
+    </div>
+
+  </div>
+
+</body>
+</html>
