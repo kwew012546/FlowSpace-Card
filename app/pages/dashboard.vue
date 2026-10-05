@@ -10,6 +10,15 @@
           🗂️ My Workspaces
         </h1>
         <div class="flex items-center gap-3">
+          <a 
+            href="/manual.html" 
+            target="_blank" 
+            class="bg-white hover:bg-stone-50 text-stone-700 hover:text-amber-800 font-bold px-3 py-1.5 rounded-lg border border-amber-200/80 transition-all text-sm flex items-center gap-1.5 shadow-sm"
+            title="เปิดอ่านคู่มือการใช้งานระบบ FlowSpace"
+          >
+            <span>📖</span>
+            <span class="hidden sm:inline">คู่มือใช้งาน</span>
+          </a>
           <span class="text-sm font-semibold text-stone-600 bg-[#f3e9d7] px-3 py-1.5 rounded-lg border border-amber-200">
             👤 {{ currentUser?.username || 'User' }}
           </span>
@@ -49,7 +58,7 @@
         <p class="text-stone-500 font-bold text-sm">กำลังดึงข้อมูลเวิร์กสเปซ...</p>
       </div>
 
-      <div v-else-if="projects.length === 0" class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl p-12 text-center max-w-xl mx-auto shadow-xl shadow-amber-900/5 mt-8">
+      <div v-else-if="projects.length === 0" class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl p-8 sm:p-12 text-center max-w-xl mx-auto shadow-xl shadow-amber-900/5 mt-8">
         <div class="text-5xl mb-4">🏜️</div>
         <h3 class="text-xl font-extrabold text-stone-800 mb-2">คุณยังไม่มีโปรเจกต์ในขณะนี้</h3>
         <p class="text-stone-500 text-sm font-medium mb-6 max-w-md mx-auto">
@@ -68,6 +77,33 @@
           >
             🔑 กรอกรหัสเข้าร่วม
           </button>
+        </div>
+
+        <!-- Banner แนะนำคู่มือการใช้งานสำหรับสมาชิกใหม่ -->
+        <div class="mt-8 pt-6 border-t border-amber-200/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-left bg-gradient-to-r from-amber-50/80 to-orange-50/60 p-4 rounded-xl border border-amber-200/80">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl">📘</span>
+            <div>
+              <h4 class="text-xs font-black text-amber-950 uppercase tracking-wider">เพิ่งเริ่มต้นใช้งาน FlowSpace?</h4>
+              <p class="text-xs text-stone-500 font-medium">ศึกษาวิธีสร้างบอร์ด มอบหมายงาน และตั้งค่าระบบยศได้ในคู่มือ</p>
+            </div>
+          </div>
+          <div class="flex gap-2 w-full sm:w-auto shrink-0 justify-center">
+            <a 
+              href="/manual.html" 
+              target="_blank" 
+              class="text-xs bg-white hover:bg-stone-50 text-amber-950 font-bold px-3 py-1.5 rounded-lg border border-amber-300 transition-all flex items-center justify-center gap-1 shadow-sm"
+            >
+              📖 เปิดอ่านคู่มือ
+            </a>
+            <a 
+              href="/FlowSpace_User_Manual.pdf" 
+              download="FlowSpace_User_Manual.pdf" 
+              class="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg transition-all shadow-sm flex items-center justify-center gap-1"
+            >
+              📥 โหลด PDF
+            </a>
+          </div>
         </div>
       </div>
 

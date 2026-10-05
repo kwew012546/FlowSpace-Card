@@ -90,6 +90,16 @@
         </div>
 
         <div class="flex items-center gap-2.5 relative">
+          <a 
+            href="/manual.html" 
+            target="_blank" 
+            class="bg-white border border-amber-200 text-stone-600 hover:text-amber-800 p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center focus:outline-none text-xs font-bold gap-1.5"
+            title="เปิดอ่านคู่มือการใช้งานระบบ FlowSpace"
+          >
+            <span>📖</span>
+            <span class="hidden lg:inline">คู่มือ</span>
+          </a>
+
           <div class="relative">
             <button @click="isNotificationsOpen = !isNotificationsOpen" class="bg-white border border-amber-200 text-stone-600 hover:text-stone-850 p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center relative focus:outline-none">
               🔔
