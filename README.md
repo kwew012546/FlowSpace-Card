@@ -1,6 +1,16 @@
 # 🌌 FlowSpace: General-Purpose Workflow Workspace
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-flow--space--card.vercel.app-d97706?style=for-the-badge&logo=vercel)](https://flow-space-card.vercel.app)
+[![User Manual](https://img.shields.io/badge/User_Manual-HTML_%7C_PDF-b45309?style=for-the-badge&logo=readme)](https://flow-space-card.vercel.app/manual.html)
+
 FlowSpace เป็นแพลตฟอร์มบริหารจัดการงานและจัดระเบียบกระบวนการทำงานในรูปแบบบอร์ดจำลองเอนกประสงค์ (General-Purpose Workflow Board) ที่ออกแบบมาอย่างเรียบหรูสไตล์พรีเมียมสีเอิร์ธโทน-วอร์มไลท์ (Sand/Warm Theme) โดยไม่ได้จำกัดเฉพาะสายพัฒนาซอฟต์แวร์ แต่ตอบโจทย์การบริหารโครงการ งานส่วนตัว และกระบวนการของตี้ทำงานในทุกมิติ
+
+---
+
+## 🌐 เข้าใช้งานระบบ (Live Demo & Manual)
+* 🚀 **เว็บไซต์หลัก (Production)**: [https://flow-space-card.vercel.app](https://flow-space-card.vercel.app)
+* 📖 **คู่มือการใช้งานระบบ (Online HTML)**: [https://flow-space-card.vercel.app/manual.html](https://flow-space-card.vercel.app/manual.html)
+* 📑 **ดาวน์โหลดคู่มือฉบับเอกสาร (PDF)**: [FlowSpace_User_Manual.pdf](https://flow-space-card.vercel.app/FlowSpace_User_Manual.pdf)
 
 ---
 
