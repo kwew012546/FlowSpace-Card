@@ -1,6 +1,6 @@
 <template>
   <!-- Reusable Toast Notification -->
-  <div v-if="toast.show" class="fixed top-4 right-4 z-50 transform transition-all duration-300 translate-y-0 opacity-100 flex items-center gap-3 bg-[#fdfaf5] border rounded-xl p-4 shadow-xl max-w-sm" :class="toast.type === 'success' ? 'border-emerald-200' : toast.type === 'error' ? 'border-rose-200' : 'border-amber-200'">
+  <div v-if="toast.show" class="fixed top-4 right-4 left-4 sm:left-auto sm:max-w-sm z-50 transform transition-all duration-300 translate-y-0 opacity-100 flex items-center gap-3 bg-[#fdfaf5] border rounded-xl p-3.5 sm:p-4 shadow-xl" :class="toast.type === 'success' ? 'border-emerald-200' : toast.type === 'error' ? 'border-rose-200' : 'border-amber-200'">
     <div :class="toast.type === 'success' ? 'bg-emerald-100 text-emerald-600' : toast.type === 'error' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'" class="p-2 rounded-full shrink-0">
       <!-- Success SVG -->
       <svg v-if="toast.type === 'success'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">

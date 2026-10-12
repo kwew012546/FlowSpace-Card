@@ -1,18 +1,18 @@
 <!-- app/pages/register.vue -->
 <template>
   <!-- เปลี่ยนพื้นหลังเป็นสีครีมทึบแน่นๆ ไล่เฉดสีนุ่มนวล ไม่โปร่งแสงเขาสว่าง -->
-  <div class="min-h-screen bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] flex items-center justify-center p-4 relative overflow-hidden bg-grid">
+  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] flex items-center justify-center p-4 relative overflow-x-hidden bg-grid">
     
     <!-- แสงออร่าสีนวลละมุนปรับให้เข้มขึ้นเล็กน้อย -->
-    <div class="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-[-10%] left-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
 
     <!-- ตัวการ์ดปรับเป็นสีครีมงาช้างทึบ ตัดขอบด้วยสีชานมจางๆ -->
-    <div class="bg-[#fdfaf5] border border-amber-200/80 p-8 rounded-2xl w-full max-w-md shadow-xl shadow-amber-900/5 relative z-10">
-      <h2 class="text-3xl font-extrabold text-center text-stone-800 mb-2 flex items-center justify-center gap-2">
+    <div class="bg-[#fdfaf5] border border-amber-200/80 p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-xl shadow-amber-900/5 relative z-10">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-center text-stone-800 mb-2 flex items-center justify-center gap-2">
         <span>📝</span> สมัครสมาชิก
       </h2>
-      <p class="text-center text-stone-500 text-sm mb-6 font-medium">สร้างบัญชีเพื่อเริ่มต้นจัดการโปรเจกต์ของคุณ</p>
+      <p class="text-center text-stone-500 text-xs sm:text-sm mb-6 font-medium">สร้างบัญชีเพื่อเริ่มต้นจัดการโปรเจกต์ของคุณ</p>
 
       <form @submit.prevent="handleRegister" class="space-y-4">
         <div>
@@ -22,7 +22,7 @@
             type="text" 
             placeholder="เช่น geaw_dev" 
             required 
-            class="w-full bg-white border border-amber-200 rounded-lg px-3 py-2.5 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
+            class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
           />
         </div>
 
@@ -33,7 +33,7 @@
             type="email" 
             placeholder="name@example.com" 
             required 
-            class="w-full bg-white border border-amber-200 rounded-lg px-3 py-2.5 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
+            class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
           />
         </div>
 
@@ -44,7 +44,7 @@
             type="password" 
             placeholder="••••••••" 
             required 
-            class="w-full bg-white border border-amber-200 rounded-lg px-3 py-2.5 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
+            class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
           />
         </div>
 
@@ -55,7 +55,7 @@
         <button 
           type="submit" 
           :disabled="isLoading" 
-          class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-stone-400 disabled:to-stone-400 text-white font-bold py-2.5 rounded-lg transition-all shadow-md shadow-amber-600/20 mt-2 transform hover:-translate-y-0.5 active:translate-y-0"
+          class="w-full min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-stone-400 disabled:to-stone-400 text-white font-bold py-2.5 rounded-xl transition-all shadow-md shadow-amber-600/20 mt-2 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center text-sm sm:text-base"
         >
           {{ isLoading ? 'กำลังบันทึกข้อมูล...' : 'สมัครสมาชิก ✨' }}
         </button>
@@ -64,12 +64,12 @@
       <!-- ปุ่มยืนยันด่วนในโหมดพัฒนาเครื่อง Local -->
       <div v-if="verifyLink" class="mt-4 p-4 bg-amber-50/80 border border-amber-200 rounded-xl text-center text-xs font-bold text-stone-700">
         <p class="mb-2.5 flex items-center justify-center gap-1"><span>💻</span> (โหมดพัฒนาในเครื่อง) ยืนยันอีเมลได้ทันที:</p>
-        <a :href="verifyLink" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black px-4 py-2 rounded-lg inline-block shadow-sm transition-all">คลิกเพื่อยืนยันอีเมล ✉️</a>
+        <a :href="verifyLink" class="min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black px-4 py-2.5 rounded-xl inline-flex items-center justify-center shadow-sm transition-all">คลิกเพื่อยืนยันอีเมล ✉️</a>
       </div>
 
       <p class="text-center text-sm text-stone-500 mt-6 font-medium">
         มีบัญชีอยู่แล้วใช่ไหม? 
-        <NuxtLink to="/login" class="text-amber-700 hover:text-amber-600 font-bold hover:underline transition-colors ml-1">เข้าสู่ระบบที่นี่</NuxtLink>
+        <NuxtLink to="/login" class="text-amber-700 hover:text-amber-600 font-bold hover:underline transition-colors ml-1 inline-block py-1">เข้าสู่ระบบที่นี่</NuxtLink>
       </p>
     </div>
   </div>

@@ -1,31 +1,31 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] text-stone-800 flex flex-col relative overflow-hidden bg-grid">
+  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] text-stone-800 flex flex-col relative overflow-x-hidden bg-grid">
     
-    <div class="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-[-10%] left-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
 
-    <header class="bg-[#fdfaf5] border-b border-amber-200/80 p-4 shadow-sm relative z-40">
-      <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <header class="bg-[#fdfaf5] border-b border-amber-200/80 p-3 sm:p-4 shadow-sm relative z-40">
+      <div class="container mx-auto flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3 sm:gap-4">
         
         <div class="flex items-center gap-2">
-          <div v-if="isEditingProjectName" class="flex items-center gap-2">
+          <div v-if="isEditingProjectName" class="flex items-center gap-2 flex-wrap">
             <input 
               v-model="newProjectName"
               type="text"
-              class="bg-white border border-amber-400 rounded-lg px-3 py-1 text-xl font-extrabold text-stone-800 focus:outline-none"
+              class="bg-white border border-amber-400 rounded-lg px-3 py-1.5 text-lg sm:text-xl font-extrabold text-stone-800 focus:outline-none min-h-[40px]"
               @keyup.enter="saveProjectName"
             />
-            <button @click="saveProjectName" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-md shadow-sm">บันทึก</button>
-            <button @click="isEditingProjectName = false" class="bg-stone-300 hover:bg-stone-400 text-stone-700 text-xs font-bold px-2.5 py-1.5 rounded-md">ยกเลิก</button>
+            <button @click="saveProjectName" class="min-h-[40px] bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm flex items-center">บันทึก</button>
+            <button @click="isEditingProjectName = false" class="min-h-[40px] bg-stone-300 hover:bg-stone-400 text-stone-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center">ยกเลิก</button>
           </div>
 
-          <h1 v-else class="text-2xl font-extrabold text-stone-800 flex items-center gap-2 group">
+          <h1 v-else class="text-xl sm:text-2xl font-extrabold text-stone-800 flex items-center gap-2 group flex-wrap">
             📁 โปรเจกต์: {{ projectName || 'กำลังโหลดชื่อบอร์ด...' }}
-            <button v-if="hasPermission('MANAGE_PROJECT')" @click="startEditProjectName" class="text-sm opacity-40 group-hover:opacity-100 hover:text-amber-600 transition-all ml-1" title="แก้ไขชื่อโปรเจกต์">✏️</button>
+            <button v-if="hasPermission('MANAGE_PROJECT')" @click="startEditProjectName" class="min-h-[36px] min-w-[36px] flex items-center justify-center text-sm opacity-50 hover:opacity-100 hover:text-amber-600 transition-all ml-1" title="แก้ไขชื่อโปรเจกต์">✏️</button>
           </h1>
         </div>
 
-        <div v-if="hasPermission('INVITE_MEMBERS')" class="flex items-center gap-2 bg-white border border-amber-200 rounded-xl p-1.5 shadow-sm">
+        <div v-if="hasPermission('INVITE_MEMBERS')" class="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-start gap-2 bg-white border border-amber-200 rounded-xl p-2 sm:p-1.5 shadow-sm">
           <div class="px-2">
             <div class="flex items-center gap-1.5">
               <p class="text-[10px] text-stone-400 font-bold uppercase tracking-wider">รหัสเชิญเข้าตี้</p>
@@ -43,7 +43,7 @@
               <button 
                 v-if="currentInviteCode"
                 @click="isInviteCodeVisible = !isInviteCodeVisible" 
-                class="text-stone-400 hover:text-stone-600 transition-colors p-0.5 focus:outline-none"
+                class="min-h-[36px] min-w-[36px] flex items-center justify-center text-stone-400 hover:text-stone-600 transition-colors focus:outline-none"
                 title="เปิด/ปิดการแสดงรหัส"
               >
                 <!-- SVG Icon Open Eye (เมื่อกำลังแสดงรหัส) -->
@@ -62,7 +62,7 @@
             @click="copyInviteCode" 
             :disabled="!isInviteActive"
             :class="isInviteActive ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 cursor-pointer' : 'bg-stone-100 text-stone-400 cursor-not-allowed'"
-            class="text-xs font-bold px-3 py-2 rounded-lg transition-all self-center"
+            class="min-h-[38px] text-xs font-bold px-3 py-2 rounded-lg transition-all self-center flex items-center justify-center"
           >
             {{ isCopied ? '✅ คัดลอกแล้ว' : '📋 คัดลอกรหัส' }}
           </button>
@@ -73,7 +73,7 @@
               @click="toggleInviteActive" 
               :disabled="isUpdatingInviteSettings"
               :title="isInviteActive ? 'คลิกเพื่อปิดรับสมาชิกผ่านรหัส' : 'คลิกเพื่อเปิดรับสมาชิกผ่านรหัส'" 
-              class="p-1.5 rounded-lg text-xs font-bold transition-all border shrink-0"
+              class="min-h-[38px] min-w-[38px] p-2 rounded-lg text-xs font-bold transition-all border shrink-0 flex items-center justify-center"
               :class="isInviteActive ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border-emerald-200'"
             >
               {{ isInviteActive ? '🔒 ปิดรับ' : '🔓 เปิดรับ' }}
@@ -82,33 +82,33 @@
               @click="regenerateInviteCode" 
               :disabled="isUpdatingInviteSettings"
               title="สุ่มรหัสเชิญใหม่ (รหัสเดิมจะใช้ไม่ได้)" 
-              class="bg-stone-100 hover:bg-stone-200 text-stone-700 p-1.5 rounded-lg text-xs font-bold transition-all border border-stone-250 flex items-center gap-0.5 shrink-0"
+              class="min-h-[38px] min-w-[38px] bg-stone-100 hover:bg-stone-200 text-stone-700 p-2 rounded-lg text-xs font-bold transition-all border border-stone-250 flex items-center justify-center gap-0.5 shrink-0"
             >
-              <span :class="{ 'animate-spin': isUpdatingInviteSettings }">🔄</span> สุ่มใหม่
+              <span :class="{ 'animate-spin': isUpdatingInviteSettings }">🔄</span> <span class="hidden sm:inline text-xs">สุ่มใหม่</span>
             </button>
           </div>
         </div>
 
-        <div class="flex items-center gap-2.5 relative">
+        <div class="flex flex-wrap items-center justify-start xl:justify-end gap-2 sm:gap-2.5 relative w-full xl:w-auto">
           <a 
             href="/manual.html" 
             target="_blank" 
-            class="bg-white border border-amber-200 text-stone-600 hover:text-amber-800 p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center focus:outline-none text-xs font-bold gap-1.5"
+            class="min-h-[40px] bg-white border border-amber-200 text-stone-600 hover:text-amber-800 px-3 py-2 rounded-xl transition-all shadow-sm flex items-center justify-center focus:outline-none text-xs font-bold gap-1.5"
             title="เปิดอ่านคู่มือการใช้งานระบบ FlowSpace"
           >
             <span>📖</span>
-            <span class="hidden lg:inline">คู่มือ</span>
+            <span class="inline">คู่มือ</span>
           </a>
 
           <div class="relative">
-            <button @click="isNotificationsOpen = !isNotificationsOpen" class="bg-white border border-amber-200 text-stone-600 hover:text-stone-850 p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center relative focus:outline-none">
+            <button @click="isNotificationsOpen = !isNotificationsOpen" class="min-h-[40px] min-w-[40px] bg-white border border-amber-200 text-stone-600 hover:text-stone-850 p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center relative focus:outline-none">
               🔔
               <span v-if="notifications.filter(n => !n.isRead).length > 0" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">
                 {{ notifications.filter(n => !n.isRead).length }}
               </span>
             </button>
             
-            <div v-if="isNotificationsOpen" class="absolute right-0 mt-2 w-80 bg-white border border-stone-200 rounded-xl shadow-2xl z-[150] p-4 text-left max-h-96 overflow-y-auto">
+            <div v-if="isNotificationsOpen" class="absolute right-0 sm:right-auto sm:left-0 lg:left-auto lg:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white border border-stone-200 rounded-xl shadow-2xl z-[150] p-4 text-left max-h-96 overflow-y-auto">
               <div class="flex justify-between items-center mb-3 pb-2 border-b border-stone-100">
                 <h3 class="font-black text-stone-800 text-sm">🔔 การแจ้งเตือนล่าสุด</h3>
                 <button v-if="notifications.filter(n => !n.isRead).length > 0" @click="markAllNotificationsRead" class="text-xs font-bold text-amber-600 hover:underline">อ่านทั้งหมด</button>
@@ -127,21 +127,21 @@
             </div>
           </div>
 
-          <button v-if="hasPermission('MANAGE_PROJECT')" @click="openManageTeamModal" class="bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-800 hover:to-stone-900 text-white font-bold px-4 py-2 rounded-lg transition-all shadow-md text-sm flex items-center gap-1.5">
+          <button v-if="hasPermission('MANAGE_PROJECT')" @click="openManageTeamModal" class="min-h-[40px] bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-800 hover:to-stone-900 text-white font-bold px-3.5 sm:px-4 py-2 rounded-lg transition-all shadow-md text-xs sm:text-sm flex items-center gap-1.5">
             👥 จัดการสมาชิกและยศ
           </button>
           
-          <button v-if="currentUser && projectOwnerId !== currentUser.id" @click="leaveProject" class="bg-stone-100 hover:bg-stone-200 text-rose-600 font-bold px-4 py-2 rounded-lg transition-all border border-stone-200 text-sm">
+          <button v-if="currentUser && projectOwnerId !== currentUser.id" @click="leaveProject" class="min-h-[40px] bg-stone-100 hover:bg-stone-200 text-rose-600 font-bold px-3.5 sm:px-4 py-2 rounded-lg transition-all border border-stone-200 text-xs sm:text-sm flex items-center">
             🚪 ออกจากโครงการ
           </button>
-          <button v-if="currentUser && projectOwnerId === currentUser.id" @click="isDeleteProjectModalOpen = true" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-4 py-2 rounded-lg transition-all border border-rose-250 text-sm">
+          <button v-if="currentUser && projectOwnerId === currentUser.id" @click="isDeleteProjectModalOpen = true" class="min-h-[40px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3.5 sm:px-4 py-2 rounded-lg transition-all border border-rose-250 text-xs sm:text-sm flex items-center">
             🗑️ ลบโครงการ
           </button>
 
-          <button @click="navigateTo('/dashboard')" class="bg-[#f3e9d7] hover:bg-[#ebdcc5] text-stone-700 font-bold px-4 py-2 rounded-lg transition-all border border-amber-200 text-sm">
+          <button @click="navigateTo('/dashboard')" class="min-h-[40px] bg-[#f3e9d7] hover:bg-[#ebdcc5] text-stone-700 font-bold px-3.5 sm:px-4 py-2 rounded-lg transition-all border border-amber-200 text-xs sm:text-sm flex items-center">
             ⬅️ แดชบอร์ด
           </button>
-          <button v-if="hasPermission('CREATE_TASK')" @click="openAddModal(columns[0]?.id)" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-4 py-2 rounded-lg transition-all shadow-md text-sm">
+          <button v-if="hasPermission('CREATE_TASK')" @click="openAddModal(columns[0]?.id)" class="min-h-[40px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-4 py-2 rounded-lg transition-all shadow-md text-xs sm:text-sm flex items-center">
             + เพิ่มงานใหม่
           </button>
         </div>
@@ -149,32 +149,32 @@
       </div>
     </header>
 
-    <div class="bg-white/80 backdrop-blur-md border border-amber-200/50 rounded-xl p-4 mt-6 mx-6 shadow-sm flex flex-wrap items-center justify-between gap-4 relative z-10">
-      <div class="flex flex-wrap items-center gap-3">
-        <div class="relative max-w-xs">
-          <input v-model="searchQuery" type="text" placeholder="🔍 ค้นหาการ์ดงาน..." class="pl-3 pr-4 py-1.5 w-60 bg-stone-50 border border-stone-200 rounded-lg text-xs focus:outline-none focus:border-amber-400 focus:bg-white transition-all font-semibold" />
+    <div class="bg-white/80 backdrop-blur-md border border-amber-200/50 rounded-xl p-3 sm:p-4 mt-3 sm:mt-6 mx-3 sm:mx-6 shadow-sm flex flex-wrap items-center justify-between gap-3 sm:gap-4 relative z-10">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
+        <div class="relative w-full sm:w-auto">
+          <input v-model="searchQuery" type="text" placeholder="🔍 ค้นหาการ์ดงาน..." class="pl-3 pr-4 py-2 w-full sm:w-60 min-h-[38px] bg-stone-50 border border-stone-200 rounded-lg text-xs focus:outline-none focus:border-amber-400 focus:bg-white transition-all font-semibold" />
         </div>
-        <select v-model="filterAssigneeId" class="py-1.5 px-3 bg-stone-50 border border-stone-200 rounded-lg text-xs focus:outline-none focus:border-amber-400 font-bold text-stone-600">
+        <select v-model="filterAssigneeId" class="py-2 px-3 min-h-[38px] flex-1 sm:flex-initial min-w-[130px] bg-stone-50 border border-stone-200 rounded-lg text-xs focus:outline-none focus:border-amber-400 font-bold text-stone-600">
           <option value="">👤 สมาชิกทั้งหมด</option>
           <option v-for="m in projectMembers" :key="m.id" :value="m.user.id">{{ m.user.username }}</option>
         </select>
-        <select v-model="filterPriority" class="py-1.5 px-3 bg-stone-50 border border-stone-200 rounded-lg text-xs focus:outline-none focus:border-amber-400 font-bold text-stone-600">
+        <select v-model="filterPriority" class="py-2 px-3 min-h-[38px] flex-1 sm:flex-initial min-w-[130px] bg-stone-50 border border-stone-200 rounded-lg text-xs focus:outline-none focus:border-amber-400 font-bold text-stone-600">
           <option value="">🎯 ความเร่งด่วนทั้งหมด</option>
           <option value="URGENT">🚨 Urgent</option>
           <option value="HIGH">🟠 High</option>
           <option value="MEDIUM">🟡 Medium</option>
           <option value="LOW">⚪ Low</option>
         </select>
-        <select v-model="filterLabelId" class="py-1.5 px-3 bg-stone-50 border border-stone-200 rounded-lg text-xs focus:outline-none focus:border-amber-400 font-bold text-stone-600">
+        <select v-model="filterLabelId" class="py-2 px-3 min-h-[38px] flex-1 sm:flex-initial min-w-[130px] bg-stone-50 border border-stone-200 rounded-lg text-xs focus:outline-none focus:border-amber-400 font-bold text-stone-600">
           <option value="">🏷️ ป้ายกำกับทั้งหมด</option>
           <option v-for="lbl in projectLabels" :key="lbl.id" :value="lbl.id">🏷️ {{ lbl.name }}</option>
         </select>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center justify-between sm:justify-end gap-3 w-full lg:w-auto">
         <div class="flex items-center gap-1.5 text-xs font-bold text-stone-500">
           <span>เรียงโดย:</span>
-          <select v-model="sortBy" class="py-1.5 px-3 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-stone-700 focus:outline-none">
+          <select v-model="sortBy" class="py-2 px-3 min-h-[38px] bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-stone-700 focus:outline-none">
             <option value="createdAt">⏰ วันที่สร้าง</option>
             <option value="dueDate">📅 วันกำหนดส่ง</option>
             <option value="priority">🎯 ระดับความเร่งด่วน</option>
@@ -182,29 +182,29 @@
         </div>
 
         <div v-if="hasPermission('MANAGE_PROJECT')" class="relative">
-          <button v-if="!isAddingColumn" @click="isAddingColumn = true" class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-3 py-1.5 rounded-lg text-xs shadow-sm flex items-center gap-1">
+          <button v-if="!isAddingColumn" @click="isAddingColumn = true" class="min-h-[38px] bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1">
             ➕ เพิ่มคอลัมน์
           </button>
-          <div v-else class="flex items-center gap-1.5 bg-stone-50 p-1 rounded-lg border border-amber-300">
+          <div v-else class="flex items-center gap-1.5 bg-stone-50 p-1 rounded-lg border border-amber-300 min-h-[38px]">
             <input v-model="newColumnTitle" type="text" placeholder="ชื่อช่อง..." class="px-2 py-1 text-xs w-28 bg-white border border-stone-200 rounded focus:outline-none" @keyup.enter="addColumn" />
-            <button @click="addColumn" class="bg-emerald-500 text-white text-[10px] font-bold p-1 rounded">✅</button>
-            <button @click="isAddingColumn = false" class="bg-stone-300 text-stone-700 text-[10px] font-bold p-1 rounded">❌</button>
+            <button @click="addColumn" class="min-h-[30px] min-w-[30px] flex items-center justify-center bg-emerald-500 text-white text-[10px] font-bold p-1 rounded">✅</button>
+            <button @click="isAddingColumn = false" class="min-h-[30px] min-w-[30px] flex items-center justify-center bg-stone-300 text-stone-700 text-[10px] font-bold p-1 rounded">❌</button>
           </div>
         </div>
       </div>
     </div>
 
-    <main class="flex-1 p-6 overflow-x-auto relative z-10">
-      <div class="flex gap-6 h-full items-start pb-4 min-w-max">
+    <main class="flex-1 p-3 sm:p-6 overflow-x-auto relative z-10">
+      <div class="flex gap-4 sm:gap-6 h-full items-start pb-4 min-w-max">
         
-        <div v-for="col in columns" :key="col.id" data-testid="column-container" @dragover.prevent @drop="onDrop(col.id)" class="bg-[#fdfaf5]/95 border border-amber-200/80 rounded-xl p-4 shadow-sm w-80 shrink-0 relative flex flex-col max-h-[70vh]">
+        <div v-for="col in columns" :key="col.id" data-testid="column-container" @dragover.prevent @drop="onDrop(col.id)" class="bg-[#fdfaf5]/95 border border-amber-200/80 rounded-2xl p-3.5 sm:p-4 shadow-sm w-[85vw] sm:w-80 shrink-0 relative flex flex-col max-h-[calc(100dvh-17rem)] sm:max-h-[72vh]">
           
-          <div class="flex justify-between items-center mb-4">
+          <div class="flex justify-between items-center mb-3 sm:mb-4">
             <div class="flex-1 min-w-0">
               <div v-if="editingColumnId === col.id" class="flex items-center gap-1.5">
-                <input v-model="editingColumnTitle" type="text" class="bg-white border border-amber-400 rounded px-2 py-0.5 text-xs font-bold text-stone-800 focus:outline-none w-full" @keyup.enter="saveColumnName(col.id)" />
-                <button @click="saveColumnName(col.id)" class="text-emerald-500 text-xs">💾</button>
-                <button @click="editingColumnId = null" class="text-stone-400 text-xs">❌</button>
+                <input v-model="editingColumnTitle" type="text" class="bg-white border border-amber-400 rounded px-2 py-1 text-xs font-bold text-stone-800 focus:outline-none w-full min-h-[32px]" @keyup.enter="saveColumnName(col.id)" />
+                <button @click="saveColumnName(col.id)" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-emerald-500 text-xs">💾</button>
+                <button @click="editingColumnId = null" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-stone-400 text-xs">❌</button>
               </div>
               <h2 v-else class="font-extrabold text-sm text-amber-900 flex items-center gap-1.5 truncate">
                 📌 {{ col.title }}
@@ -215,14 +215,14 @@
             </div>
             
             <div v-if="hasPermission('MANAGE_PROJECT') && editingColumnId !== col.id" class="flex items-center gap-1">
-              <button @click="editingColumnId = col.id; editingColumnTitle = col.title" class="text-stone-400 hover:text-amber-600 text-xs p-0.5" title="เปลี่ยนชื่อช่อง">✏️</button>
-              <button @click="triggerDeleteColumn(col.id, col.title)" class="text-stone-400 hover:text-rose-600 text-xs p-0.5" title="ลบช่อง">🗑️</button>
+              <button @click="editingColumnId = col.id; editingColumnTitle = col.title" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-stone-400 hover:text-amber-600 text-xs p-1" title="เปลี่ยนชื่อช่อง">✏️</button>
+              <button @click="triggerDeleteColumn(col.id, col.title)" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-stone-400 hover:text-rose-600 text-xs p-1" title="ลบช่อง">🗑️</button>
             </div>
           </div>
 
           <div class="space-y-3 overflow-y-auto pr-1 flex-1">
             
-            <div v-for="task in getFilteredTasks(col.id)" :key="task.id" :draggable="hasPermission('CREATE_TASK')" @dragstart="onDragStart(task.id)" :class="!hasPermission('CREATE_TASK') ? 'cursor-default' : 'cursor-grab active:cursor-grabbing hover:border-amber-400'" class="bg-white p-4 rounded-lg border border-amber-100 shadow-sm transition-all group relative">
+            <div v-for="task in getFilteredTasks(col.id)" :key="task.id" :draggable="hasPermission('CREATE_TASK')" @dragstart="onDragStart(task.id)" :class="!hasPermission('CREATE_TASK') ? 'cursor-default' : 'cursor-grab active:cursor-grabbing hover:border-amber-400'" class="bg-white p-3.5 sm:p-4 rounded-xl border border-amber-100 shadow-sm transition-all group relative">
               
               <div v-if="task.labels && task.labels.length > 0" class="flex flex-wrap gap-1 mb-2">
                 <span v-for="lbl in task.labels" :key="lbl.id" :style="{ backgroundColor: lbl.color }" class="text-[9px] font-black text-white px-2 py-0.5 rounded shadow-sm">
@@ -270,23 +270,23 @@
                     </div>
                   </div>
                   
-                  <div class="flex gap-3 mt-3 pt-2.5 border-t border-stone-100">
-                    <button v-if="hasPermission('CREATE_TASK')" @click="openEditModal(task)" class="text-amber-600 text-xs font-black">✏️ แก้ไข</button>
-                    <button v-if="hasPermission('DELETE_TASK')" @click="deleteTask(task.id)" class="text-rose-600 text-xs font-black">🗑️ ลบ</button>
+                  <div class="flex items-center gap-2 mt-3 pt-2.5 border-t border-stone-100">
+                    <button v-if="hasPermission('CREATE_TASK')" @click="openEditModal(task)" class="min-h-[36px] px-2 py-1 text-amber-600 text-xs font-black flex items-center">✏️ แก้ไข</button>
+                    <button v-if="hasPermission('DELETE_TASK')" @click="deleteTask(task.id)" class="min-h-[36px] px-2 py-1 text-rose-600 text-xs font-black flex items-center">🗑️ ลบ</button>
                     
                     <!-- Backwards compatible status navigation buttons for E2E testing compatibility -->
-                    <button v-if="col.title === 'To Do'" @click="moveTask(task.id, columns.find(c => c.title === 'Doing')?.id || columns[1]?.id)" class="bg-[#f3e9d7] hover:bg-[#ebdcc5] text-amber-900 font-bold text-xs px-2.5 py-1 rounded shrink-0 ml-auto transition-all">
+                    <button v-if="col.title === 'To Do'" @click="moveTask(task.id, columns.find(c => c.title === 'Doing')?.id || columns[1]?.id)" class="min-h-[36px] bg-[#f3e9d7] hover:bg-[#ebdcc5] text-amber-900 font-bold text-xs px-3 py-1.5 rounded-lg shrink-0 ml-auto transition-all flex items-center justify-center">
                       เริ่มทำ ⚡
                     </button>
                     
                     <div v-else-if="col.title === 'Doing'" class="flex items-center gap-1.5 ml-auto">
-                      <button @click="moveTask(task.id, columns.find(c => c.title === 'To Do')?.id || columns[0]?.id)" class="text-stone-400 text-[10px] underline">ถอยกลับ</button>
-                      <button @click="moveTask(task.id, columns.find(c => c.title === 'Done')?.id || columns[2]?.id)" class="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow-sm transition-all">
+                      <button @click="moveTask(task.id, columns.find(c => c.title === 'To Do')?.id || columns[0]?.id)" class="min-h-[36px] px-2 flex items-center text-stone-400 text-[10px] underline">ถอยกลับ</button>
+                      <button @click="moveTask(task.id, columns.find(c => c.title === 'Done')?.id || columns[2]?.id)" class="min-h-[36px] bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm transition-all flex items-center justify-center">
                         เสร็จสิ้น ✅
                       </button>
                     </div>
                     
-                    <button v-else-if="col.title === 'Done'" @click="moveTask(task.id, columns.find(c => c.title === 'Doing')?.id || columns[1]?.id)" class="text-amber-700 text-[11px] font-bold underline ml-auto shrink-0 self-center">
+                    <button v-else-if="col.title === 'Done'" @click="moveTask(task.id, columns.find(c => c.title === 'Doing')?.id || columns[1]?.id)" class="min-h-[36px] px-2 text-amber-700 text-[11px] font-bold underline ml-auto shrink-0 self-center flex items-center">
                       ทำใหม่
                     </button>
                   </div>
@@ -294,10 +294,10 @@
               </div>
             </div>
 
-            <div v-if="getFilteredTasks(col.id).length === 0" class="border-2 border-dashed border-amber-100 rounded-lg p-6 text-center text-stone-400 text-xs font-semibold">ไม่มีงานค้างอยู่ในช่องนี้</div>
+            <div v-if="getFilteredTasks(col.id).length === 0" class="border-2 border-dashed border-amber-100 rounded-xl p-6 text-center text-stone-400 text-xs font-semibold">ไม่มีงานค้างอยู่ในช่องนี้</div>
           </div>
           
-          <button v-if="hasPermission('CREATE_TASK')" @click="openAddModal(col.id)" class="mt-4 border border-dashed border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 text-amber-800 font-extrabold text-xs py-2 rounded-lg transition-all flex items-center justify-center gap-1">
+          <button v-if="hasPermission('CREATE_TASK')" @click="openAddModal(col.id)" class="mt-3 sm:mt-4 min-h-[42px] border border-dashed border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 text-amber-800 font-extrabold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1">
             ➕ เพิ่มการ์ดงานใหม่
           </button>
         </div>
@@ -305,52 +305,52 @@
       </div>
     </main>
 
-    <div v-if="isModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
+    <div v-if="isModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
+      <div class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl w-full max-w-4xl max-h-[90dvh] flex flex-col shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-amber-500"></div>
 
-        <div class="px-6 py-4 border-b border-stone-200/60 bg-white flex justify-between items-center mt-1">
-          <h2 class="text-lg font-black text-stone-850 flex items-center gap-2">
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-stone-200/60 bg-white flex justify-between items-center mt-1">
+          <h2 class="text-base sm:text-lg font-black text-stone-850 flex items-center gap-2">
             {{ isEditMode ? '✏️ รายละเอียดการ์ดงาน' : '➕ เพิ่มการ์ดงานใหม่' }}
           </h2>
-          <button @click="isModalOpen = false" class="text-stone-400 hover:text-stone-600 focus:outline-none">
+          <button @click="isModalOpen = false" class="min-h-[40px] min-w-[40px] flex items-center justify-center text-stone-400 hover:text-stone-600 focus:outline-none">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
           
-          <div class="md:col-span-2 space-y-5">
+          <div class="md:col-span-2 space-y-4 sm:space-y-5">
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">หัวข้องาน</label>
-              <input v-model="taskTitle" type="text" placeholder="เช่น เขียนคู่มือระบบ..." class="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-stone-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
+              <input v-model="taskTitle" type="text" placeholder="เช่น เขียนคู่มือระบบ..." class="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-stone-800 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
             </div>
 
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">รายละเอียด</label>
-              <textarea v-model="taskDescription" rows="4" placeholder="อธิบายรายละเอียดงานเล็กน้อย..." class="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-stone-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"></textarea>
+              <textarea v-model="taskDescription" rows="4" placeholder="อธิบายรายละเอียดงานเล็กน้อย..." class="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-stone-800 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"></textarea>
             </div>
 
             <div v-if="isEditMode" class="border-t border-stone-200/60 pt-4">
               <label class="block text-xs font-black text-stone-500 mb-2 uppercase tracking-wider">☑️ งานย่อย (Checklist)</label>
               
               <div v-if="subtasks.length > 0" class="space-y-2 mb-3">
-                <div v-for="sub in subtasks" :key="sub.id" class="flex items-center justify-between bg-white border border-stone-100 rounded-lg p-2.5 shadow-xs">
+                <div v-for="sub in subtasks" :key="sub.id" class="flex items-center justify-between bg-white border border-stone-100 rounded-xl p-2.5 shadow-xs">
                   <div class="flex items-center gap-2.5 flex-1 min-w-0">
-                    <input v-model="sub.isCompleted" type="checkbox" @change="toggleSubtask(sub)" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer" />
+                    <input v-model="sub.isCompleted" type="checkbox" @change="toggleSubtask(sub)" class="w-5 h-5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer" />
                     <span :class="sub.isCompleted ? 'line-through text-stone-400 font-normal' : 'text-stone-700 font-bold'" class="text-sm truncate">
                       {{ sub.title }}
                     </span>
                   </div>
-                  <button @click="deleteSubtask(sub.id)" class="text-stone-400 hover:text-rose-600 p-1 text-xs font-bold transition-all">ลบ</button>
+                  <button @click="deleteSubtask(sub.id)" class="min-h-[36px] min-w-[36px] flex items-center justify-center text-stone-400 hover:text-rose-600 p-1 text-xs font-bold transition-all">ลบ</button>
                 </div>
               </div>
 
               <div class="flex items-center gap-2">
-                <input v-model="newSubtaskTitle" type="text" placeholder="ระบุงานย่อยใหม่..." class="flex-1 bg-white border border-stone-200 rounded-lg px-3 py-1.5 text-stone-800 text-xs focus:outline-none focus:border-amber-500" @keyup.enter="addSubtask" />
-                <button @click="addSubtask" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm">
+                <input v-model="newSubtaskTitle" type="text" placeholder="ระบุงานย่อยใหม่..." class="flex-1 min-h-[40px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none focus:border-amber-500" @keyup.enter="addSubtask" />
+                <button @click="addSubtask" class="min-h-[40px] bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm flex items-center justify-center">
                   เพิ่ม
                 </button>
               </div>
@@ -360,7 +360,7 @@
               <label class="block text-xs font-black text-stone-500 mb-2 uppercase tracking-wider">📎 ไฟล์แนบ (Attachments)</label>
               
               <div v-if="attachments.length > 0" class="space-y-2 mb-3">
-                <div v-for="att in attachments" :key="att.id" class="flex items-center justify-between bg-stone-50 border border-stone-200/60 rounded-lg p-2 text-xs">
+                <div v-for="att in attachments" :key="att.id" class="flex items-center justify-between bg-stone-50 border border-stone-200/60 rounded-xl p-2.5 text-xs">
                   <div class="flex items-center gap-2 truncate">
                     <span class="text-amber-700">📄</span>
                     <a :href="att.filePath" target="_blank" class="font-bold text-amber-700 hover:underline truncate">{{ att.fileName }}</a>
@@ -371,7 +371,7 @@
               </div>
 
               <div class="flex items-center gap-2">
-                <label class="bg-white border border-dashed border-amber-300 hover:border-amber-500 text-amber-800 hover:bg-amber-50 font-bold px-4 py-2 rounded-lg cursor-pointer transition-all text-xs flex items-center gap-1.5">
+                <label class="min-h-[40px] bg-white border border-dashed border-amber-300 hover:border-amber-500 text-amber-800 hover:bg-amber-50 font-bold px-4 py-2 rounded-xl cursor-pointer transition-all text-xs sm:text-sm flex items-center justify-center gap-1.5">
                   📁 เลือกไฟล์เพื่ออัปโหลด
                   <input type="file" class="hidden" @change="handleFileUpload" />
                 </label>
@@ -382,7 +382,7 @@
               <label class="block text-xs font-black text-stone-500 mb-2 uppercase tracking-wider">💬 บอร์ดความคิดเห็น (Comments)</label>
               
               <div v-if="comments.length > 0" class="space-y-2 mb-3 max-h-48 overflow-y-auto pr-1">
-                <div v-for="c in comments" :key="c.id" class="bg-white border border-stone-100 rounded-lg p-3 shadow-xs">
+                <div v-for="c in comments" :key="c.id" class="bg-white border border-stone-100 rounded-xl p-3 shadow-xs">
                   <div class="flex justify-between items-center mb-1 text-[11px]">
                     <span class="font-black text-amber-900">{{ c.user.username }}</span>
                     <span class="text-stone-400 font-mono">{{ new Date(c.createdAt).toLocaleString('th-TH') }}</span>
@@ -392,8 +392,8 @@
               </div>
 
               <div class="flex gap-2">
-                <input v-model="newCommentContent" type="text" placeholder="พิมพ์ความคิดเห็นของคุณ..." class="flex-1 bg-white border border-stone-200 rounded-lg px-3 py-1.5 text-stone-850 text-xs focus:outline-none focus:border-amber-500" @keyup.enter="addComment" />
-                <button @click="addComment" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-1.5 rounded-lg text-xs shadow-sm">
+                <input v-model="newCommentContent" type="text" placeholder="พิมพ์ความคิดเห็นของคุณ..." class="flex-1 min-h-[40px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-850 text-base sm:text-xs focus:outline-none focus:border-amber-500" @keyup.enter="addComment" />
+                <button @click="addComment" class="min-h-[40px] bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm flex items-center justify-center">
                   ส่ง
                 </button>
               </div>
@@ -401,10 +401,10 @@
           </div>
 
           <!-- Right settings column -->
-          <div class="bg-stone-50 border-l border-stone-200/60 p-4 -m-6 md:-m-6 md:border-l space-y-5 overflow-y-auto">
+          <div class="bg-stone-50 border-t md:border-t-0 md:border-l border-stone-200/60 p-4 rounded-xl md:rounded-none md:-my-6 md:-mr-6 space-y-4 sm:space-y-5 overflow-y-auto">
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">👤 ผู้รับผิดชอบ</label>
-              <select v-model="taskAssigneeId" class="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-stone-800 text-xs focus:outline-none">
+              <select v-model="taskAssigneeId" class="w-full min-h-[44px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none">
                 <option value="">ไม่มี (Unassigned)</option>
                 <option v-for="member in projectMembers" :key="member.user.id" :value="member.user.id">
                   {{ member.user.username }}
@@ -414,12 +414,12 @@
 
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">📅 กำหนดส่งงาน</label>
-              <input v-model="taskDueDate" type="date" class="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-stone-800 text-xs focus:outline-none cursor-pointer" />
+              <input v-model="taskDueDate" type="date" class="w-full min-h-[44px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none cursor-pointer" />
             </div>
 
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">🎯 ความสำคัญ (Priority)</label>
-              <select v-model="taskPriority" class="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-stone-800 text-xs focus:outline-none">
+              <select v-model="taskPriority" class="w-full min-h-[44px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none">
                 <option value="LOW">Low (ต่ำ)</option>
                 <option value="MEDIUM">Medium (ปานกลาง)</option>
                 <option value="HIGH">High (สูง)</option>
@@ -431,21 +431,23 @@
             <div>
               <div class="flex justify-between items-center mb-1.5">
                 <label class="block text-xs font-black text-stone-500 uppercase tracking-wider">🏷️ ป้ายกำกับสี (Labels)</label>
-                <button v-if="!isCreatingLabel" @click="isCreatingLabel = true" class="text-[10px] font-black text-amber-600 hover:underline">เพิ่มป้าย</button>
+                <button v-if="!isCreatingLabel" @click="isCreatingLabel = true" class="text-xs font-black text-amber-600 hover:underline py-1">เพิ่มป้าย</button>
               </div>
               
-              <div v-if="isCreatingLabel" class="bg-white border border-stone-200 rounded-lg p-2 mb-2.5 space-y-2 text-xs">
-                <input v-model="newLabelName" type="text" placeholder="ชื่อแท็ก..." class="w-full px-2 py-1 bg-stone-50 border border-stone-200 rounded focus:outline-none text-[11px]" />
-                <div class="flex items-center justify-between gap-1.5">
-                  <input v-model="newLabelColor" type="color" class="w-6 h-6 p-0 border border-stone-300 rounded cursor-pointer shrink-0" />
-                  <button @click="createProjectLabel" class="bg-emerald-500 text-white font-bold px-2 py-1 rounded text-[10px] shadow-sm">บันทึก</button>
-                  <button @click="isCreatingLabel = false" class="bg-stone-300 text-stone-700 font-bold px-2 py-1 rounded text-[10px]">ปิด</button>
+              <div v-if="isCreatingLabel" class="bg-white border border-stone-200 rounded-xl p-2.5 mb-2.5 space-y-2 text-xs">
+                <input v-model="newLabelName" type="text" placeholder="ชื่อแท็ก..." class="w-full px-2.5 py-1.5 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none text-xs" />
+                <div class="flex items-center justify-between gap-2">
+                  <input v-model="newLabelColor" type="color" class="w-8 h-8 p-0 border border-stone-300 rounded cursor-pointer shrink-0" />
+                  <div class="flex items-center gap-1.5">
+                    <button @click="createProjectLabel" class="min-h-[32px] bg-emerald-500 text-white font-bold px-2.5 py-1 rounded-lg text-xs shadow-sm">บันทึก</button>
+                    <button @click="isCreatingLabel = false" class="min-h-[32px] bg-stone-300 text-stone-700 font-bold px-2.5 py-1 rounded-lg text-xs">ปิด</button>
+                  </div>
                 </div>
               </div>
 
               <div v-if="projectLabels.length > 0" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                <label v-for="lbl in projectLabels" :key="lbl.id" class="flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-600">
-                  <input type="checkbox" :value="lbl.id" v-model="selectedLabelIds" class="rounded text-amber-600 focus:ring-amber-500" />
+                <label v-for="lbl in projectLabels" :key="lbl.id" class="flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-600 py-1">
+                  <input type="checkbox" :value="lbl.id" v-model="selectedLabelIds" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500" />
                   <span :style="{ backgroundColor: lbl.color }" class="text-[9px] font-black text-white px-2 py-0.5 rounded shadow-sm">
                     {{ lbl.name }}
                   </span>
@@ -475,25 +477,25 @@
           </div>
         </div>
 
-        <div class="px-6 py-4 border-t border-stone-200/60 bg-white flex justify-end gap-3">
-          <button @click="isModalOpen = false" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-bold text-sm transition-all">ยกเลิก</button>
-          <button @click="handleSubmit" class="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-bold text-sm transition-all shadow-md">{{ isEditMode ? 'บันทึกการแก้ไข' : 'บันทึกงาน' }}</button>
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-t border-stone-200/60 bg-white flex justify-end gap-2.5">
+          <button @click="isModalOpen = false" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">ยกเลิก</button>
+          <button @click="handleSubmit" class="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center">{{ isEditMode ? 'บันทึกการแก้ไข' : 'บันทึกงาน' }}</button>
         </div>
       </div>
     </div>
 
     <!-- Modal จัดการสิทธิ์ทีมงาน (isManageTeamModalOpen) -->
-    <div v-if="isManageTeamModalOpen" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-[#fdfaf5] border border-amber-200 rounded-2xl w-full max-w-4xl h-[600px] flex flex-col shadow-2xl overflow-hidden relative">
+    <div v-if="isManageTeamModalOpen" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
+      <div class="bg-[#fdfaf5] border border-amber-200 rounded-2xl w-full max-w-4xl max-h-[90dvh] h-auto md:h-[600px] flex flex-col shadow-2xl overflow-hidden relative">
         <!-- แถบสีส้มไล่เฉดด้านบน -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 to-orange-500"></div>
         
         <div class="p-4 bg-white border-b border-amber-200/60 flex justify-between items-center mt-1">
           <div>
-            <h2 class="text-xl font-black text-stone-800">⚙️ การตั้งค่าระบบทีมและสิทธิ์</h2>
+            <h2 class="text-lg sm:text-xl font-black text-stone-800">⚙️ การตั้งค่าระบบทีมและสิทธิ์</h2>
             <p class="text-xs text-stone-400 font-medium mt-0.5">บริหารจัดการตี้ มอบยศตำแหน่ง หรือเนรเทศสมาชิกที่ไม่ทำงาน</p>
           </div>
-          <button @click="isManageTeamModalOpen = false" class="text-stone-400 hover:text-stone-600 p-1.5 focus:outline-none transition-colors">
+          <button @click="isManageTeamModalOpen = false" class="min-h-[40px] min-w-[40px] flex items-center justify-center text-stone-400 hover:text-stone-600 p-1.5 focus:outline-none transition-colors">
             <!-- SVG Icon Close -->
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -502,19 +504,19 @@
         </div>
 
         <div class="flex bg-stone-100 border-b border-amber-200/40">
-          <button @click="activeTab = 'members'" :class="activeTab === 'members' ? 'bg-[#fdfaf5] text-amber-900 border-b-2 border-amber-500 font-black' : 'text-stone-500 font-bold'" class="flex-1 py-3 text-sm transition-all focus:outline-none">
+          <button @click="activeTab = 'members'" :class="activeTab === 'members' ? 'bg-[#fdfaf5] text-amber-900 border-b-2 border-amber-500 font-black' : 'text-stone-500 font-bold'" class="flex-1 min-h-[44px] py-3 text-xs sm:text-sm transition-all focus:outline-none flex items-center justify-center">
             👥 รายชื่อสมาชิกในบอร์ด ({{ projectMembers.length }})
           </button>
-          <button @click="activeTab = 'roles'" :class="activeTab === 'roles' ? 'bg-[#fdfaf5] text-amber-900 border-b-2 border-amber-500 font-black' : 'text-stone-500 font-bold'" class="flex-1 py-3 text-sm transition-all focus:outline-none">
+          <button @click="activeTab = 'roles'" :class="activeTab === 'roles' ? 'bg-[#fdfaf5] text-amber-900 border-b-2 border-amber-500 font-black' : 'text-stone-500 font-bold'" class="flex-1 min-h-[44px] py-3 text-xs sm:text-sm transition-all focus:outline-none flex items-center justify-center">
             ⚔️ ตั้งค่า Custom Roles
           </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 bg-[#fdfaf5]">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#fdfaf5]">
           
           <div v-if="activeTab === 'members'" class="space-y-4">
-            <div class="border border-amber-100 rounded-xl overflow-hidden bg-white shadow-sm">
-              <table class="w-full text-left border-collapse">
+            <div class="border border-amber-100 rounded-xl overflow-x-auto bg-white shadow-sm">
+              <table class="w-full text-left border-collapse min-w-[500px]">
                 <thead>
                   <tr class="bg-stone-50 text-stone-500 text-xs font-bold uppercase border-b border-amber-100">
                     <th class="p-3">ชื่อผู้ใช้ / อีเมล</th>
@@ -532,14 +534,14 @@
                       <select 
                         :value="member.roleId || ''" 
                         @change="changeMemberRole(member.id, $event.target.value)"
-                        class="bg-stone-50 border border-stone-200 text-stone-700 text-xs rounded-lg px-2 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all cursor-pointer"
+                        class="min-h-[38px] bg-stone-50 border border-stone-200 text-stone-700 text-xs rounded-xl px-2.5 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all cursor-pointer"
                       >
                         <option value="">👤 สมาชิกทั่วไป (No Role)</option>
                         <option v-for="role in projectRoles" :key="role.id" :value="role.id">⚔️ {{ role.name }}</option>
                       </select>
                     </td>
                     <td class="p-3 text-center">
-                      <button @click="kickMember(member.id, member.user.username)" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-1.5 rounded-lg transition-all shadow-sm">
+                      <button @click="kickMember(member.id, member.user.username)" class="min-h-[38px] bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">
                         🚪 เตะออก
                       </button>
                     </td>
@@ -551,11 +553,11 @@
 
           <div v-if="activeTab === 'roles'" class="space-y-6">
             <div class="bg-white border border-amber-200/70 p-4 rounded-xl shadow-sm flex flex-col sm:flex-row gap-3 items-end">
-              <div class="flex-1">
+              <div class="flex-1 w-full sm:w-auto">
                 <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">🛠️ สร้างยศตำแหน่งใหม่</label>
-                <input v-model="newRoleName" type="text" placeholder="เช่น QA Tester, Frontend Dev..." class="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all" />
+                <input v-model="newRoleName" type="text" placeholder="เช่น QA Tester, Frontend Dev..." class="w-full min-h-[44px] bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2 text-base sm:text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all" />
               </div>
-              <button @click="createNewRole" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm px-4 py-2 rounded-lg shadow-sm shadow-amber-600/10 shrink-0 transition-all">
+              <button @click="createNewRole" class="min-h-[44px] w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm px-5 py-2 rounded-xl shadow-sm shadow-amber-600/10 shrink-0 transition-all flex items-center justify-center">
                 ➕ เพิ่มยศใหม่
               </button>
             </div>
@@ -567,26 +569,26 @@
                     v-model="role.name" 
                     type="text" 
                     @change="updateRoleData(role)"
-                    class="font-black text-amber-900 border-b border-transparent hover:border-amber-300 focus:border-amber-500 focus:outline-none text-base bg-transparent px-1 py-0.5"
+                    class="font-black text-amber-900 border-b border-transparent hover:border-amber-300 focus:border-amber-500 focus:outline-none text-base bg-transparent px-1 py-1 min-h-[38px]"
                     title="คลิกเพื่อแก้ไขชื่อยศ"
                   />
-                  <button @click="deleteRole(role.id)" class="text-rose-500 hover:text-rose-700 text-xs font-bold">🗑️ ลบยศนี้ทิ้ง</button>
+                  <button @click="deleteRole(role.id)" class="min-h-[36px] text-rose-500 hover:text-rose-700 text-xs font-bold px-2 flex items-center">🗑️ ลบยศนี้ทิ้ง</button>
                 </div>
 
                 <div>
                   <p class="text-[11px] font-bold text-stone-400 mb-2 uppercase tracking-wide">สิทธิ์เข้าถึงฟีเจอร์ต่างๆ (Permissions Check)</p>
-                  <div class="grid grid-cols-2 gap-3 text-xs font-semibold text-stone-600">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" :checked="role.permissions.includes('CREATE_TASK')" @change="togglePermission(role, 'CREATE_TASK')" class="rounded text-amber-600 focus:ring-amber-400" /> สร้างการ์ดงานได้
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-stone-600">
+                    <label class="flex items-center gap-2 cursor-pointer py-1">
+                      <input type="checkbox" :checked="role.permissions.includes('CREATE_TASK')" @change="togglePermission(role, 'CREATE_TASK')" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-400" /> สร้างการ์ดงานได้
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" :checked="role.permissions.includes('DELETE_TASK')" @change="togglePermission(role, 'DELETE_TASK')" class="rounded text-amber-600 focus:ring-amber-400" /> สั่งลบการ์ดงานได้
+                    <label class="flex items-center gap-2 cursor-pointer py-1">
+                      <input type="checkbox" :checked="role.permissions.includes('DELETE_TASK')" @change="togglePermission(role, 'DELETE_TASK')" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-400" /> สั่งลบการ์ดงานได้
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" :checked="role.permissions.includes('MANAGE_PROJECT')" @change="togglePermission(role, 'MANAGE_PROJECT')" class="rounded text-amber-600 focus:ring-amber-400" /> สิทธิ์จัดการบอร์ด/แก้ไขชื่อ
+                    <label class="flex items-center gap-2 cursor-pointer py-1">
+                      <input type="checkbox" :checked="role.permissions.includes('MANAGE_PROJECT')" @change="togglePermission(role, 'MANAGE_PROJECT')" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-400" /> สิทธิ์จัดการบอร์ด/แก้ไขชื่อ
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" :checked="role.permissions.includes('INVITE_MEMBERS')" @change="togglePermission(role, 'INVITE_MEMBERS')" class="rounded text-amber-600 focus:ring-amber-400" /> สิทธิ์ดู/แชร์รหัสเชิญ (Invite)
+                    <label class="flex items-center gap-2 cursor-pointer py-1">
+                      <input type="checkbox" :checked="role.permissions.includes('INVITE_MEMBERS')" @change="togglePermission(role, 'INVITE_MEMBERS')" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-400" /> สิทธิ์ดู/แชร์รหัสเชิญ (Invite)
                     </label>
                   </div>
                 </div>
@@ -600,8 +602,8 @@
     </div>
 
     <!-- Modal ยืนยันการลบโครงการ (isDeleteProjectModalOpen) -->
-    <div v-if="isDeleteProjectModalOpen" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-[#fdfaf5] border border-rose-250 rounded-2xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden">
+    <div v-if="isDeleteProjectModalOpen" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
+      <div class="bg-[#fdfaf5] border border-rose-250 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90dvh] overflow-y-auto">
         <!-- แถบสีแดงไล่เฉดด้านบน -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 to-red-600"></div>
         
@@ -612,7 +614,7 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-lg font-black text-rose-700 mb-1">🚨 ลบโครงการแบบถาวร?</h3>
+            <h3 class="text-base sm:text-lg font-black text-rose-700 mb-1">🚨 ลบโครงการแบบถาวร?</h3>
             <p class="text-stone-700 text-sm font-bold leading-relaxed mb-2">
               คำเตือนขั้นเด็ดขาด: ต้องการลบโครงการ <span class="text-rose-600 font-black">"{{ projectName }}"</span> ใช่หรือไม่?
             </p>
@@ -622,11 +624,11 @@
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-stone-100">
-          <button @click="isDeleteProjectModalOpen = false" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-bold text-xs transition-all">
+        <div class="flex justify-end gap-2.5 mt-6 pt-4 border-t border-stone-100">
+          <button @click="isDeleteProjectModalOpen = false" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">
             ยกเลิก
           </button>
-          <button @click="confirmDeleteProject" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-xs transition-all shadow-md shadow-rose-500/10">
+          <button @click="confirmDeleteProject" class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-rose-500/10 flex items-center justify-center">
             ลบโครงการถาวร 🗑️
           </button>
         </div>
@@ -634,8 +636,8 @@
     </div>
 
     <!-- Modal ยืนยันการลบช่องคอลัมน์ (isDeleteColumnModalOpen) -->
-    <div v-if="isDeleteColumnModalOpen" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden">
+    <div v-if="isDeleteColumnModalOpen" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
+      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90dvh] overflow-y-auto">
         <!-- แถบสีแดงไล่เฉดด้านบน -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-400 to-rose-600"></div>
         
@@ -646,7 +648,7 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-lg font-black text-rose-700 mb-1">🗑️ ลบคอลัมน์?</h3>
+            <h3 class="text-base sm:text-lg font-black text-rose-700 mb-1">🗑️ ลบคอลัมน์?</h3>
             <p class="text-stone-700 text-sm font-bold leading-relaxed mb-2">
               คุณแน่ใจหรือไม่ว่าต้องการลบคอลัมน์ <span class="text-rose-600 font-black">"{{ columnToDeleteTitle }}"</span> ใช่หรือไม่?
             </p>
@@ -656,11 +658,11 @@
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-stone-100">
-          <button @click="isDeleteColumnModalOpen = false; columnToDeleteId = null; columnToDeleteTitle = ''" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-bold text-xs transition-all">
+        <div class="flex justify-end gap-2.5 mt-6 pt-4 border-t border-stone-100">
+          <button @click="isDeleteColumnModalOpen = false; columnToDeleteId = null; columnToDeleteTitle = ''" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">
             ยกเลิก
           </button>
-          <button @click="confirmDeleteColumn" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-xs transition-all shadow-md shadow-rose-500/10">
+          <button @click="confirmDeleteColumn" class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-rose-500/10 flex items-center justify-center">
             ยืนยันลบคอลัมน์
           </button>
         </div>
@@ -668,8 +670,8 @@
     </div>
 
     <!-- Modal ยืนยันการลบการ์ดงาน -->
-    <div v-if="isDeleteModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden">
+    <div v-if="isDeleteModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
+      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90dvh] overflow-y-auto">
         <!-- แถบสีแดงด้านบน -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-500"></div>
         
@@ -680,21 +682,21 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-lg font-black text-stone-800 mb-1">🗑️ ยืนยันการลบการ์ดงาน</h3>
-            <p class="text-stone-500 text-sm font-medium">คุณแน่ใจหรือไม่ว่าต้องการลบการ์ดงานใบนี้? การกระทำนี้ไม่สามารถย้อนกลับได้และข้อมูลงานจะหายไปถาวร</p>
+            <h3 class="text-base sm:text-lg font-black text-stone-800 mb-1">🗑️ ยืนยันการลบการ์ดงาน</h3>
+            <p class="text-stone-500 text-xs sm:text-sm font-medium">คุณแน่ใจหรือไม่ว่าต้องการลบการ์ดงานใบนี้? การกระทำนี้ไม่สามารถย้อนกลับได้และข้อมูลงานจะหายไปถาวร</p>
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-stone-100">
+        <div class="flex justify-end gap-2.5 mt-6 pt-4 border-t border-stone-100">
           <button 
             @click="isDeleteModalOpen = false; taskToDeleteId = null" 
-            class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold rounded-lg text-sm transition-all"
+            class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold rounded-xl text-sm transition-all flex items-center justify-center"
           >
             ยกเลิก
           </button>
           <button 
             @click="confirmDeleteTask" 
-            class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm shadow-md shadow-rose-600/20 transition-all"
+            class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-sm shadow-md shadow-rose-600/20 transition-all flex items-center justify-center"
           >
             ยืนยันลบถาวร ⚠️
           </button>
@@ -703,8 +705,8 @@
     </div>
 
     <!-- Modal ยืนยันการลบยศตำแหน่ง -->
-    <div v-if="isDeleteRoleModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden">
+    <div v-if="isDeleteRoleModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
+      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90dvh] overflow-y-auto">
         <!-- แถบสีแดงด้านบน -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-500"></div>
         
@@ -715,21 +717,21 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-lg font-black text-stone-800 mb-1">⚔️ ยืนยันการลบยศตำแหน่ง</h3>
-            <p class="text-stone-500 text-sm font-medium">คุณแน่ใจหรือไม่ว่าต้องการลบยศตำแหน่งนี้? สมาชิกที่ถือครองยศนี้อยู่จะถูกถอดถอนสิทธิ์การใช้งานออกทั้งหมดทันที</p>
+            <h3 class="text-base sm:text-lg font-black text-stone-800 mb-1">⚔️ ยืนยันการลบยศตำแหน่ง</h3>
+            <p class="text-stone-500 text-xs sm:text-sm font-medium">คุณแน่ใจหรือไม่ว่าต้องการลบยศตำแหน่งนี้? สมาชิกที่ถือครองยศนี้อยู่จะถูกถอดถอนสิทธิ์การใช้งานออกทั้งหมดทันที</p>
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-stone-100">
+        <div class="flex justify-end gap-2.5 mt-6 pt-4 border-t border-stone-100">
           <button 
             @click="isDeleteRoleModalOpen = false; roleToDeleteId = null" 
-            class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold rounded-lg text-sm transition-all"
+            class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold rounded-xl text-sm transition-all flex items-center justify-center"
           >
             ยกเลิก
           </button>
           <button 
             @click="confirmDeleteRole" 
-            class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm shadow-md shadow-rose-600/20 transition-all"
+            class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-sm shadow-md shadow-rose-600/20 transition-all flex items-center justify-center"
           >
             ยืนยันลบยศ ⚠️
           </button>
@@ -738,8 +740,8 @@
     </div>
 
     <!-- Modal ยืนยันการเนรเทศสมาชิก -->
-    <div v-if="isKickModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden">
+    <div v-if="isKickModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
+      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90dvh] overflow-y-auto">
         <!-- แถบสีแดงด้านบน -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-500"></div>
         
@@ -750,21 +752,21 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-lg font-black text-stone-800 mb-1">🚪 ยืนยันการเนรเทศสมาชิก</h3>
-            <p class="text-stone-500 text-sm font-medium">คุณแน่ใจหรือไม่ว่าต้องการเนรเทศคุณ <span class="font-bold text-stone-800">"{{ memberToKickUsername }}"</span> ออกจากโปรเจกต์นี้? การกระทำนี้จะถอนสิทธิ์เข้าบอร์ดทั้งหมดทันที</p>
+            <h3 class="text-base sm:text-lg font-black text-stone-800 mb-1">🚪 ยืนยันการเนรเทศสมาชิก</h3>
+            <p class="text-stone-500 text-xs sm:text-sm font-medium">คุณแน่ใจหรือไม่ว่าต้องการเนรเทศคุณ <span class="font-bold text-stone-800">"{{ memberToKickUsername }}"</span> ออกจากโปรเจกต์นี้? การกระทำนี้จะถอนสิทธิ์เข้าบอร์ดทั้งหมดทันที</p>
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-stone-100">
+        <div class="flex justify-end gap-2.5 mt-6 pt-4 border-t border-stone-100">
           <button 
             @click="isKickModalOpen = false; memberToKickId = null; memberToKickUsername = ''" 
-            class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold rounded-lg text-sm transition-all"
+            class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold rounded-xl text-sm transition-all flex items-center justify-center"
           >
             ยกเลิก
           </button>
           <button 
             @click="confirmKickMember" 
-            class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm shadow-md shadow-rose-600/20 transition-all"
+            class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-sm shadow-md shadow-rose-600/20 transition-all flex items-center justify-center"
           >
             เนรเทศออก 🚪
           </button>

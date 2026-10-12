@@ -1,52 +1,52 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] text-stone-800 flex flex-col relative overflow-hidden bg-grid">
+  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] text-stone-800 flex flex-col relative overflow-x-hidden bg-grid">
     
-    <div class="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-[-10%] left-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
 
-    <header class="bg-[#fdfaf5] border-b border-amber-200/80 p-4 shadow-sm relative z-10">
-      <div class="container mx-auto flex justify-between items-center">
-        <h1 class="text-2xl font-extrabold text-stone-800 flex items-center gap-2">
+    <header class="bg-[#fdfaf5] border-b border-amber-200/80 p-3 sm:p-4 shadow-sm relative z-10">
+      <div class="container mx-auto flex flex-wrap justify-between items-center gap-3">
+        <h1 class="text-xl sm:text-2xl font-extrabold text-stone-800 flex items-center gap-2">
           🗂️ My Workspaces
         </h1>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center flex-wrap gap-2 sm:gap-3">
           <a 
             href="/manual.html" 
             target="_blank" 
-            class="bg-white hover:bg-stone-50 text-stone-700 hover:text-amber-800 font-bold px-3 py-1.5 rounded-lg border border-amber-200/80 transition-all text-sm flex items-center gap-1.5 shadow-sm"
+            class="min-h-[40px] bg-white hover:bg-stone-50 text-stone-700 hover:text-amber-800 font-bold px-3 py-2 rounded-lg border border-amber-200/80 transition-all text-xs sm:text-sm flex items-center gap-1.5 shadow-sm"
             title="เปิดอ่านคู่มือการใช้งานระบบ FlowSpace"
           >
             <span>📖</span>
             <span class="hidden sm:inline">คู่มือใช้งาน</span>
           </a>
-          <span class="text-sm font-semibold text-stone-600 bg-[#f3e9d7] px-3 py-1.5 rounded-lg border border-amber-200">
+          <span class="min-h-[40px] text-xs sm:text-sm font-semibold text-stone-600 bg-[#f3e9d7] px-3 py-2 rounded-lg border border-amber-200 flex items-center">
             👤 {{ currentUser?.username || 'User' }}
           </span>
-          <button @click="handleLogout" class="bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold px-4 py-2 rounded-lg transition-all border border-stone-300 text-sm">
+          <button @click="handleLogout" class="min-h-[40px] bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold px-3.5 py-2 rounded-lg transition-all border border-stone-300 text-xs sm:text-sm flex items-center">
             🚪 ออกจากระบบ
           </button>
         </div>
       </div>
     </header>
 
-    <main class="flex-1 container mx-auto p-6 relative z-10">
+    <main class="flex-1 container mx-auto p-4 sm:p-6 relative z-10">
       
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
-          <h2 class="text-2xl font-black text-stone-800">ยินดีต้อนรับกลับมา! 👋</h2>
-          <p class="text-stone-500 font-medium text-sm mt-0.5">เลือกบอร์ดของคุณ หรือใช้รหัสเข้าร่วมทีมของเพื่อนเพื่อลุยงาน</p>
+          <h2 class="text-xl sm:text-2xl font-black text-stone-800">ยินดีต้อนรับกลับมา! 👋</h2>
+          <p class="text-stone-500 font-medium text-xs sm:text-sm mt-0.5">เลือกบอร์ดของคุณ หรือใช้รหัสเข้าร่วมทีมของเพื่อนเพื่อลุยงาน</p>
         </div>
         
-        <div v-if="!isLoading && projects.length > 0" class="flex gap-3 w-full md:w-auto">
+        <div v-if="!isLoading && projects.length > 0" class="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full sm:w-auto">
           <button 
             @click="openJoinModal"
-            class="bg-white hover:bg-stone-50 text-amber-950 font-bold px-5 py-2.5 rounded-xl transition-all border border-amber-300 text-sm flex items-center justify-center gap-1.5"
+            class="w-full sm:w-auto min-h-[44px] bg-white hover:bg-stone-50 text-amber-950 font-bold px-5 py-2.5 rounded-xl transition-all border border-amber-300 text-sm flex items-center justify-center gap-1.5"
           >
             🔑 กรอกรหัสเข้าร่วม
           </button>
           <button 
             @click="openCreateProjectModal"
-            class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md text-sm flex items-center justify-center gap-1.5"
+            class="w-full sm:w-auto min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md text-sm flex items-center justify-center gap-1.5"
           >
             ➕ สร้างโปรเจกต์ใหม่
           </button>
@@ -58,22 +58,22 @@
         <p class="text-stone-500 font-bold text-sm">กำลังดึงข้อมูลเวิร์กสเปซ...</p>
       </div>
 
-      <div v-else-if="projects.length === 0" class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl p-8 sm:p-12 text-center max-w-xl mx-auto shadow-xl shadow-amber-900/5 mt-8">
-        <div class="text-5xl mb-4">🏜️</div>
-        <h3 class="text-xl font-extrabold text-stone-800 mb-2">คุณยังไม่มีโปรเจกต์ในขณะนี้</h3>
-        <p class="text-stone-500 text-sm font-medium mb-6 max-w-md mx-auto">
+      <div v-else-if="projects.length === 0" class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl p-6 sm:p-12 text-center max-w-xl mx-auto shadow-xl shadow-amber-900/5 mt-4 sm:mt-8">
+        <div class="text-4xl sm:text-5xl mb-4">🏜️</div>
+        <h3 class="text-lg sm:text-xl font-extrabold text-stone-800 mb-2">คุณยังไม่มีโปรเจกต์ในขณะนี้</h3>
+        <p class="text-stone-500 text-xs sm:text-sm font-medium mb-6 max-w-md mx-auto">
           เริ่มต้นสร้างบอร์ดใหม่เพื่อจัดระเบียบงาน หรือนำรหัสเชิญ 6 หลักจากเพื่อนมากรอกเพื่อเข้าร่วมทีมได้ทันที
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
           <button 
             @click="openCreateProjectModal"
-            class="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md text-sm flex items-center justify-center gap-1.5"
+            class="w-full sm:w-auto min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md text-sm flex items-center justify-center gap-1.5"
           >
             ➕ สร้างโปรเจกต์ใหม่
           </button>
           <button 
             @click="openJoinModal"
-            class="w-full sm:w-auto bg-white hover:bg-stone-50 text-amber-950 font-bold px-5 py-2.5 rounded-xl transition-all border border-amber-300 text-sm flex items-center justify-center gap-1.5"
+            class="w-full sm:w-auto min-h-[44px] bg-white hover:bg-stone-50 text-amber-950 font-bold px-5 py-2.5 rounded-xl transition-all border border-amber-300 text-sm flex items-center justify-center gap-1.5"
           >
             🔑 กรอกรหัสเข้าร่วม
           </button>
@@ -81,8 +81,8 @@
 
         <!-- Banner แนะนำคู่มือการใช้งานสำหรับสมาชิกใหม่ -->
         <div class="mt-8 pt-6 border-t border-amber-200/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-left bg-gradient-to-r from-amber-50/80 to-orange-50/60 p-4 rounded-xl border border-amber-200/80">
-          <div class="flex items-center gap-3">
-            <span class="text-3xl">📘</span>
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <span class="text-3xl shrink-0">📘</span>
             <div>
               <h4 class="text-xs font-black text-amber-950 uppercase tracking-wider">เพิ่งเริ่มต้นใช้งาน FlowSpace?</h4>
               <p class="text-xs text-stone-500 font-medium">ศึกษาวิธีสร้างบอร์ด มอบหมายงาน และตั้งค่าระบบยศได้ในคู่มือ</p>
@@ -92,14 +92,14 @@
             <a 
               href="/manual.html" 
               target="_blank" 
-              class="text-xs bg-white hover:bg-stone-50 text-amber-950 font-bold px-3 py-1.5 rounded-lg border border-amber-300 transition-all flex items-center justify-center gap-1 shadow-sm"
+              class="w-full sm:w-auto min-h-[40px] text-xs bg-white hover:bg-stone-50 text-amber-950 font-bold px-3.5 py-2 rounded-lg border border-amber-300 transition-all flex items-center justify-center gap-1 shadow-sm"
             >
               📖 เปิดอ่านคู่มือ
             </a>
             <a 
               href="/FlowSpace_User_Manual.pdf" 
               download="FlowSpace_User_Manual.pdf" 
-              class="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg transition-all shadow-sm flex items-center justify-center gap-1"
+              class="w-full sm:w-auto min-h-[40px] text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-lg transition-all shadow-sm flex items-center justify-center gap-1"
             >
               📥 โหลด PDF
             </a>
@@ -107,33 +107,33 @@
         </div>
       </div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="project in projects" :key="project.id" class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div v-for="project in projects" :key="project.id" class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
           <div>
-            <div class="flex justify-between items-start mb-3">
-              <h3 class="text-lg font-bold text-stone-800 group-hover:text-amber-800 transition-colors break-words max-w-[75%]">
+            <div class="flex justify-between items-start gap-2 mb-3">
+              <h3 class="text-base sm:text-lg font-bold text-stone-800 group-hover:text-amber-800 transition-colors break-words flex-1 min-w-0">
                 📁 {{ project.name }}
               </h3>
-              <span :class="project.isOwner ? 'bg-amber-100 text-amber-900 border-amber-200' : 'bg-stone-100 text-stone-700 border-stone-300'" class="text-[10px] font-black px-2 py-0.5 rounded-full border">
+              <span :class="project.isOwner ? 'bg-amber-100 text-amber-900 border-amber-200' : 'bg-stone-100 text-stone-700 border-stone-300'" class="text-[10px] font-black px-2 py-0.5 rounded-full border shrink-0">
                 {{ project.isOwner ? 'Owner' : 'Member' }}
               </span>
             </div>
-            <p class="text-stone-500 text-sm font-medium line-clamp-2 mb-4 break-words">
+            <p class="text-stone-500 text-xs sm:text-sm font-medium line-clamp-2 mb-4 break-words">
               {{ project.description || 'ไม่มีคำอธิบายรายละเอียดโปรเจกต์...' }}
             </p>
           </div>
 
-          <div class="pt-4 border-t border-amber-100 flex justify-between items-center">
-            <span class="text-xs text-stone-400 font-medium">โดย: {{ project.ownerName }}</span>
-            <div class="flex gap-2">
+          <div class="pt-4 border-t border-amber-100 flex justify-between items-center gap-2">
+            <span class="text-xs text-stone-400 font-medium truncate">โดย: {{ project.ownerName }}</span>
+            <div class="flex items-center gap-2 shrink-0">
               <button 
                 v-if="project.isOwner" 
                 @click="openEditProjectModal(project)" 
-                class="bg-white hover:bg-stone-100 text-stone-700 font-bold text-xs px-3 py-1.5 rounded-lg border border-stone-300 transition-all flex items-center gap-1"
+                class="min-h-[38px] bg-white hover:bg-stone-100 text-stone-700 font-bold text-xs px-3 py-1.5 rounded-lg border border-stone-300 transition-all flex items-center gap-1"
               >
                 ✏️ แก้ไข
               </button>
-              <button @click="goToProject(project.id)" class="bg-[#f3e9d7] hover:bg-[#ebdcc5] text-amber-900 font-bold text-xs px-3 py-1.5 rounded-lg border border-amber-200 transition-all">
+              <button @click="goToProject(project.id)" class="min-h-[38px] bg-[#f3e9d7] hover:bg-[#ebdcc5] text-amber-900 font-bold text-xs px-3.5 py-1.5 rounded-lg border border-amber-200 transition-all flex items-center">
                 เปิดบอร์ด ➡️
               </button>
             </div>
@@ -144,24 +144,24 @@
 
     <!-- Modal สำหรับ สร้าง/แก้ไข โปรเจกต์ -->
     <div v-if="isModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden">
+      <div class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90dvh] overflow-y-auto">
         <!-- แถบสีส้มด้านบน -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-amber-500"></div>
 
-        <h2 class="text-xl font-extrabold text-stone-800 mb-1 mt-2">📁 {{ isEditProjectMode ? 'แก้ไขรายละเอียดโปรเจกต์' : 'สร้างโปรเจกต์ใหม่' }}</h2>
+        <h2 class="text-lg sm:text-xl font-extrabold text-stone-800 mb-1 mt-2">📁 {{ isEditProjectMode ? 'แก้ไขรายละเอียดโปรเจกต์' : 'สร้างโปรเจกต์ใหม่' }}</h2>
         <form @submit.prevent="isEditProjectMode ? handleUpdateProject() : handleCreateProject()" class="space-y-4 mt-4">
           <div>
             <label class="block text-sm font-semibold text-stone-600 mb-1">ชื่อโปรเจกต์</label>
-            <input v-model="projectName" type="text" placeholder="เช่น พัฒนาแอปคลังมังงะ" required class="w-full bg-white border border-amber-200 rounded-lg px-3 py-2 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all" />
+            <input v-model="projectName" type="text" placeholder="เช่น พัฒนาแอปคลังมังงะ" required class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all" />
           </div>
           <div>
             <label class="block text-sm font-semibold text-stone-600 mb-1">รายละเอียด</label>
-            <textarea v-model="projectDescription" rows="3" placeholder="อธิบายจุดประสงค์สั้นๆ..." class="w-full bg-white border border-amber-200 rounded-lg px-3 py-2 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"></textarea>
+            <textarea v-model="projectDescription" rows="3" placeholder="อธิบายจุดประสงค์สั้นๆ..." class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"></textarea>
           </div>
           <p v-if="modalMessage" class="text-sm text-center font-bold py-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">{{ modalMessage }}</p>
-          <div class="flex justify-end gap-3 pt-2">
-            <button type="button" @click="closeModal" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-bold text-sm transition-all">ยกเลิก</button>
-            <button type="submit" :disabled="isSubmitting" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-bold text-sm transition-all shadow-md shadow-amber-500/10">
+          <div class="flex justify-end gap-2.5 pt-2">
+            <button type="button" @click="closeModal" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">ยกเลิก</button>
+            <button type="submit" :disabled="isSubmitting" class="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-amber-500/10 flex items-center justify-center">
               {{ isEditProjectMode ? 'บันทึกสำเร็จ ✨' : 'สร้างสำเร็จ ✨' }}
             </button>
           </div>
@@ -171,21 +171,21 @@
 
     <!-- Modal สำหรับ เข้าร่วมโปรเจกต์ -->
     <div v-if="isJoinModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden">
+      <div class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90dvh] overflow-y-auto">
         <!-- แถบสีทองด้านบน -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-amber-500"></div>
 
-        <h2 class="text-xl font-extrabold text-stone-800 mb-1 mt-2">🔑 เข้าร่วมโปรเจกต์</h2>
+        <h2 class="text-lg sm:text-xl font-extrabold text-stone-800 mb-1 mt-2">🔑 เข้าร่วมโปรเจกต์</h2>
         <p class="text-stone-400 text-xs font-medium mb-4">นำรหัส 6 หลักจากเจ้าของโปรเจกต์มาวางเพื่อเข้าร่วมทำงาน</p>
         <form @submit.prevent="handleJoinProject" class="space-y-4">
-          <input v-model="codeToJoin" type="text" placeholder="เช่น A7B9X2" maxlength="6" required class="w-full bg-white border border-amber-200 rounded-lg px-4 py-3 text-center text-xl font-mono font-black uppercase text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all tracking-widest" />
+          <input v-model="codeToJoin" type="text" placeholder="เช่น A7B9X2" maxlength="6" required class="w-full min-h-[48px] bg-white border border-amber-200 rounded-xl px-4 py-3 text-center text-xl font-mono font-black uppercase text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all tracking-widest" />
           <p v-if="joinError" class="text-xs text-center text-rose-600 font-bold bg-rose-50 py-1.5 rounded border border-rose-100">{{ joinError }}</p>
-          <div class="flex justify-end gap-3 pt-2">
-            <button type="button" @click="isJoinModalOpen = false; codeToJoin = ''; joinError = ''" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-bold text-sm transition-all">ยกเลิก</button>
+          <div class="flex justify-end gap-2.5 pt-2">
+            <button type="button" @click="isJoinModalOpen = false; codeToJoin = ''; joinError = ''" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">ยกเลิก</button>
             <button 
               type="submit" 
               :disabled="isJoining"
-              class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold text-sm transition-all shadow-md shadow-amber-500/10 flex items-center gap-1.5"
+              class="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-amber-500/10 flex items-center justify-center gap-1.5"
             >
               <span v-if="isJoining" class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
               {{ isJoining ? 'กำลังเข้าร่วม...' : 'เข้าร่วมบอร์ด 🚀' }}
@@ -197,7 +197,7 @@
 
     <!-- Modal ยืนยันการออกจากระบบ -->
     <div v-if="isLogoutModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden">
+      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90dvh] overflow-y-auto">
         <!-- แถบสีแดงด้านบน -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-500"></div>
         
@@ -208,21 +208,21 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-lg font-black text-stone-800 mb-1">🚪 ยืนยันการออกจากระบบ</h3>
-            <p class="text-stone-500 text-sm font-medium">คุณต้องการออกจากระบบใช่หรือไม่? เมื่อออกจากระบบแล้ว คุณจำเป็นต้องเข้าสู่ระบบใหม่อีกครั้งเพื่อใช้งาน</p>
+            <h3 class="text-base sm:text-lg font-black text-stone-800 mb-1">🚪 ยืนยันการออกจากระบบ</h3>
+            <p class="text-stone-500 text-xs sm:text-sm font-medium">คุณต้องการออกจากระบบใช่หรือไม่? เมื่อออกจากระบบแล้ว คุณจำเป็นต้องเข้าสู่ระบบใหม่อีกครั้งเพื่อใช้งาน</p>
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-stone-100">
+        <div class="flex justify-end gap-2.5 mt-6 pt-4 border-t border-stone-100">
           <button 
             @click="isLogoutModalOpen = false" 
-            class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold rounded-lg text-sm transition-all"
+            class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold rounded-xl text-sm transition-all flex items-center justify-center"
           >
             ยกเลิก
           </button>
           <button 
             @click="confirmLogout" 
-            class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm shadow-md shadow-rose-600/20 transition-all"
+            class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-sm shadow-md shadow-rose-600/20 transition-all flex items-center justify-center"
           >
             ออกจากระบบ ➡️
           </button>

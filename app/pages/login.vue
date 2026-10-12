@@ -1,17 +1,17 @@
 <!-- app/pages/login.vue -->
 <template>
   <!-- พื้นหลังคุมโทนสีครีมไข่เหลืองนวล อุ่นสบายตา และใส่ตาราง Grid ไม่สว่างจ้า -->
-  <div class="min-h-screen bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] flex items-center justify-center p-4 relative overflow-hidden bg-grid">
+  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] flex items-center justify-center p-4 relative overflow-x-hidden bg-grid">
     
     <!-- ลูกเล่นวงกลมแสงนวลๆ ด้านหลัง -->
-    <div class="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-[-10%] left-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="bg-[#fdfaf5] border border-amber-200/80 p-8 rounded-2xl w-full max-w-md shadow-xl shadow-amber-900/5 relative z-10">
-      <h2 class="text-3xl font-extrabold text-center text-stone-800 mb-2 flex items-center justify-center gap-2">
+    <div class="bg-[#fdfaf5] border border-amber-200/80 p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-xl shadow-amber-900/5 relative z-10">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-center text-stone-800 mb-2 flex items-center justify-center gap-2">
         <span>🔑</span> เข้าสู่ระบบ
       </h2>
-      <p class="text-center text-stone-500 text-sm mb-6 font-medium">ยินดีต้อนรับกลับมา! กรุณาเข้าสู่ระบบเพื่อทำงานต่อ</p>
+      <p class="text-center text-stone-500 text-xs sm:text-sm mb-6 font-medium">ยินดีต้อนรับกลับมา! กรุณาเข้าสู่ระบบเพื่อทำงานต่อ</p>
 
       <form @submit.prevent="handleLogin" class="space-y-4">
         <div>
@@ -21,7 +21,7 @@
             type="email" 
             placeholder="name@example.com" 
             required 
-            class="w-full bg-white border border-amber-200 rounded-lg px-3 py-2.5 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
+            class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
           />
         </div>
 
@@ -33,12 +33,12 @@
               :type="isPasswordVisible ? 'text' : 'password'" 
               placeholder="••••••••" 
               required 
-              class="w-full bg-white border border-amber-200 rounded-lg pl-3 pr-10 py-2.5 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
+              class="w-full bg-white border border-amber-200 rounded-xl pl-3.5 pr-12 py-2.5 min-h-[44px] text-base sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
             />
             <button 
               type="button" 
               @click="isPasswordVisible = !isPasswordVisible" 
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors focus:outline-none"
+              class="absolute right-0 top-0 bottom-0 w-11 flex items-center justify-center text-stone-400 hover:text-stone-600 transition-colors focus:outline-none"
               title="แสดง/ซ่อนรหัสผ่าน"
             >
               <!-- Eye open -->
@@ -61,7 +61,7 @@
         <button 
           type="submit" 
           :disabled="isLoading" 
-          class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-stone-400 disabled:to-stone-400 text-white font-bold py-2.5 rounded-lg transition-all shadow-md shadow-amber-600/20 mt-2 transform hover:-translate-y-0.5 active:translate-y-0"
+          class="w-full min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-stone-400 disabled:to-stone-400 text-white font-bold py-2.5 rounded-xl transition-all shadow-md shadow-amber-600/20 mt-2 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center text-sm sm:text-base"
         >
           {{ isLoading ? 'กำลังตรวจสอบสิทธิ์...' : 'เข้าสู่ระบบ ⚡' }}
         </button>
@@ -69,7 +69,7 @@
 
       <p class="text-center text-sm text-stone-500 mt-6 font-medium">
         ยังไม่มีบัญชีสมาชิก? 
-        <NuxtLink to="/register" class="text-amber-700 hover:text-amber-600 font-bold hover:underline transition-colors ml-1">สมัครสมาชิกที่นี่</NuxtLink>
+        <NuxtLink to="/register" class="text-amber-700 hover:text-amber-600 font-bold hover:underline transition-colors ml-1 inline-block py-1">สมัครสมาชิกที่นี่</NuxtLink>
       </p>
     </div>
   </div>
