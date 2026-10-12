@@ -105,6 +105,10 @@
 <script setup>
 import { ref } from 'vue'
 
+definePageMeta({
+  middleware: 'auth'
+})
+
 const username = ref('')
 const email = ref('')
 const password = ref('')

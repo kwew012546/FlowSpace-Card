@@ -1,22 +1,21 @@
 <!-- app/pages/index.vue -->
 <template>
-  <div class="min-h-screen min-h-[100dvh] bg-[#fcf8f2] flex items-center justify-center p-4">
-    <div class="text-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-4 border-amber-500 border-t-transparent mx-auto mb-2"></div>
-      <p class="text-stone-500 font-bold text-sm">กำลังนำคุณเข้าสู่หน้าแดชบอร์ดหลัก...</p>
-    </div>
-  </div>
+  <div class="min-h-screen min-h-[100dvh] bg-[#fcf8f2]" />
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-
 definePageMeta({
-  middleware: 'auth'
-})
-
-onMounted(() => {
-  // เมื่อโหลดหน้านี้เสร็จ ส่งผู้ใช้ไปหน้าแดชบอร์ดรวมทันที
-  navigateTo('/dashboard')
+  middleware: [
+    (to, from) => {
+      if (import.meta.server) {
+        const token = useCookie('auth_token')
+        return navigateTo(token.value ? '/dashboard' : '/login', { replace: true })
+      }
+      if (import.meta.client) {
+        const user = localStorage.getItem('user')
+        return navigateTo(user ? '/dashboard' : '/login', { replace: true })
+      }
+    }
+  ]
 })
 </script>

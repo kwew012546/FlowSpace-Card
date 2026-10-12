@@ -85,6 +85,10 @@
 <script setup>
 import { ref } from 'vue'
 
+definePageMeta({
+  middleware: 'auth'
+})
+
 const email = ref('')
 const password = ref('')
 const isPasswordVisible = ref(false)
