@@ -29,9 +29,14 @@
 
       <!-- Redirect Countdown & Button -->
       <div class="mt-8 pt-6 border-t border-amber-100 flex flex-col items-center gap-4">
-        <p class="text-xs text-stone-400 font-bold">ระบบจะนำคุณไปยังหน้าเข้าสู่ระบบอัตโนมัติใน {{ countdown }} วินาที...</p>
-        <button @click="goToLogin" class="w-full min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black py-2.5 rounded-xl shadow-md transition-all text-sm flex items-center justify-center">
-          เข้าสู่ระบบเดี๋ยวนี้ 🔑
+        <p class="text-xs text-stone-400 font-bold">
+          {{ status === 'success' ? `ระบบจะนำคุณไปยังแดชบอร์ดหลักอัตโนมัติใน ${countdown} วินาที...` : `ระบบจะนำคุณไปยังหน้าเข้าสู่ระบบใน ${countdown} วินาที...` }}
+        </p>
+        <button 
+          @click="status === 'success' ? goToDashboard() : goToLogin()" 
+          class="w-full min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black py-2.5 rounded-xl shadow-md transition-all text-sm flex items-center justify-center"
+        >
+          {{ status === 'success' ? 'เข้าสู่แดชบอร์ดเดี๋ยวนี้ 🚀' : 'เข้าสู่ระบบเดี๋ยวนี้ 🔑' }}
         </button>
       </div>
     </div>
@@ -39,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 const route = useRoute()
 const status = computed(() => route.query.status)
@@ -61,8 +66,13 @@ const errorMessage = computed(() => {
   }
 })
 
-const countdown = ref(5)
+const countdown = ref(3)
 let timer = null
+
+const goToDashboard = () => {
+  if (timer) clearInterval(timer)
+  navigateTo('/dashboard')
+}
 
 const goToLogin = () => {
   if (timer) clearInterval(timer)
@@ -70,11 +80,26 @@ const goToLogin = () => {
 }
 
 onMounted(() => {
+  if (status.value === 'success' && route.query.user) {
+    try {
+      const userObj = JSON.parse(decodeURIComponent(String(route.query.user)))
+      localStorage.setItem('user', JSON.stringify(userObj))
+    } catch (e) {}
+  }
+
   timer = setInterval(() => {
     countdown.value--
     if (countdown.value <= 0) {
-      goToLogin()
+      if (status.value === 'success') {
+        goToDashboard()
+      } else {
+        goToLogin()
+      }
     }
   }, 1000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
 })
 </script>

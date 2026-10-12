@@ -34,8 +34,28 @@ export default defineEventHandler(async (event) => {
       data: { isVerified: true }
     })
 
+    // ออก JWT Session Cookie ให้กับเบราว์เซอร์ที่คลิกยืนยันตัวตน
+    const sessionToken = jwt.sign(
+      { id: user.id, email: user.email, username: user.username },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    )
+
+    setCookie(event, 'auth_token', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 วัน
+    })
+
+    const userData = encodeURIComponent(JSON.stringify({
+      id: user.id,
+      email: user.email,
+      username: user.username
+    }))
+
     // 4. เปลี่ยนเส้นทางไปยังหน้ายืนยันความสำเร็จฝั่งหน้าบ้าน
-    return sendRedirect(event, '/verify-email?status=success')
+    return sendRedirect(event, `/verify-email?status=success&user=${userData}`)
 
   } catch (error: any) {
     console.error('Verify Email Error:', error)

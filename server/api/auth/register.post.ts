@@ -53,6 +53,13 @@ export default defineEventHandler(async (event) => {
       { expiresIn: '15m' }
     )
 
+    // Token สำหรับให้หน้าบ้านใช้ Polling ตรวจสอบสถานะการยืนยันแบบ Real-time
+    const checkToken = jwt.sign(
+      { id: newUser.id, email: newUser.email, type: 'email_verification_poll' },
+      JWT_SECRET,
+      { expiresIn: '30m' }
+    )
+
     const host = getRequestHost(event)
     const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? getRequestProtocol(event) : 'https'
     const baseUrl = process.env.APP_URL ? process.env.APP_URL.replace(/\/$/, '') : `${protocol}://${host}`
@@ -105,7 +112,8 @@ export default defineEventHandler(async (event) => {
       message: emailSent
         ? 'สมัครสมาชิกสำเร็จ! กรุณาตรวจสอบอีเมลของคุณเพื่อยืนยันการใช้งานบอร์ด 📧'
         : 'สมัครสมาชิกสำเร็จ! (พัฒนาภายในเครื่อง) ลิงก์ยืนยันตัวตนแสดงใน Console เรียบร้อยแล้วครับ 💻',
-      verifyUrl: !emailSent ? verifyUrl : undefined
+      verifyUrl: !emailSent ? verifyUrl : undefined,
+      checkToken
     }
 
   } catch (error: any) {
