@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   try {
     // 1. ตรวจสอบความถูกต้องของ JWT Token
     const decoded = jwt.verify(token, JWT_SECRET) as { email: string }
-    const email = decoded.email
+    const email = decoded.email ? String(decoded.email).trim().toLowerCase() : ''
 
     if (!email) {
       return sendRedirect(event, '/verify-email?status=error&message=invalid_payload')

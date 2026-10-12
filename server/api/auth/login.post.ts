@@ -11,7 +11,8 @@ const JWT_SECRET_TO_USE = JWT_SECRET || 'super-secret-fallback-key'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { email, password } = body
+  const password = body.password
+  const email = body.email ? String(body.email).trim().toLowerCase() : ''
 
   if (!email || !password) {
     throw createError({

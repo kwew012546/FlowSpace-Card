@@ -5,7 +5,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-fallback-key'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { email, username, password } = body
+  const { username, password } = body
+  const email = body.email ? String(body.email).trim().toLowerCase() : ''
 
   // 1. Validation: ตรวจสอบว่าส่งค่ามาครบไหม
   if (!email || !username || !password) {
