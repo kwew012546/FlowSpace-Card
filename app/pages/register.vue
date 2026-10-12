@@ -14,7 +14,26 @@
       </h2>
       <p class="text-center text-stone-500 text-xs sm:text-sm mb-6 font-medium">สร้างบัญชีเพื่อเริ่มต้นจัดการโปรเจกต์ของคุณ</p>
 
-      <form @submit.prevent="handleRegister" class="space-y-4">
+      <!-- แสดงหน้าจอส่งอีเมลสำเร็จเมื่อส่งเมลจริง -->
+      <div v-if="isSuccess && !verifyLink" class="text-center py-2 space-y-4">
+        <div class="w-16 h-16 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+          ✉️
+        </div>
+        <h3 class="text-xl font-black text-stone-800">ส่งอีเมลยืนยันตัวตนแล้ว!</h3>
+        <p class="text-xs sm:text-sm text-stone-600 font-medium leading-relaxed">
+          ระบบได้ส่งลิงก์เปิดใช้งานบัญชีไปยัง <span class="font-bold text-amber-900">{{ email }}</span> เรียบร้อยแล้ว (ลิงก์มีอายุ 15 นาที)
+        </p>
+        <div class="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs text-stone-600 font-medium text-left space-y-1">
+          <p>💡 <b>คำแนะนำ:</b></p>
+          <p>• กรุณาเปิดกล่องจดหมายอีเมลของคุณและคลิกปุ่ม <b>"ยืนยันอีเมลของคุณ"</b> เพื่อเริ่มใช้งาน</p>
+          <p>• หากไม่พบในกล่องข้อความหลัก กรุณาลองตรวจสอบในโฟลเดอร์ <b>Junk</b> หรือ <b>Spam</b></p>
+        </div>
+        <NuxtLink to="/login" class="w-full min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black py-2.5 rounded-xl transition-all shadow-md flex items-center justify-center text-sm">
+          ไปที่หน้าเข้าสู่ระบบ 🔑
+        </NuxtLink>
+      </div>
+
+      <form v-else @submit.prevent="handleRegister" class="space-y-4">
         <div>
           <label class="block text-sm font-semibold text-stone-600 mb-1">ชื่อผู้ใช้งาน (Username)</label>
           <input 
@@ -61,13 +80,13 @@
         </button>
       </form>
 
-      <!-- ปุ่มยืนยันด่วนในโหมดพัฒนาเครื่อง Local -->
+      <!-- ปุ่มยืนยันด่วนเฉพาะกรณีที่ไม่ได้ตั้งค่า SMTP (โหมดพัฒนาเครื่อง Local แบบไม่มีเมล) -->
       <div v-if="verifyLink" class="mt-4 p-4 bg-amber-50/80 border border-amber-200 rounded-xl text-center text-xs font-bold text-stone-700">
         <p class="mb-2.5 flex items-center justify-center gap-1"><span>💻</span> (โหมดพัฒนาในเครื่อง) ยืนยันอีเมลได้ทันที:</p>
         <a :href="verifyLink" class="min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black px-4 py-2.5 rounded-xl inline-flex items-center justify-center shadow-sm transition-all">คลิกเพื่อยืนยันอีเมล ✉️</a>
       </div>
 
-      <p class="text-center text-sm text-stone-500 mt-6 font-medium">
+      <p v-if="!isSuccess || verifyLink" class="text-center text-sm text-stone-500 mt-6 font-medium">
         มีบัญชีอยู่แล้วใช่ไหม? 
         <NuxtLink to="/login" class="text-amber-700 hover:text-amber-600 font-bold hover:underline transition-colors ml-1 inline-block py-1">เข้าสู่ระบบที่นี่</NuxtLink>
       </p>
@@ -107,8 +126,6 @@ const handleRegister = async () => {
     message.value = response.message
     if (response.verifyUrl) {
       verifyLink.value = response.verifyUrl
-    } else {
-      setTimeout(() => { navigateTo('/login') }, 4000)
     }
   } catch (error) {
     isSuccess.value = false

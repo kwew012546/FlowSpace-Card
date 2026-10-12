@@ -53,9 +53,12 @@ export default defineEventHandler(async (event) => {
       { expiresIn: '15m' }
     )
 
-    const verifyUrl = `${getRequestProtocol(event)}://${getRequestHost(event)}/api/auth/verify-email?token=${verificationToken}`
+    const host = getRequestHost(event)
+    const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? getRequestProtocol(event) : 'https'
+    const baseUrl = process.env.APP_URL ? process.env.APP_URL.replace(/\/$/, '') : `${protocol}://${host}`
+    const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`
 
-    // แสดงลิงก์บน System Console เสมอเพื่อการทดสอบในสภาพแวดล้อม Local
+    // แสดงลิงก์บน System Console เสมอเพื่อการตรวจสอบ
     console.log('\n--- 🌌 [FLOWSPACE EMAIL VERIFICATION] 🌌 ---')
     console.log('Username:', newUser.username)
     console.log('Verification URL:', verifyUrl)
