@@ -1,14 +1,14 @@
 // server/api/projects/list.get.ts
 export default defineEventHandler(async (event) => {
-  const query = getQuery(event)
-  const userId = query.userId
-
-  if (!userId) {
+  if (!event.context.auth?.user) {
     throw createError({
-      statusCode: 400,
-      message: 'ไม่พบไอดีผู้ใช้งาน'
+      statusCode: 401,
+      message: 'กรุณาเข้าสู่ระบบ'
     })
   }
+
+  // ป้องกัน IDOR: ใช้ ID จาก Session ที่ผ่านการยืนยันแล้วเสมอ
+  const userId = event.context.auth.user.id
 
   try {
     // ดึงโปรเจกต์ทั้งหมดที่ยูสเซอร์คนนี้เป็นสมาชิกอยู่ (ไม่ว่าจะสร้างเองหรือถูกเชิญ)

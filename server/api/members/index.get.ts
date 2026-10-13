@@ -10,6 +10,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  if (!event.context.auth?.user) {
+    throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบ' })
+  }
+  const userId = event.context.auth.user.id
+
+  const isMember = await isProjectMember(userId, Number(projectId))
+  if (!isMember) {
+    throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์เข้าถึงรายชื่อสมาชิกในโปรเจกต์นี้ ❌' })
+  }
+
   try {
     // ดึงรายชื่อสมาชิกพร้อม Join ไปดึงข้อมูลชื่อผู้ใช้ (User) และข้อมูลยศ (Role)
     const members = await prisma.projectMember.findMany({

@@ -58,17 +58,17 @@ export default defineEventHandler(async (event) => {
       })
     ])
 
-    const isOwner = projectInfo && projectInfo.ownerId === userId
-
-    if (!memberRecord && !isOwner) {
-      throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์เข้าถึงโปรเจกต์นี้ ❌' })
-    }
-
     if (!projectInfo) {
       throw createError({
         statusCode: 404,
         message: 'ไม่พบโปรเจกต์นี้ในระบบ'
       })
+    }
+
+    const isOwner = projectInfo.ownerId === userId
+
+    if (!memberRecord && !isOwner) {
+      throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์เข้าถึงโปรเจกต์นี้ ❌' })
     }
 
     // ตรวจสอบสิทธิ์การมองเห็นรหัสเชิญ (Owner หรือมียศ INVITE_MEMBERS / MANAGE_PROJECT)

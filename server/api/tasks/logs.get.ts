@@ -12,6 +12,21 @@ export default defineEventHandler(async (event) => {
   if (!event.context.auth?.user) {
     throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบ' })
   }
+  const userId = event.context.auth.user.id
+
+  const task = await prisma.task.findUnique({
+    where: { id: Number(taskId) },
+    select: { projectId: true }
+  })
+
+  if (!task) {
+    throw createError({ statusCode: 404, message: 'ไม่พบการ์ดงานที่ระบุ' })
+  }
+
+  const isMember = await isProjectMember(userId, task.projectId)
+  if (!isMember) {
+    throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์เข้าถึงประวัติกิจกรรมในโปรเจกต์นี้ ❌' })
+  }
 
   try {
     const logs = await prisma.taskLog.findMany({

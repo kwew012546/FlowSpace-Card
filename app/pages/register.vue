@@ -163,10 +163,22 @@ const pollToken = ref('')
 const isVerifiedComplete = ref(false)
 let pollTimer = null
 
+let pollCount = 0
+const MAX_POLLS = 150 // 150 ครั้ง x 2 วินาที = 5 นาที (ป้องกันการยิง API ไม่รู้จบ)
+
 const startPolling = () => {
   if (pollTimer) clearInterval(pollTimer)
+  pollCount = 0
   pollTimer = setInterval(async () => {
     if (!pollToken.value || isVerifiedComplete.value) return
+    pollCount++
+
+    if (pollCount > MAX_POLLS) {
+      if (pollTimer) clearInterval(pollTimer)
+      pollTimer = null
+      return
+    }
+
     try {
       const res = await $fetch('/api/auth/check-verified', {
         method: 'GET',
@@ -182,7 +194,11 @@ const startPolling = () => {
         }, 1200)
       }
     } catch (e) {
-      // Silently ignore polling errors and keep checking
+      // หากโทเค็นหมดอายุหรือไม่ถูกต้อง ให้หยุดโพลล์ทันที
+      if (e.statusCode === 400 || e.statusCode === 404) {
+        if (pollTimer) clearInterval(pollTimer)
+        pollTimer = null
+      }
     }
   }, 2000)
 }

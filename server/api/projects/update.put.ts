@@ -45,6 +45,9 @@ export default defineEventHandler(async (event) => {
       }
     })
 
+    // บรอดแคสต์สัญญาณ Real-time เพื่อให้ทุกคนในโปรเจกต์เห็นชื่อโปรเจกต์ที่อัปเดตทันที
+    broadcastProjectUpdate(Number(id), 'TEAM_UPDATED')
+
     return {
       success: true,
       message: 'แก้ไขโปรเจกต์สำเร็จ!',

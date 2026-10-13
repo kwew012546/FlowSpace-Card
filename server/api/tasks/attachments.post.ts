@@ -61,15 +61,22 @@ export default defineEventHandler(async (event) => {
   const baseName = path.basename(rawFilename).replace(/\s+/g, '_')
   const safeName = `${Date.now()}-${baseName}`
 
-  // สร้างโฟลเดอร์ uploads เสมอหากยังไม่มี
-  const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true })
+  // สร้างโฟลเดอร์ uploads เสมอหากยังไม่มี และเขียนไฟล์แบบดักจับข้อผิดพลาด (Fail-safe for Serverless)
+  try {
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true })
+    }
+
+    const fileFullPath = path.join(uploadsDir, safeName)
+    fs.writeFileSync(fileFullPath, fileData.data)
+  } catch (fsErr: any) {
+    console.error('File write failure (likely read-only serverless filesystem):', fsErr)
+    throw createError({
+      statusCode: 500,
+      message: 'ไม่สามารถบันทึกไฟล์ลงเซิร์ฟเวอร์ได้ในขณะนี้ (ระบบคลาวด์อาจไม่อนุญาตให้เขียนไฟล์ในพื้นที่เครื่อง) ❌'
+    })
   }
-
-  const fileFullPath = path.join(uploadsDir, safeName)
-
-  fs.writeFileSync(fileFullPath, fileData.data)
 
   const attachment = await prisma.attachment.create({
     data: {
