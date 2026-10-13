@@ -216,7 +216,7 @@
             
             <div v-if="hasPermission('MANAGE_PROJECT') && editingColumnId !== col.id" class="flex items-center gap-1">
               <button @click="editingColumnId = col.id; editingColumnTitle = col.title" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-stone-400 hover:text-amber-600 text-xs p-1" title="เปลี่ยนชื่อช่อง">✏️</button>
-              <button @click="triggerDeleteColumn(col.id, col.title)" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-stone-400 hover:text-rose-600 text-xs p-1" title="ลบช่อง">🗑️</button>
+              <button @click="triggerDeleteColumn(col.id, col.title)" :disabled="columns.length <= 1" :class="columns.length <= 1 ? 'opacity-30 cursor-not-allowed' : 'hover:text-rose-600'" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-stone-400 text-xs p-1 transition-all" :title="columns.length <= 1 ? 'ต้องมีอย่างน้อย 1 คอลัมน์บนบอร์ด ❌' : 'ลบช่อง'">🗑️</button>
             </div>
           </div>
 
@@ -323,6 +323,11 @@
         <div class="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
           
           <div class="md:col-span-2 space-y-4 sm:space-y-5">
+            <div v-if="taskModalError" class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-bold flex items-center gap-2">
+              <span>⚠️</span>
+              <span>{{ taskModalError }}</span>
+            </div>
+
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">หัวข้องาน</label>
               <input v-model="taskTitle" type="text" placeholder="เช่น เขียนคู่มือระบบ..." class="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-stone-800 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
@@ -478,8 +483,15 @@
         </div>
 
         <div class="px-4 sm:px-6 py-3 sm:py-4 border-t border-stone-200/60 bg-white flex justify-end gap-2.5">
-          <button @click="isModalOpen = false" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">ยกเลิก</button>
-          <button @click="handleSubmit" class="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center">{{ isEditMode ? 'บันทึกการแก้ไข' : 'บันทึกงาน' }}</button>
+          <button @click="isModalOpen = false" :disabled="isSavingTask" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 disabled:opacity-50 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">ยกเลิก</button>
+          <button 
+            @click="handleSubmit" 
+            :disabled="isSavingTask" 
+            class="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-1.5"
+          >
+            <span v-if="isSavingTask" class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+            {{ isSavingTask ? 'กำลังบันทึก...' : (isEditMode ? 'บันทึกการแก้ไข' : 'บันทึกงาน') }}
+          </button>
         </div>
       </div>
     </div>
@@ -807,6 +819,8 @@ const projectName = ref('')
 const isModalOpen = ref(false)
 const isEditMode = ref(false)
 const editingTaskId = ref(null)
+const isSavingTask = ref(false)
+const taskModalError = ref('')
 
 const isKickModalOpen = ref(false)
 const memberToKickId = ref(null)
@@ -932,6 +946,10 @@ const addColumn = async () => {
 }
 
 const triggerDeleteColumn = (columnId, columnTitle) => {
+  if (columns.value.length <= 1) {
+    showToast('บอร์ดต้องมีอย่างน้อย 1 คอลัมน์ ไม่สามารถลบคอลัมน์สุดท้ายได้ ❌', 'error')
+    return
+  }
   columnToDeleteId.value = columnId
   columnToDeleteTitle.value = columnTitle
   isDeleteColumnModalOpen.value = true
@@ -1505,6 +1523,8 @@ const openAddModal = (columnId) => {
   newSubtaskTitle.value = ''
   newCommentContent.value = ''
   taskLogs.value = []
+  taskModalError.value = ''
+  isSavingTask.value = false
   isModalOpen.value = true
 }
 
@@ -1524,6 +1544,8 @@ const openEditModal = (task) => {
   newSubtaskTitle.value = ''
   newCommentContent.value = ''
   taskLogs.value = []
+  taskModalError.value = ''
+  isSavingTask.value = false
   isModalOpen.value = true
   Promise.all([
     fetchTaskDetails(task.id),
@@ -1532,56 +1554,63 @@ const openEditModal = (task) => {
 }
 
 const handleSubmit = async () => {
-  if (!taskTitle.value.trim()) return
+  if (!taskTitle.value.trim()) {
+    taskModalError.value = 'กรุณาระบุหัวข้องาน ❌'
+    return
+  }
+  taskModalError.value = ''
+  isSavingTask.value = true
   lastLocalMutationAt = Date.now()
+
   if (isEditMode.value) {
     const targetId = editingTaskId.value
-    // Optimistic UI update บนหน้าจอทันที
-    const existing = tasks.value.find(t => t.id === targetId)
-    if (existing) {
-      existing.title = taskTitle.value
-      existing.description = taskDescription.value
-      existing.assigneeId = taskAssigneeId.value ? Number(taskAssigneeId.value) : null
-      existing.dueDate = taskDueDate.value || null
-      existing.priority = taskPriority.value
-      existing.labels = projectLabels.value.filter(l => selectedLabelIds.value.includes(l.id))
-    }
-    isModalOpen.value = false
     try {
       const response = await $fetch('/api/tasks', { 
         method: 'PUT', 
         body: { 
           id: targetId, 
-          title: taskTitle.value, 
-          description: taskDescription.value,
-          assigneeId: taskAssigneeId.value || null,
+          title: taskTitle.value.trim(), 
+          description: taskDescription.value ? taskDescription.value.trim() : null,
+          assigneeId: taskAssigneeId.value ? Number(taskAssigneeId.value) : null,
           dueDate: taskDueDate.value || null,
           priority: taskPriority.value,
           labelIds: selectedLabelIds.value
         } 
       })
-      if (response.success) fetchTasks()
+      if (response.success) {
+        isModalOpen.value = false
+        await fetchTasks()
+      }
     } catch (error) {
       console.error(error)
-      fetchTasks()
+      taskModalError.value = error.data?.message || error.message || 'เกิดข้อผิดพลาดในการแก้ไขงาน กรุณาลองใหม่อีกครั้ง'
+    } finally {
+      isSavingTask.value = false
     }
   } else {
-    isModalOpen.value = false
     try {
       const response = await $fetch('/api/tasks', { 
         method: 'POST', 
         body: { 
-          title: taskTitle.value, 
-          description: taskDescription.value, 
+          title: taskTitle.value.trim(), 
+          description: taskDescription.value ? taskDescription.value.trim() : null, 
           projectId: projectId,
           columnId: activeAddColumnId.value,
-          assigneeId: taskAssigneeId.value || null,
+          assigneeId: taskAssigneeId.value ? Number(taskAssigneeId.value) : null,
           dueDate: taskDueDate.value || null,
           priority: taskPriority.value
         } 
       })
-      if (response.success) fetchTasks()
-    } catch (error) { console.error(error) }
+      if (response.success) {
+        isModalOpen.value = false
+        await fetchTasks()
+      }
+    } catch (error) {
+      console.error(error)
+      taskModalError.value = error.data?.message || error.message || 'เกิดข้อผิดพลาดในการสร้างงาน กรุณาลองใหม่อีกครั้ง'
+    } finally {
+      isSavingTask.value = false
+    }
   }
 }
 

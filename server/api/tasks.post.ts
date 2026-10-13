@@ -45,6 +45,17 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // ตรวจสอบความถูกต้องของคอลัมน์เป้าหมาย
+  const targetColumn = await prisma.column.findFirst({
+    where: { id: Number(columnId), projectId: Number(projectId) }
+  })
+  if (!targetColumn) {
+    throw createError({
+      statusCode: 400,
+      message: 'ไม่พบคอลัมน์ที่ระบุ หรือคอลัมน์นี้อาจถูกลบไปแล้ว ❌ กรุณารีเฟรชหรือเลือกคอลัมน์อื่น'
+    })
+  }
+
   try {
     const newTask = await prisma.task.create({
       data: {

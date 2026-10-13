@@ -25,15 +25,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // ตรวจสอบว่าโปรเจกต์เปิดรับสมาชิกผ่านรหัสเชิญหรือไม่
-  if (!project.isInviteActive) {
-    throw createError({
-      statusCode: 403,
-      message: '🔒 ขณะนี้โปรเจกต์นี้ปิดรับสมาชิกใหม่ผ่านรหัสเชิญชั่วคราว'
-    })
-  }
-
-  // 2. ตรวจสอบสถานะการเป็นสมาชิก
+  // 2. ตรวจสอบสถานะการเป็นสมาชิก (หรือเจ้าของโครงการ) ก่อน
   const isMember = await prisma.projectMember.findFirst({
     where: {
       projectId: project.id,
@@ -41,10 +33,20 @@ export default defineEventHandler(async (event) => {
     }
   })
 
-  if (isMember) {
+  if (isMember || project.ownerId === Number(userId)) {
+    return {
+      success: true,
+      alreadyMember: true,
+      message: `คุณเป็นสมาชิกของโปรเจกต์ "${project.name}" อยู่แล้ว กำลังพาไปยังบอร์ด... 🚀`,
+      projectId: project.id
+    }
+  }
+
+  // 3. ตรวจสอบว่าโปรเจกต์เปิดรับสมาชิกใหม่ผ่านรหัสเชิญหรือไม่ (สำหรับคนใหม่ที่ยังไม่เคยเป็นสมาชิก)
+  if (!project.isInviteActive) {
     throw createError({
-      statusCode: 400,
-      message: '📢 คุณเป็นสมาชิกของโปรเจกต์นี้อยู่แล้ว'
+      statusCode: 403,
+      message: '🔒 ขณะนี้โปรเจกต์นี้ปิดรับสมาชิกใหม่ผ่านรหัสเชิญชั่วคราว'
     })
   }
 

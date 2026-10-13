@@ -24,6 +24,18 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์ในการจัดการคอลัมน์ของโปรเจกต์นี้ ❌' })
   }
 
+  // ตรวจสอบจำนวนคอลัมน์ที่เหลืออยู่ในโปรเจกต์ (Zero-Column Guard ป้องกันบอร์ดเป็นหมัน)
+  const totalColumns = await prisma.column.count({
+    where: { projectId: column.projectId }
+  })
+
+  if (totalColumns <= 1) {
+    throw createError({
+      statusCode: 400,
+      message: 'ไม่สามารถลบคอลัมน์สุดท้ายของบอร์ดได้ ❌ บอร์ดต้องมีอย่างน้อย 1 คอลัมน์สำหรับวางการ์ดงาน'
+    })
+  }
+
   // ตรวจสอบว่ายังมีงานค้างอยู่ในคอลัมน์หรือไม่ (Safety Guard)
   const tasksCount = await prisma.task.count({
     where: { columnId: id }
