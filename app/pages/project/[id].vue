@@ -1240,11 +1240,32 @@ const fetchTeamAndRoles = async () => {
 let eventSource = null
 let pollingInterval = null
 let lastLocalMutationAt = 0
+let sseReconnectTimeout = null
+let isComponentMounted = false
+
+const scheduleSseReconnect = (delayMs = 3500) => {
+  if (!isComponentMounted) return
+  if (sseReconnectTimeout) clearTimeout(sseReconnectTimeout)
+  sseReconnectTimeout = setTimeout(() => {
+    if (!isComponentMounted) return
+    // เมื่อเชื่อมต่อกลับมาใหม่ ดึงข้อมูลสดเพื่อซิงค์การเปลี่ยนแปลงที่พลาดไประหว่างสายหลุด
+    Promise.allSettled([
+      fetchTasks(),
+      fetchColumns(),
+      fetchTeamAndRoles(),
+      fetchNotifications()
+    ])
+    initSse()
+  }, delayMs)
+}
 
 const initSse = () => {
-  if (eventSource) eventSource.close()
+  if (!isComponentMounted) return
+  if (eventSource) {
+    eventSource.close()
+    eventSource = null
+  }
 
-  // หากอยู่บน localhost ใช้ SSE ตามปกติ แต่หาก SSE ถูกตัดสายบน Serverless ให้สลับไปใช้การซิงค์เมื่อสลับหน้าจอแทนเพื่อไม่ให้หน่วง
   try {
     eventSource = new EventSource(`/api/projects/events?projectId=${projectId}`)
 
@@ -1265,18 +1286,37 @@ const initSse = () => {
     }
 
     eventSource.onerror = () => {
-      // ปิดสาย SSE ที่ค้างบน Serverless ทันทีเพื่อไม่ให้แย่งแบนด์วิดท์เบราว์เซอร์ซ้ำๆ
       if (eventSource) {
         eventSource.close()
         eventSource = null
       }
+      // เชื่อมต่อสายใหม่อัตโนมัติ (Anti-Zombie State)
+      scheduleSseReconnect(3500)
     }
   } catch (e) {
-    // Fallback เงียบๆ
+    scheduleSseReconnect(5000)
+  }
+}
+
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible' && !eventSource && isComponentMounted) {
+    initSse()
+    fetchTasks()
+    fetchNotifications()
+  }
+}
+
+const handleOnline = () => {
+  if (!eventSource && isComponentMounted) {
+    initSse()
+    fetchTasks()
+    fetchNotifications()
   }
 }
 
 onMounted(async () => { 
+  isComponentMounted = true
+
   // ดึงข้อมูลผู้ใช้เบื้องต้นจากเครื่องทันทีเพื่อไม่ให้หน้าจอกระพริบระหว่างรอ API
   const cachedUser = localStorage.getItem('user')
   if (cachedUser) {
@@ -1305,14 +1345,29 @@ onMounted(async () => {
   }
 
   initSse()
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('online', handleOnline)
+  }
 })
 
 onUnmounted(() => {
+  isComponentMounted = false
+  if (sseReconnectTimeout) {
+    clearTimeout(sseReconnectTimeout)
+    sseReconnectTimeout = null
+  }
   if (eventSource) {
     eventSource.close()
+    eventSource = null
   }
   if (pollingInterval) {
     clearInterval(pollingInterval)
+  }
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('visibilitychange', handleVisibilityChange)
+    window.removeEventListener('online', handleOnline)
   }
 })
 

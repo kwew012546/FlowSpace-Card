@@ -3,6 +3,11 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { memberId, roleId } = body // roleId เป็น null ได้ถ้าต้องการถอดยศออกเป็นสมาชิกทั่วไป
 
+  if (!event.context.auth?.user) {
+    throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบ' })
+  }
+  const userId = event.context.auth.user.id
+
   if (!memberId) {
     throw createError({
       statusCode: 400,
@@ -11,6 +16,58 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const targetMember = await prisma.projectMember.findUnique({
+      where: { id: Number(memberId) },
+      include: { project: true }
+    })
+
+    if (!targetMember) {
+      throw createError({ statusCode: 404, message: 'ไม่พบสมาชิกที่ต้องการเปลี่ยนยศ' })
+    }
+
+    // 1. ตรวจสอบสิทธิ์ผู้ดำเนินการ (ต้องเป็น Owner หรือมียศ MANAGE_PROJECT)
+    const isOwner = targetMember.project.ownerId === userId
+    let hasManagePermission = false
+
+    if (!isOwner) {
+      const requesterMember = await prisma.projectMember.findFirst({
+        where: { projectId: targetMember.projectId, userId },
+        include: { role: true }
+      })
+
+      if (requesterMember?.role && requesterMember.role.permissions.includes('MANAGE_PROJECT')) {
+        hasManagePermission = true
+      }
+    }
+
+    if (!isOwner && !hasManagePermission) {
+      throw createError({
+        statusCode: 403,
+        message: 'คุณไม่มีสิทธิ์ในการจัดการยศของสมาชิกในโปรเจกต์นี้ ❌'
+      })
+    }
+
+    // 2. ป้องกันการเปลี่ยนยศของเจ้าของโครงการ
+    if (targetMember.userId === targetMember.project.ownerId) {
+      throw createError({
+        statusCode: 400,
+        message: 'เจ้าของโปรเจกต์มีสิทธิ์สูงสุดเสมอ ไม่สามารถเปลี่ยนยศได้ ❌'
+      })
+    }
+
+    // 3. ตรวจสอบว่า roleId (ถ้ามี) สังกัดอยู่ในโปรเจกต์เดียวกันจริงหรือไม่ (ป้องกัน Cross-Project Role Injection)
+    if (roleId) {
+      const roleExists = await prisma.role.findFirst({
+        where: { id: Number(roleId), projectId: targetMember.projectId }
+      })
+      if (!roleExists) {
+        throw createError({
+          statusCode: 400,
+          message: 'ไม่พบตำแหน่งยศที่ระบุ หรือยศนี้ไม่ได้อยู่ในโปรเจกต์เดียวกัน ❌'
+        })
+      }
+    }
+
     const updatedMember = await prisma.projectMember.update({
       where: {
         id: Number(memberId)

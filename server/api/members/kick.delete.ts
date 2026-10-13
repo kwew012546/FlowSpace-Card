@@ -23,6 +23,30 @@ export default defineEventHandler(async (event) => {
       include: { user: { select: { id: true, username: true } } }
     })
 
+    if (!project) {
+      throw createError({ statusCode: 404, message: 'ไม่พบโปรเจกต์ที่ระบุ' })
+    }
+
+    if (!targetMember || targetMember.projectId !== Number(projectId)) {
+      throw createError({ statusCode: 404, message: 'ไม่พบสมาชิกนี้ในโปรเจกต์' })
+    }
+
+    // ป้องกันการเตะเจ้าของโครงการ (Owner Protection)
+    if (project.ownerId === targetMember.userId) {
+      throw createError({
+        statusCode: 400,
+        message: 'ไม่สามารถเตะเจ้าของโปรเจกต์ได้ ❌ (เจ้าของคือผู้สร้างบอร์ด)'
+      })
+    }
+
+    // ป้องกันการเตะตัวเอง (Self-kick guard)
+    if (targetMember.userId === userId) {
+      throw createError({
+        statusCode: 400,
+        message: 'คุณไม่สามารถเตะตัวเองได้ ❌ หากต้องการออกจากโปรเจกต์ กรุณาใช้ปุ่ม "ออกจากโปรเจกต์" แทน'
+      })
+    }
+
     const isOwner = project && project.ownerId === userId
     let hasManagePermission = false
 
@@ -45,10 +69,16 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // ผ่านด่านตรวจสิทธิ์... ดำเนินการเตะออกได้
-    await prisma.projectMember.delete({
-      where: { id: Number(memberId) }
-    })
+    // ผ่านด่านตรวจสิทธิ์... ทำการปลดงานที่มอบหมายให้สมาชิกคนนี้ออกก่อน แล้วลบสมาชิก
+    await prisma.$transaction([
+      prisma.task.updateMany({
+        where: { projectId: Number(projectId), assigneeId: targetMember.userId },
+        data: { assigneeId: null }
+      }),
+      prisma.projectMember.delete({
+        where: { id: Number(memberId) }
+      })
+    ])
 
     if (targetMember) {
       // 1. แจ้งเตือนผู้ใช้ที่ถูกนำออก

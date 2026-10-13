@@ -3,27 +3,68 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { projectId, email } = body
 
-  if (!projectId || !email) {
+  if (!event.context.auth?.user) {
+    throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบ' })
+  }
+  const currentUserId = event.context.auth.user.id
+
+  if (!projectId || !email || !email.trim()) {
     throw createError({
       statusCode: 400,
       message: 'กรุณาระบุไอดีโปรเจกต์และอีเมลผู้รับเชิญ'
     })
   }
 
+  const cleanEmail = email.trim().toLowerCase()
+
   try {
-    // 1. ค้นหาผู้ใช้จากอีเมลในระบบก่อน
+    // 1. ตรวจสอบโปรเจกต์และสิทธิ์ของผู้กดเชิญ
+    const project = await prisma.project.findUnique({
+      where: { id: Number(projectId) },
+      select: { id: true, name: true, ownerId: true }
+    })
+
+    if (!project) {
+      throw createError({
+        statusCode: 404,
+        message: 'ไม่พบโปรเจกต์ที่ระบุ'
+      })
+    }
+
+    const isOwner = project.ownerId === currentUserId
+    let hasInvitePermission = false
+
+    if (!isOwner) {
+      const callerMember = await prisma.projectMember.findFirst({
+        where: { projectId: Number(projectId), userId: currentUserId },
+        include: { role: true }
+      })
+
+      if (callerMember?.role?.permissions.some((p: string) => p === 'INVITE_MEMBERS' || p === 'MANAGE_PROJECT')) {
+        hasInvitePermission = true
+      }
+    }
+
+    if (!isOwner && !hasInvitePermission) {
+      throw createError({
+        statusCode: 403,
+        message: 'คุณไม่มีสิทธิ์ในการเชิญสมาชิกเข้าโปรเจกต์นี้ ❌'
+      })
+    }
+
+    // 2. ค้นหาผู้ใช้จากอีเมลในระบบ (รองรับ Case-Insensitive)
     const targetUser = await prisma.user.findUnique({
-      where: { email: email.trim() }
+      where: { email: cleanEmail }
     })
 
     if (!targetUser) {
       throw createError({
         statusCode: 404,
-        message: 'ไม่พบผู้ใช้งานที่ใช้อีเมลนี้ในระบบ'
+        message: `ไม่พบบัญชีผู้ใช้ที่ใช้อีเมล "${cleanEmail}" ในระบบ ❌ (กรุณาให้ผู้รับสมัครสมาชิกก่อน หรือแชร์รหัสเชิญให้เข้าด้วยตนเอง)`
       })
     }
 
-    // 2. เช็คว่าผู้ใช้คนนี้เป็นสมาชิกในโปรเจกต์นี้อยู่แล้วหรือยัง
+    // 3. เช็คว่าผู้ใช้คนนี้เป็นสมาชิกในโปรเจกต์นี้อยู่แล้วหรือยัง
     const isAlreadyMember = await prisma.projectMember.findFirst({
       where: {
         projectId: Number(projectId),
@@ -31,17 +72,12 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    if (isAlreadyMember) {
+    if (isAlreadyMember || project.ownerId === targetUser.id) {
       throw createError({
         statusCode: 400,
-        message: 'ผู้ใช้งานคนนี้เป็นสมาชิกในโปรเจกต์นี้อยู่แล้ว'
+        message: `ผู้ใช้ ${targetUser.username} (${cleanEmail}) เป็นสมาชิกของโปรเจกต์นี้อยู่แล้ว`
       })
     }
-
-    const project = await prisma.project.findUnique({
-      where: { id: Number(projectId) },
-      select: { id: true, name: true, ownerId: true }
-    })
 
     // 3. เพิ่มบันทึกลงตาราง ProjectMember
     await prisma.projectMember.create({
