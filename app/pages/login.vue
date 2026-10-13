@@ -54,9 +54,22 @@
           </div>
         </div>
 
-        <p v-if="message" :class="isSuccess ? 'text-emerald-700 bg-emerald-50 border border-emerald-200' : 'text-rose-700 bg-rose-50 border border-rose-200'" class="text-sm text-center font-medium py-2 rounded-lg transition-all">
-          {{ message }}
-        </p>
+        <div v-if="message" class="space-y-2">
+          <p :class="isSuccess ? 'text-emerald-700 bg-emerald-50 border border-emerald-200' : 'text-rose-700 bg-rose-50 border border-rose-200'" class="text-sm text-center font-medium py-2 rounded-lg transition-all">
+            {{ message }}
+          </p>
+          <div v-if="isUnverifiedError" class="text-center pt-1">
+            <button 
+              type="button" 
+              @click="handleResendFromLogin" 
+              :disabled="isResending" 
+              class="text-xs text-amber-700 hover:text-amber-800 font-bold underline transition-colors"
+            >
+              {{ isResending ? 'กำลังส่งอีเมล...' : '✉️ ส่งลิงก์ยืนยันใหม่อีกครั้ง' }}
+            </button>
+            <p v-if="resendSuccessMsg" class="text-xs text-emerald-600 font-bold mt-1">{{ resendSuccessMsg }}</p>
+          </div>
+        </div>
 
         <button 
           type="submit" 
@@ -83,7 +96,7 @@
 </style>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 definePageMeta({
   middleware: 'auth'
@@ -95,10 +108,32 @@ const isPasswordVisible = ref(false)
 const message = ref('')
 const isSuccess = ref(false)
 const isLoading = ref(false)
+const isResending = ref(false)
+const resendSuccessMsg = ref('')
+
+const isUnverifiedError = computed(() => message.value && message.value.includes('ยืนยันอีเมล'))
+
+const handleResendFromLogin = async () => {
+  if (!email.value) return
+  isResending.value = true
+  resendSuccessMsg.value = ''
+  try {
+    const res = await $fetch('/api/auth/resend-verification', {
+      method: 'POST',
+      body: { email: email.value }
+    })
+    resendSuccessMsg.value = res.message || 'ส่งลิงก์ยืนยันใหม่เรียบร้อยแล้ว 📧'
+  } catch (err) {
+    resendSuccessMsg.value = err.data?.message || 'ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่'
+  } finally {
+    isResending.value = false
+  }
+}
 
 const handleLogin = async () => {
   isLoading.value = true
   message.value = ''
+  resendSuccessMsg.value = ''
   try {
     const response = await $fetch('/api/auth/login', {
       method: 'POST',

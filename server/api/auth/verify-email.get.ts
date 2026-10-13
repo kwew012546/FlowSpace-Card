@@ -60,6 +60,13 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     console.error('Verify Email Error:', error)
     const errMessage = error.name === 'TokenExpiredError' ? 'expired' : 'invalid'
-    return sendRedirect(event, `/verify-email?status=error&message=${errMessage}`)
+    let emailParam = ''
+    try {
+      const decodedPayload = jwt.decode(token) as { email?: string }
+      if (decodedPayload?.email) {
+        emailParam = `&email=${encodeURIComponent(decodedPayload.email)}`
+      }
+    } catch (e) {}
+    return sendRedirect(event, `/verify-email?status=error&message=${errMessage}${emailParam}`)
   }
 })

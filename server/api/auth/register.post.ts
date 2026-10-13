@@ -22,30 +22,45 @@ export default defineEventHandler(async (event) => {
       where: { email }
     })
 
-    if (existingUser) {
-      throw createError({
-        statusCode: 400,
-        message: 'อีเมลนี้ถูกใช้งานไปแล้วในระบบ'
-      })
-    }
-
     // 3. แฮชรหัสผ่านด้วย bcrypt (ความแรงระดับ 10) ก่อนบันทึก
     const hashedPassword = await bcrypt.hash(password, 10)
+    let newUser: { id: number; email: string; username: string }
 
-    // 4. บันทึกลงฐานข้อมูล PostgreSQL
-    const newUser = await prisma.user.create({
-      data: {
-        email,
-        username,
-        password: hashedPassword
-      },
-      // เลือกส่งกลับเฉพาะ id และ email (ไม่ส่ง password กลับไปหน้าบ้านเพื่อความปลอดภัย)
-      select: {
-        id: true,
-        email: true,
-        username: true
+    if (existingUser) {
+      if (existingUser.isVerified) {
+        throw createError({
+          statusCode: 400,
+          message: 'อีเมลนี้ถูกใช้งานไปแล้วในระบบ'
+        })
       }
-    })
+      // หากบัญชีเดิมยังไม่ได้รับการยืนยัน อนุญาตให้อัปเดตข้อมูลและส่งลิงก์ยืนยันตัวตนรอบใหม่
+      newUser = await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          username,
+          password: hashedPassword
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true
+        }
+      })
+    } else {
+      // 4. บันทึกลงฐานข้อมูล PostgreSQL สำหรับผู้ใช้ใหม่
+      newUser = await prisma.user.create({
+        data: {
+          email,
+          username,
+          password: hashedPassword
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true
+        }
+      })
+    }
 
     // 5. สร้าง JWT Verification Token (อายุ 15 นาที)
     const verificationToken = jwt.sign(

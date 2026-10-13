@@ -17,7 +17,7 @@
       </div>
 
       <!-- ERROR STATE -->
-      <div v-else class="space-y-6">
+      <div v-else class="space-y-4">
         <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8 animate-pulse">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -25,19 +25,51 @@
         </div>
         <h1 class="text-xl sm:text-2xl font-black text-stone-800">❌ ยืนยันอีเมลล้มเหลว</h1>
         <p class="text-xs sm:text-sm text-stone-600 font-medium leading-relaxed">{{ errorMessage }}</p>
+
+        <!-- ฟอร์ม / ปุ่มขอรับลิงก์ยืนยันตัวตนใหม่ทันที -->
+        <div class="pt-2">
+          <div v-if="resendSuccess" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-700">
+            {{ resendSuccess }}
+          </div>
+          <div v-else class="space-y-2">
+            <input 
+              v-if="!targetEmail"
+              v-model="inputEmail" 
+              type="email" 
+              placeholder="กรอกอีเมลของคุณเพื่อขอรับลิงก์ใหม่..."
+              class="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-xs sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500" 
+            />
+            <button 
+              @click="handleResend" 
+              :disabled="isResending" 
+              class="w-full min-h-[44px] bg-amber-500 hover:bg-amber-600 disabled:bg-stone-300 text-white font-bold py-2 px-4 rounded-xl shadow-sm text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5"
+            >
+              <span>{{ isResending ? 'กำลังส่งลิงก์ใหม่...' : '✉️ ส่งลิงก์ยืนยันใหม่อีกครั้ง' }}</span>
+            </button>
+            <p v-if="resendError" class="text-xs text-rose-600 font-medium">{{ resendError }}</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Redirect Countdown & Button -->
+      <!-- Action Button / Success Auto-redirect -->
       <div class="mt-8 pt-6 border-t border-amber-100 flex flex-col items-center gap-4">
-        <p class="text-xs text-stone-400 font-bold">
-          {{ status === 'success' ? `ระบบจะนำคุณไปยังแดชบอร์ดหลักอัตโนมัติใน ${countdown} วินาที...` : `ระบบจะนำคุณไปยังหน้าเข้าสู่ระบบใน ${countdown} วินาที...` }}
+        <p v-if="status === 'success'" class="text-xs text-stone-400 font-bold">
+          ระบบจะนำคุณไปยังแดชบอร์ดหลักอัตโนมัติใน {{ countdown }} วินาที...
         </p>
         <button 
-          @click="status === 'success' ? goToDashboard() : goToLogin()" 
+          v-if="status === 'success'"
+          @click="goToDashboard" 
           class="w-full min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black py-2.5 rounded-xl shadow-md transition-all text-sm flex items-center justify-center"
         >
-          {{ status === 'success' ? 'เข้าสู่แดชบอร์ดเดี๋ยวนี้ 🚀' : 'เข้าสู่ระบบเดี๋ยวนี้ 🔑' }}
+          เข้าสู่แดชบอร์ดเดี๋ยวนี้ 🚀
         </button>
+        <NuxtLink 
+          v-else
+          to="/login" 
+          class="w-full min-h-[44px] bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold py-2.5 rounded-xl transition-all text-sm flex items-center justify-center"
+        >
+          กลับไปหน้าเข้าสู่ระบบ 🔑
+        </NuxtLink>
       </div>
     </div>
   </div>
@@ -49,6 +81,34 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 const route = useRoute()
 const status = computed(() => route.query.status)
 const message = computed(() => route.query.message)
+const targetEmail = computed(() => (route.query.email ? String(route.query.email) : ''))
+
+const inputEmail = ref('')
+const isResending = ref(false)
+const resendSuccess = ref('')
+const resendError = ref('')
+
+const handleResend = async () => {
+  const emailToSend = targetEmail.value || inputEmail.value.trim().toLowerCase()
+  if (!emailToSend) {
+    resendError.value = 'กรุณาระบุอีเมล'
+    return
+  }
+  isResending.value = true
+  resendError.value = ''
+  resendSuccess.value = ''
+  try {
+    const res = await $fetch('/api/auth/resend-verification', {
+      method: 'POST',
+      body: { email: emailToSend }
+    })
+    resendSuccess.value = res?.message || 'ส่งลิงก์ยืนยันใหม่เรียบร้อยแล้ว 📧'
+  } catch (err) {
+    resendError.value = err.data?.message || 'ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่'
+  } finally {
+    isResending.value = false
+  }
+}
 
 const errorMessage = computed(() => {
   switch (message.value) {
@@ -59,7 +119,7 @@ const errorMessage = computed(() => {
     case 'user_not_found':
       return 'ไม่พบบัญชีผู้ใช้งานนี้ในระบบการลงทะเบียน'
     case 'expired':
-      return 'ลิงก์ยืนยันตัวตนนี้หมดอายุแล้ว (มีอายุใช้งาน 15 นาที) กรุณาสมัครใหม่อีกครั้ง'
+      return 'ลิงก์ยืนยันตัวตนนี้หมดอายุแล้ว (มีอายุใช้งาน 15 นาที) คุณสามารถกดขอรับลิงก์ใหม่ได้ทันทีด้านล่างนี้:'
     case 'invalid':
     default:
       return 'ลิงก์ยืนยันตัวตนไม่ถูกต้องหรือถูกดัดแปลงข้อมูล'
@@ -74,29 +134,21 @@ const goToDashboard = () => {
   navigateTo('/dashboard')
 }
 
-const goToLogin = () => {
-  if (timer) clearInterval(timer)
-  navigateTo('/login')
-}
-
 onMounted(() => {
-  if (status.value === 'success' && route.query.user) {
-    try {
-      const userObj = JSON.parse(decodeURIComponent(String(route.query.user)))
-      localStorage.setItem('user', JSON.stringify(userObj))
-    } catch (e) {}
-  }
-
-  timer = setInterval(() => {
-    countdown.value--
-    if (countdown.value <= 0) {
-      if (status.value === 'success') {
-        goToDashboard()
-      } else {
-        goToLogin()
-      }
+  if (status.value === 'success') {
+    if (route.query.user) {
+      try {
+        const userObj = JSON.parse(decodeURIComponent(String(route.query.user)))
+        localStorage.setItem('user', JSON.stringify(userObj))
+      } catch (e) {}
     }
-  }, 1000)
+    timer = setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0) {
+        goToDashboard()
+      }
+    }, 1000)
+  }
 })
 
 onUnmounted(() => {
