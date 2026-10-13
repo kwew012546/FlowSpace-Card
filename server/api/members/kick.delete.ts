@@ -112,6 +112,7 @@ export default defineEventHandler(async (event) => {
     }
 
     broadcastProjectUpdate(Number(projectId), 'TEAM_UPDATED')
+    broadcastProjectUpdate(Number(projectId), 'TASKS_UPDATED')
 
     return { success: true, message: 'เตะสมาชิกออกจากโปรเจกต์เรียบร้อยแล้ว!' }
   } catch (error: any) {

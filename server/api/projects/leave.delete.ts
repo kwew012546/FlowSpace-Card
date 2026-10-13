@@ -31,9 +31,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'คุณไม่ได้เป็นสมาชิกของโปรเจกต์นี้อยู่แล้ว' })
   }
 
-  await prisma.projectMember.delete({
-    where: { id: memberRecord.id }
-  })
+  await prisma.$transaction([
+    prisma.task.updateMany({
+      where: { projectId, assigneeId: userId },
+      data: { assigneeId: null }
+    }),
+    prisma.projectMember.delete({
+      where: { id: memberRecord.id }
+    })
+  ])
 
   // ส่งการแจ้งเตือนหาสมาชิกที่เหลือในโปรเจกต์และเจ้าของบอร์ด
   const remainingMembers = await prisma.projectMember.findMany({
@@ -52,11 +58,12 @@ export default defineEventHandler(async (event) => {
         title: 'สมาชิกออกจากโปรเจกต์ 🚪',
         message: `${leaverUsername} ได้ออกจากโปรเจกต์ "${project.name}"`
       }))
-    })
+    }).catch(() => {})
   }
 
-  // ส่งสัญญาณให้บอร์ดอัปเดตแบบเรียลไทม์
+  // ส่งสัญญาณให้บอร์ดอัปเดตแบบเรียลไทม์ทั้งสมาชิกและการ์ดงาน
   broadcastProjectUpdate(projectId, 'TEAM_UPDATED')
+  broadcastProjectUpdate(projectId, 'TASKS_UPDATED')
 
   return { success: true, message: 'ออกจากโปรเจกต์เรียบร้อยแล้ว' }
 })

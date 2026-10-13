@@ -1,10 +1,13 @@
-// server/api/projects/join.post.ts
 export default defineEventHandler(async (event) => {
+  if (!event.context.auth?.user) {
+    throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบก่อนเข้าร่วมโปรเจกต์' })
+  }
+  const userId = event.context.auth.user.id
+
   const body = await readBody(event)
   const { inviteCode } = body
-  const userId = event.context.auth?.user?.id || body.userId
 
-  if (!inviteCode || !userId) {
+  if (!inviteCode || !inviteCode.trim()) {
     throw createError({
       statusCode: 400,
       message: 'กรุณากรอกรหัสเชิญเข้าห้อง'
@@ -93,7 +96,8 @@ export default defineEventHandler(async (event) => {
       message: `🎉 เข้าร่วมโปรเจกต์ "${project.name}" สำเร็จ!`, 
       projectId: project.id 
     }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.statusCode) throw error
     throw createError({
       statusCode: 500,
       message: 'เกิดข้อผิดพลาดจากระบบฐานข้อมูลในการเข้าร่วมโปรเจกต์'

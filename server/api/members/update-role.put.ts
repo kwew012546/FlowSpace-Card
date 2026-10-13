@@ -112,7 +112,8 @@ export default defineEventHandler(async (event) => {
       message: 'อัปเดตยศให้สมาชิกเรียบร้อยแล้ว! ⚔️',
       data: updatedMember
     }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.statusCode) throw error
     console.error(error)
     throw createError({
       statusCode: 500,

@@ -6,10 +6,15 @@ function generateInviteCode(): string {
 }
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
-  const { name, description, ownerId } = body
+  if (!event.context.auth?.user) {
+    throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบก่อนสร้างโปรเจกต์' })
+  }
+  const userId = event.context.auth.user.id
 
-  if (!name || !ownerId) {
+  const body = await readBody(event)
+  const { name, description } = body
+
+  if (!name || !name.trim()) {
     throw createError({
       statusCode: 400,
       message: 'กรุณากรอกชื่อโปรเจกต์ให้ครบถ้วน'
@@ -24,7 +29,7 @@ export default defineEventHandler(async (event) => {
         data: {
           name: name.trim(),
           description: description ? description.trim() : null,
-          ownerId: Number(ownerId),
+          ownerId: userId,
           inviteCode: inviteCode
         }
       })
@@ -47,7 +52,7 @@ export default defineEventHandler(async (event) => {
 
       await tx.projectMember.create({
         data: {
-          userId: Number(ownerId),
+          userId: userId,
           projectId: newProject.id
         }
       })
@@ -57,6 +62,7 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, message: 'สร้างโปรเจกต์สำเร็จ!', project: result }
   } catch (error: any) {
+    if (error.statusCode) throw error
     console.error('Create Project Error:', error)
     throw createError({
       statusCode: 500,
