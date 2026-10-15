@@ -31,22 +31,6 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, message: 'ไม่พบสมาชิกนี้ในโปรเจกต์' })
     }
 
-    // ป้องกันการเตะเจ้าของโครงการ (Owner Protection)
-    if (project.ownerId === targetMember.userId) {
-      throw createError({
-        statusCode: 400,
-        message: 'ไม่สามารถเตะเจ้าของโปรเจกต์ได้ ❌ (เจ้าของคือผู้สร้างบอร์ด)'
-      })
-    }
-
-    // ป้องกันการเตะตัวเอง (Self-kick guard)
-    if (targetMember.userId === userId) {
-      throw createError({
-        statusCode: 400,
-        message: 'คุณไม่สามารถเตะตัวเองได้ ❌ หากต้องการออกจากโปรเจกต์ กรุณาใช้ปุ่ม "ออกจากโปรเจกต์" แทน'
-      })
-    }
-
     const isOwner = project && project.ownerId === userId
     let hasManagePermission = false
 
@@ -66,6 +50,22 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 403,
         message: 'คุณไม่มีสิทธิ์ระดับยศในการจัดการสมาชิกในโปรเจกต์นี้! ❌'
+      })
+    }
+
+    // ป้องกันการเตะเจ้าของโครงการ (Owner Protection)
+    if (project.ownerId === targetMember.userId) {
+      throw createError({
+        statusCode: 400,
+        message: 'ไม่สามารถเตะเจ้าของโปรเจกต์ได้ ❌ (เจ้าของคือผู้สร้างบอร์ด)'
+      })
+    }
+
+    // ป้องกันการเตะตัวเอง (Self-kick guard)
+    if (targetMember.userId === userId) {
+      throw createError({
+        statusCode: 400,
+        message: 'คุณไม่สามารถเตะตัวเองได้ ❌ หากต้องการออกจากโปรเจกต์ กรุณาใช้ปุ่ม "ออกจากโปรเจกต์" แทน'
       })
     }
 

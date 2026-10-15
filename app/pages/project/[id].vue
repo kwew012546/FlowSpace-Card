@@ -7,43 +7,45 @@
     <header class="bg-[#fdfaf5] border-b border-amber-200/80 p-3 sm:p-4 shadow-sm relative z-40">
       <div class="container mx-auto flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3 sm:gap-4">
         
-        <div class="flex items-center gap-2">
-          <div v-if="isEditingProjectName" class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 min-w-0 max-w-full xl:max-w-xs 2xl:max-w-md shrink-1">
+          <div v-if="isEditingProjectName" class="flex items-center gap-1.5 flex-nowrap w-full min-w-0">
             <input 
               v-model="newProjectName"
               type="text"
-              class="bg-white border border-amber-400 rounded-lg px-3 py-1.5 text-lg sm:text-xl font-extrabold text-stone-800 focus:outline-none min-h-[40px]"
+              maxlength="50"
+              class="bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-base sm:text-lg font-extrabold text-stone-800 focus:outline-none min-h-[40px] flex-1 min-w-0 w-full"
               @keyup.enter="saveProjectName"
             />
-            <button @click="saveProjectName" class="min-h-[40px] bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm flex items-center">บันทึก</button>
-            <button @click="isEditingProjectName = false" class="min-h-[40px] bg-stone-300 hover:bg-stone-400 text-stone-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center">ยกเลิก</button>
+            <button @click="saveProjectName" class="min-h-[40px] bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm flex items-center shrink-0">บันทึก</button>
+            <button @click="isEditingProjectName = false" class="min-h-[40px] bg-stone-300 hover:bg-stone-400 text-stone-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center shrink-0">ยกเลิก</button>
           </div>
 
-          <h1 v-else class="text-xl sm:text-2xl font-extrabold text-stone-800 flex items-center gap-2 group flex-wrap">
-            📁 โปรเจกต์: {{ projectName || 'กำลังโหลดชื่อบอร์ด...' }}
-            <button v-if="hasPermission('MANAGE_PROJECT')" @click="startEditProjectName" class="min-h-[36px] min-w-[36px] flex items-center justify-center text-sm opacity-50 hover:opacity-100 hover:text-amber-600 transition-all ml-1" title="แก้ไขชื่อโปรเจกต์">✏️</button>
+          <h1 v-else class="text-xl sm:text-2xl font-extrabold text-stone-800 flex items-center gap-1.5 group min-w-0" :title="projectName">
+            <span class="shrink-0">📁 โปรเจกต์:</span>
+            <span class="truncate block min-w-0" :title="projectName">{{ projectName || 'กำลังโหลดชื่อบอร์ด...' }}</span>
+            <button v-if="hasPermission('MANAGE_PROJECT')" @click="startEditProjectName" class="min-h-[36px] min-w-[36px] flex items-center justify-center text-sm opacity-50 hover:opacity-100 hover:text-amber-600 transition-all shrink-0 ml-0.5" title="แก้ไขชื่อโปรเจกต์">✏️</button>
           </h1>
         </div>
 
-        <div v-if="hasPermission('INVITE_MEMBERS')" class="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-start gap-2 bg-white border border-amber-200 rounded-xl p-2 sm:p-1.5 shadow-sm">
-          <div class="px-2">
-            <div class="flex items-center gap-1.5">
-              <p class="text-[10px] text-stone-400 font-bold uppercase tracking-wider">รหัสเชิญเข้าตี้</p>
-              <span v-if="!isInviteActive" class="text-[9px] font-black bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full">
+        <div v-if="hasPermission('INVITE_MEMBERS')" class="flex flex-nowrap items-center justify-start gap-2 bg-white border border-amber-200 rounded-xl p-2 sm:p-1.5 shadow-sm shrink-0 whitespace-nowrap">
+          <div class="px-2 shrink-0">
+            <div class="flex items-center gap-1.5 whitespace-nowrap">
+              <p class="text-[10px] text-stone-400 font-bold uppercase tracking-wider whitespace-nowrap">รหัสเชิญเข้าตี้</p>
+              <span v-if="!isInviteActive" class="text-[9px] font-black bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full shrink-0 whitespace-nowrap">
                 🔒 ปิดรับชั่วคราว
               </span>
-              <span v-else class="text-[9px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
+              <span v-else class="text-[9px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full shrink-0 whitespace-nowrap">
                 🟢 เปิดรับ
               </span>
             </div>
-            <div class="flex items-center gap-1.5">
-              <p class="text-sm font-mono font-black tracking-wider" :class="isInviteActive ? 'text-amber-900' : 'text-stone-400 line-through'">
+            <div class="flex items-center gap-1.5 whitespace-nowrap">
+              <p class="text-sm font-mono font-black tracking-wider shrink-0" :class="isInviteActive ? 'text-amber-900' : 'text-stone-400 line-through'">
                 {{ !currentInviteCode ? 'กำลังโหลด...' : (isInviteCodeVisible ? currentInviteCode : '••••••') }}
               </p>
               <button 
                 v-if="currentInviteCode"
                 @click="isInviteCodeVisible = !isInviteCodeVisible" 
-                class="min-h-[36px] min-w-[36px] flex items-center justify-center text-stone-400 hover:text-stone-600 transition-colors focus:outline-none"
+                class="min-h-[36px] min-w-[36px] flex items-center justify-center text-stone-400 hover:text-stone-600 transition-colors focus:outline-none shrink-0"
                 title="เปิด/ปิดการแสดงรหัส"
               >
                 <!-- SVG Icon Open Eye (เมื่อกำลังแสดงรหัส) -->
@@ -62,18 +64,18 @@
             @click="copyInviteCode" 
             :disabled="!isInviteActive"
             :class="isInviteActive ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 cursor-pointer' : 'bg-stone-100 text-stone-400 cursor-not-allowed'"
-            class="min-h-[38px] text-xs font-bold px-3 py-2 rounded-lg transition-all self-center flex items-center justify-center"
+            class="min-h-[38px] text-xs font-bold px-3 py-2 rounded-lg transition-all self-center flex items-center justify-center shrink-0 whitespace-nowrap"
           >
             {{ isCopied ? '✅ คัดลอกแล้ว' : '📋 คัดลอกรหัส' }}
           </button>
 
           <!-- ตัวเลือกจัดการสำหรับผู้มีสิทธิ์จัดการบอร์ด (Owner หรือ MANAGE_PROJECT) -->
-          <div v-if="hasPermission('MANAGE_PROJECT')" class="flex items-center gap-1 border-l border-amber-200/80 pl-1.5 ml-0.5">
+          <div v-if="hasPermission('MANAGE_PROJECT')" class="flex items-center gap-1 border-l border-amber-200/80 pl-1.5 ml-0.5 shrink-0 whitespace-nowrap">
             <button 
               @click="toggleInviteActive" 
               :disabled="isUpdatingInviteSettings"
               :title="isInviteActive ? 'คลิกเพื่อปิดรับสมาชิกผ่านรหัส' : 'คลิกเพื่อเปิดรับสมาชิกผ่านรหัส'" 
-              class="min-h-[38px] min-w-[38px] p-2 rounded-lg text-xs font-bold transition-all border shrink-0 flex items-center justify-center"
+              class="min-h-[38px] min-w-[38px] p-2 rounded-lg text-xs font-bold transition-all border shrink-0 flex items-center justify-center whitespace-nowrap"
               :class="isInviteActive ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border-emerald-200'"
             >
               {{ isInviteActive ? '🔒 ปิดรับ' : '🔓 เปิดรับ' }}
@@ -82,14 +84,14 @@
               @click="regenerateInviteCode" 
               :disabled="isUpdatingInviteSettings"
               title="สุ่มรหัสเชิญใหม่ (รหัสเดิมจะใช้ไม่ได้)" 
-              class="min-h-[38px] min-w-[38px] bg-stone-100 hover:bg-stone-200 text-stone-700 p-2 rounded-lg text-xs font-bold transition-all border border-stone-250 flex items-center justify-center gap-0.5 shrink-0"
+              class="min-h-[38px] min-w-[38px] bg-stone-100 hover:bg-stone-200 text-stone-700 p-2 rounded-lg text-xs font-bold transition-all border border-stone-250 flex items-center justify-center gap-0.5 shrink-0 whitespace-nowrap"
             >
               <span :class="{ 'animate-spin': isUpdatingInviteSettings }">🔄</span> <span class="hidden sm:inline text-xs">สุ่มใหม่</span>
             </button>
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center justify-start xl:justify-end gap-2 sm:gap-2.5 relative w-full xl:w-auto">
+        <div class="flex flex-wrap items-center justify-start xl:justify-end gap-2 sm:gap-2.5 relative w-full xl:w-auto shrink-0">
           <a 
             href="/manual.html" 
             target="_blank" 
@@ -1397,6 +1399,10 @@ const saveProjectName = async () => {
     isEditingProjectName.value = false
     return
   }
+  if (newProjectName.value.trim().length > 50) {
+    showToast('ชื่อโปรเจกต์ต้องมีความยาวไม่เกิน 50 ตัวอักษร ❌', 'error')
+    return
+  }
   try {
     const response = await $fetch('/api/projects/update', {
       method: 'PUT',
@@ -1406,7 +1412,9 @@ const saveProjectName = async () => {
       projectName.value = response.project.name
       isEditingProjectName.value = false
     }
-  } catch (error) { showToast('ไม่สามารถเปลี่ยนชื่อโปรเจกต์ได้ ❌', 'error') }
+  } catch (error) { 
+    showToast(error.data?.message || 'ไม่สามารถเปลี่ยนชื่อโปรเจกต์ได้ ❌', 'error') 
+  }
 }
 
 const createNewRole = async () => {

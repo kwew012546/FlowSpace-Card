@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   const parseResult = updateColumnSchema.safeParse(body)
 
   if (!parseResult.success) {
-    throw createError({ statusCode: 400, message: parseResult.error.errors[0].message })
+    throw createError({ statusCode: 400, message: parseResult.error.issues?.[0]?.message || parseResult.error.message })
   }
   const { id, title, position } = parseResult.data
 

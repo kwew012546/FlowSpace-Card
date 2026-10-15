@@ -1,0 +1,645 @@
+meta:
+  source_markmap: "测试用例_markmap.md"
+  extracted_at: "2026-10-15"
+  strategy_ref: "测试策略.md"
+
+modules:
+  - module: "1. การยืนยันตัวตนและการควบคุมอัตราการเรียก (Auth & Rate Limit)"
+    shared_preconditions:
+      - "เปิดเบราว์เซอร์ไปยัง http://localhost:3000"
+  - module: "2. การจัดการพื้นที่ทำงานและโปรเจกต์ (Projects & Workspaces)"
+    shared_preconditions:
+      - "เข้าสู่ระบบด้วย owner@flowspace.test และเปิดหน้า /dashboard"
+  - module: "3. การจัดการคอลัมน์คานบัน (Kanban Columns)"
+    shared_preconditions:
+      - "เปิดหน้าบอร์ดคานบัน http://localhost:3000/project/1"
+  - module: "4. วงจรชีวิตของการ์ดงาน (Tasks & Subtasks)"
+    shared_preconditions:
+      - "เข้าสู่ระบบด้วยสมาชิกที่มีสิทธิ์ CREATE_TASK"
+  - module: "5. การจัดการบทบาทและสิทธิ์ (Roles & RBAC)"
+    shared_preconditions:
+      - "เข้าสู่ระบบด้วย Project Owner เปิดเมนูจัดการสมาชิก"
+  - module: "6. การทำงานร่วมกันแบบเรียลไทม์ (Real-time SSE)"
+    shared_preconditions:
+      - "เปิด 2 หน้าต่างเบราว์เซอร์ ล็อกอินเป็น User A (Owner) และ User B (Member) ในโปรเจกต์เดียวกัน"
+
+cases:
+  - id: "TC-01-01"
+    title: "新用户注册与防死锁重入验证"
+    module: "1. 账号认证与速率限制"
+    priority: "P0"
+    type: "functional"
+    execution_model: "ui"
+    smoke: "SMOKE-1"
+    preconditions: []
+    steps:
+      - "进入 /register"
+      - "输入用户名 Tester1、邮箱 newuser@flowspace.test、密码 Pass1234!"
+      - "点击「创建账号」"
+    expected:
+      - "界面提示注册成功，显示等待激活面板，同时生成 15 分钟激活凭证；若使用同一未激活邮箱再次注册，系统平滑更新并重新签发链接，不锁死报错"
+    test_data:
+      2: "username: Tester1, email: newuser@flowspace.test, password: Pass1234!"
+    risk_ref: "R3"
+    code_refs:
+      - "server/api/auth/register.post.ts:20"
+    evidence:
+      level: "E2"
+      source: "server/api/auth/register.post.ts:20"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-01-02"
+    title: "激活链接 15 分钟时限与一键重发"
+    module: "1. 账号认证与速率限制"
+    priority: "P1"
+    type: "reliability"
+    execution_model: "ui"
+    preconditions:
+      - "拥有已过期的激活链接"
+    steps:
+      - "在浏览器地址栏粘贴已过期的激活链接并回车"
+    expected:
+      - "页面自动重定向至提示页，准确提示「激活链接已失效」，页面自动带出对应邮箱并提供「一键重发激活信」按钮"
+    test_data:
+      1: "url: /verify-email?token=expired_token"
+    risk_ref: "R3"
+    code_refs:
+      - "server/api/auth/verify-email.get.ts:60"
+    evidence:
+      level: "E2"
+      source: "server/api/auth/verify-email.get.ts:60"
+      confidence: "high"
+    tags: ["[可靠]"]
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-01-03"
+    title: "未激活账号登录拦截"
+    module: "1. 账号认证与速率限制"
+    priority: "P1"
+    type: "security"
+    execution_model: "ui"
+    preconditions:
+      - "账号 unverified@flowspace.test 尚未完成邮箱激活"
+    steps:
+      - "进入 /login"
+      - "输入未激活邮箱及正确密码"
+      - "点击「登录」"
+    expected:
+      - "登录被拒绝，提示「请先验证您的邮箱」，登录表单下方即时出现重发激活邮件的快捷入口"
+    test_data:
+      2: "email: unverified@flowspace.test, password: Pass1234!"
+    risk_ref: "R3"
+    code_refs:
+      - "server/api/auth/login.post.ts:48"
+    evidence:
+      level: "E2"
+      source: "server/api/auth/login.post.ts:48"
+      confidence: "high"
+    tags: ["[安全]"]
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-01-04"
+    title: "正确凭据登录与 HttpOnly Cookie 建立"
+    module: "1. 账号认证与速率限制"
+    priority: "P0"
+    type: "functional"
+    execution_model: "ui"
+    smoke: "SMOKE-2"
+    preconditions: []
+    steps:
+      - "进入 /login"
+      - "输入 owner@flowspace.test 与 Pass1234!"
+      - "点击「登录」"
+    expected:
+      - "提示「登录成功」，1 秒内自动跳转至 /dashboard，浏览器建立名为 auth_token 的 HttpOnly 安全 Cookie"
+    test_data:
+      2: "email: owner@flowspace.test, password: Pass1234!"
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/auth/login.post.ts:60"
+    evidence:
+      level: "E2"
+      source: "server/api/auth/login.post.ts:60"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-01-05"
+    title: "敏感认证接口速率限制 (Rate Limit 20 rpm)"
+    module: "1. 账号认证与速率限制"
+    priority: "P1"
+    type: "security"
+    execution_model: "api"
+    preconditions: []
+    steps:
+      - "对登录接口在 60 秒内连续发起 21 次密码试错请求"
+    expected:
+      - "前 20 次返回账号密码错误；第 21 次立即被系统拦截，响应 HTTP 429 Too Many Requests，并提示剩余等待重试秒数"
+    test_data:
+      1: "endpoint: /api/auth/login, count: 21, payload: { email: spam@test.com, password: wrong }"
+    risk_ref: "R4"
+    code_refs:
+      - "server/middleware/rateLimit.ts:39"
+    evidence:
+      level: "E2"
+      source: "server/middleware/rateLimit.ts:39"
+      confidence: "high"
+    tags: ["[安全]"]
+    automation:
+      supported: "yes"
+      framework: "api"
+    status: "active"
+
+  - id: "TC-02-01"
+    title: "创建新项目与初始泳道生成"
+    module: "2. 工作区与项目管理"
+    priority: "P0"
+    type: "functional"
+    execution_model: "ui"
+    smoke: "SMOKE-3"
+    preconditions: []
+    steps:
+      - "点击「➕ 创建项目」"
+      - "填写项目名「电商平台重构」、描述「2026 核心项目」"
+      - "点击确认"
+    expected:
+      - "项目创建成功并在面板显示，进入项目后自动就绪 3 个默认泳道（To Do, Doing, Done）及 6 位唯一邀请码"
+    test_data:
+      2: "name: 电商平台重构, description: 2026 核心项目"
+    risk_ref: "R2"
+    code_refs:
+      - "server/api/projects/create.post.ts:20"
+    evidence:
+      level: "E2"
+      source: "server/api/projects/create.post.ts:20"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-02-02"
+    title: "跨项目越权隔离验证 (IDOR 防护)"
+    module: "2. 工作区与项目管理"
+    priority: "P0"
+    type: "security"
+    execution_model: "api"
+    preconditions:
+      - "存在 User A 项目 (ID: 101) 与 User B 项目 (ID: 102)"
+    steps:
+      - "以 User B 身份登录"
+      - "尝试通过修改请求参数查询或修改 ID: 101 的项目详情"
+    expected:
+      - "服务端严格校验会话所有权，直接拒绝请求并返回 403 权限不足，完全无法窥探或篡改 User A 的项目数据"
+    test_data:
+      2: "request: GET /api/tasks?projectId=101 with User B session"
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/projects/list.get.ts:1"
+      - "server/api/tasks.get.ts:60"
+    evidence:
+      level: "E2"
+      source: "server/api/tasks.get.ts:60"
+      confidence: "high"
+    tags: ["[安全]"]
+    automation:
+      supported: "yes"
+      framework: "api"
+    status: "active"
+
+  - id: "TC-02-03"
+    title: "6 位邀请码快速入会"
+    module: "2. 工作区与项目管理"
+    priority: "P1"
+    type: "functional"
+    execution_model: "ui"
+    preconditions:
+      - "已获取某项目的有效邀请码 A9X3F1"
+    steps:
+      - "以新成员身份登录在工作区点击「🔑 输入邀请码」"
+      - "输入 A9X3F1 并确认"
+    expected:
+      - "提示「加入项目成功」，工作区实时展示该新项目卡片，进入后拥有该项目的协作权限"
+    test_data:
+      2: "inviteCode: A9X3F1"
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/projects/join.post.ts:1"
+    evidence:
+      level: "E2"
+      source: "server/api/projects/join.post.ts:1"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-02-04"
+    title: "邀请码失效与开关控制"
+    module: "2. 工作区与项目管理"
+    priority: "P1"
+    type: "permission"
+    execution_model: "ui"
+    preconditions: []
+    steps:
+      - "项目 Owner 在项目头部点击「🔒 关闭邀请」"
+      - "外部成员尝试使用该邀请码加入"
+    expected:
+      - "外部成员被拦截，系统明确提示「该项目已暂停通过邀请码加入」，不产生异常报错"
+    test_data:
+      2: "action: POST /api/projects/join"
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/projects/invite-settings.put.ts:1"
+    evidence:
+      level: "E2"
+      source: "server/api/projects/invite-settings.put.ts:1"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-02-05"
+    title: "成员主动退出项目及任务解绑"
+    module: "2. 工作区与项目管理"
+    priority: "P1"
+    type: "reliability"
+    execution_model: "ui"
+    preconditions:
+      - "成员持有该项目中 2 张分配给自己的任务卡片"
+    steps:
+      - "成员在项目菜单选择「退出项目」并确认"
+    expected:
+      - "成员成功移出项目，项目列表中不再展示该项目；原分配给该成员的 2 张卡片负责人自动置空为「未分配」，卡片保留在原泳道"
+    test_data:
+      1: "endpoint: DELETE /api/projects/leave?projectId=..."
+    risk_ref: "R3"
+    code_refs:
+      - "server/api/projects/leave.delete.ts:31"
+    evidence:
+      level: "E2"
+      source: "server/api/projects/leave.delete.ts:31"
+      confidence: "high"
+    tags: ["[可靠]"]
+    automation:
+      supported: "yes"
+      framework: "api"
+    status: "active"
+
+  - id: "TC-03-01"
+    title: "添加与重命名自定义泳道"
+    module: "3. 看板泳道管理"
+    priority: "P1"
+    type: "functional"
+    execution_model: "ui"
+    preconditions: []
+    steps:
+      - "滑动至看板最右侧点击「+ 添加泳道」"
+      - "输入「QA Testing」并确认"
+      - "点击该泳道标题修改为「待验收」"
+    expected:
+      - "看板右侧立即新增「QA Testing」泳道，重命名后标题瞬间更新，刷新页面后位置与名称保持一致"
+    test_data:
+      2: "title: QA Testing"
+      3: "newTitle: 待验收"
+    risk_ref: "R2"
+    code_refs:
+      - "server/api/columns/create.post.ts:1"
+      - "server/api/columns/update.put.ts:1"
+    evidence:
+      level: "E2"
+      source: "server/api/columns/create.post.ts:1"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-03-02"
+    title: "泳道归零防护 (Zero-Column Guard)"
+    module: "3. 看板泳道管理"
+    priority: "P1"
+    type: "security"
+    execution_model: "ui"
+    preconditions:
+      - "看板当前仅剩余最后 1 个泳道"
+    steps:
+      - "尝试点击最后一个泳道的删除图标"
+    expected:
+      - "界面删除按钮置灰禁用；若强行调用删除接口，服务端返回 400 明确拒绝，提示「必须保留至少 1 个泳道」"
+    test_data:
+      1: "endpoint: DELETE /api/columns/delete?id=..."
+    risk_ref: "R2"
+    code_refs:
+      - "server/api/columns/delete.delete.ts:28"
+    evidence:
+      level: "E2"
+      source: "server/api/columns/delete.delete.ts:28"
+      confidence: "high"
+    tags: ["[安全]"]
+    automation:
+      supported: "yes"
+      framework: "api"
+    status: "active"
+
+  - id: "TC-03-03"
+    title: "含有任务卡片的泳道删除拦截"
+    module: "3. 看板泳道管理"
+    priority: "P1"
+    type: "reliability"
+    execution_model: "ui"
+    preconditions:
+      - "「Doing」泳道内存在 2 张进行中的任务卡片"
+    steps:
+      - "点击「Doing」泳道的删除按钮"
+    expected:
+      - "系统弹出拦截提示，说明「当前泳道尚有 2 项任务，请先移走任务后再行删除」，拒绝执行删除"
+    test_data:
+      1: "targetColumn: Doing"
+    risk_ref: "R5"
+    code_refs:
+      - "server/api/columns/delete.delete.ts:39"
+    evidence:
+      level: "E2"
+      source: "server/api/columns/delete.delete.ts:39"
+      confidence: "high"
+    tags: ["[可靠]"]
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-04-01"
+    title: "创建任务卡片与必填校验"
+    module: "4. 任务卡片与生命周期"
+    priority: "P0"
+    type: "functional"
+    execution_model: "ui"
+    smoke: "SMOKE-4"
+    preconditions: []
+    steps:
+      - "在「To Do」泳道点击「+ 添加任务」"
+      - "输入标题「实现购物车结算」"
+      - "优先级选「HIGH」"
+      - "分配负责人并点击保存"
+    expected:
+      - "卡片即时出现在「To Do」泳道，带橙色 HIGH 标签与负责人头像；若标题为空则输入框标红并阻止提交"
+    test_data:
+      2: "title: 实现购物车结算, priority: HIGH"
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/tasks.post.ts:1"
+    evidence:
+      level: "E2"
+      source: "server/api/tasks.post.ts:1"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-04-02"
+    title: "跨泳道拖拽卡片 (Optimistic UI)"
+    module: "4. 任务卡片与生命周期"
+    priority: "P0"
+    type: "functional"
+    execution_model: "ui"
+    smoke: "SMOKE-5"
+    preconditions: []
+    steps:
+      - "鼠标按住「To Do」中的任务卡片"
+      - "拖拽至「Doing」泳道松开"
+    expected:
+      - "卡片 0 秒瞬间吸附至「Doing」泳道，后台异步持久化成功；打开该卡片活动日志，可见「移动卡片：从 To Do 到 Doing」记录"
+    test_data:
+      1: "taskTitle: 实现购物车结算, from: To Do, to: Doing"
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/tasks.put.ts:66"
+    evidence:
+      level: "E2"
+      source: "server/api/tasks.put.ts:66"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-04-03"
+    title: "子任务 Checklist 进度联动"
+    module: "4. 任务卡片与生命周期"
+    priority: "P1"
+    type: "functional"
+    execution_model: "ui"
+    preconditions: []
+    steps:
+      - "打开卡片详情"
+      - "添加 2 个子任务「编写单元测试」「自测接口」"
+      - "勾选其中 1 项"
+    expected:
+      - "卡片详情显示进度 50%，看板外层卡片同步显示 1/2 勾选进度图标"
+    test_data:
+      2: "subtasks: [编写单元测试, 自测接口]"
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/tasks/subtasks.post.ts:1"
+      - "server/api/tasks/subtasks.put.ts:1"
+    evidence:
+      level: "E2"
+      source: "server/api/tasks/subtasks.post.ts:1"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-04-04"
+    title: "卡片评论与活动日志追踪"
+    module: "4. 任务卡片与生命周期"
+    priority: "P1"
+    type: "functional"
+    execution_model: "ui"
+    preconditions: []
+    steps:
+      - "在卡片评论框输入「接口联调已完成，请 QA 验收」并发送"
+    expected:
+      - "评论列表即时显示该评论与发送者昵称；切换至「活动日志」Tab，可见一条「发表评论」的 Timeline 记录"
+    test_data:
+      1: "content: 接口联调已完成，请 QA 验收"
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/tasks/comments.post.ts:1"
+      - "server/api/tasks/logs.get.ts:1"
+    evidence:
+      level: "E2"
+      source: "server/api/tasks/comments.post.ts:1"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-04-05"
+    title: "任务删除权限防护"
+    module: "4. 任务卡片与生命周期"
+    priority: "P1"
+    type: "security"
+    execution_model: "ui"
+    preconditions:
+      - "登录仅有 CREATE_TASK 但无 DELETE_TASK 的普通成员"
+    steps:
+      - "打开任务卡片详情并尝试寻找删除按钮"
+    expected:
+      - "界面不呈现删除按钮；直接调用 DELETE 接口被服务端 403 拦截，提示「您没有删除任务的权限」"
+    test_data:
+      1: "endpoint: DELETE /api/tasks?id=..."
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/tasks.delete.ts:30"
+    evidence:
+      level: "E2"
+      source: "server/api/tasks.delete.ts:30"
+      confidence: "high"
+    tags: ["[安全]"]
+    automation:
+      supported: "yes"
+      framework: "api"
+    status: "active"
+
+  - id: "TC-05-01"
+    title: "创建自定义角色并赋予指定权限"
+    module: "5. 权限隔离与角色管理"
+    priority: "P1"
+    type: "permission"
+    execution_model: "ui"
+    preconditions: []
+    steps:
+      - "打开角色管理点击「创建角色」"
+      - "输入角色名「前端开发」"
+      - "仅勾选 CREATE_TASK 保存"
+      - "将成员 B 设为此角色"
+    expected:
+      - "角色创建成功；成员 B 获得卡片创建与拖拽能力，但无权管理泳道或剔除他人"
+    test_data:
+      2: "roleName: 前端开发"
+      3: "permissions: [CREATE_TASK]"
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/roles/create.post.ts:1"
+      - "server/api/members/update-role.put.ts:1"
+    evidence:
+      level: "E2"
+      source: "server/api/roles/create.post.ts:1"
+      confidence: "high"
+    tags: []
+    automation:
+      supported: "yes"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-05-02"
+    title: "踢出成员与 Owner 保护防线"
+    module: "5. 权限隔离与角色管理"
+    priority: "P1"
+    type: "security"
+    execution_model: "ui"
+    preconditions: []
+    steps:
+      - "管理员尝试点击项目 Owner 旁边的「移除」按钮"
+      - "Owner 尝试踢出管理员"
+    expected:
+      - "Owner 旁无踢出按钮，接口层亦禁止踢出 Owner；Owner 踢出管理员成功，该管理员名下任务自动解绑"
+    test_data:
+      1: "endpoint: DELETE /api/members/kick?memberId=ownerId"
+    risk_ref: "R1"
+    code_refs:
+      - "server/api/members/kick.delete.ts:35"
+    evidence:
+      level: "E2"
+      source: "server/api/members/kick.delete.ts:35"
+      confidence: "high"
+    tags: ["[安全]"]
+    automation:
+      supported: "yes"
+      framework: "api"
+    status: "active"
+
+  - id: "TC-06-01"
+    title: "多端卡片变动实时同步"
+    module: "6. 实时协作与通知系统"
+    priority: "P0"
+    type: "reliability"
+    execution_model: "ui"
+    smoke: "SMOKE-6"
+    preconditions: []
+    steps:
+      - "User A 在窗口 1 拖拽卡片从「To Do」到「Doing」"
+      - "观察窗口 2"
+    expected:
+      - "窗口 2 无需按 F5 刷新，在 1 秒内通过 SSE 自动刷新卡片位置至「Doing」"
+    test_data:
+      1: "sseEvent: TASKS_UPDATED"
+    risk_ref: "R6"
+    code_refs:
+      - "server/utils/sse.ts:1"
+      - "app/pages/project/[id].vue:1270"
+    evidence:
+      level: "E2"
+      source: "server/utils/sse.ts:1"
+      confidence: "high"
+    tags: ["[可靠]"]
+    automation:
+      supported: "partial"
+      framework: "playwright"
+    status: "active"
+
+  - id: "TC-06-02"
+    title: "离线重连与 Tab 唤醒恢复"
+    module: "6. 实时协作与通知系统"
+    priority: "P1"
+    type: "reliability"
+    execution_model: "ui"
+    preconditions: []
+    steps:
+      - "将窗口 2 最小化或断开网络"
+      - "窗口 1 新建 1 张卡片"
+      - "窗口 2 恢复网络并切换回前台"
+    expected:
+      - "窗口 2 触发 visibilitychange 事件，自动补拉最新卡片列表，无缝呈现新卡片"
+    test_data:
+      3: "event: visibilitychange"
+    risk_ref: "R6"
+    code_refs:
+      - "app/pages/project/[id].vue:1301"
+    evidence:
+      level: "E2"
+      source: "app/pages/project/[id].vue:1301"
+      confidence: "high"
+    tags: ["[可靠]"]
+    automation:
+      supported: "partial"
+      framework: "playwright"
+    status: "active"

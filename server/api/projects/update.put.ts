@@ -7,10 +7,24 @@ export default defineEventHandler(async (event) => {
   }
   const userIdToUse = event.context.auth.user.id
 
-  if (!id || !name) {
+  if (!id || !name || !name.trim()) {
     throw createError({
       statusCode: 400,
       message: 'กรุณาระบุข้อมูลให้ครบถ้วน (id และ name)'
+    })
+  }
+
+  if (name.trim().length > 50) {
+    throw createError({
+      statusCode: 400,
+      message: 'ชื่อโปรเจกต์ต้องมีความยาวไม่เกิน 50 ตัวอักษร'
+    })
+  }
+
+  if (description && description.trim().length > 500) {
+    throw createError({
+      statusCode: 400,
+      message: 'รายละเอียดโปรเจกต์ต้องมีความยาวไม่เกิน 500 ตัวอักษร'
     })
   }
 

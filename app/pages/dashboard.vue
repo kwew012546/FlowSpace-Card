@@ -111,7 +111,7 @@
         <div v-for="project in projects" :key="project.id" class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
           <div>
             <div class="flex justify-between items-start gap-2 mb-3">
-              <h3 class="text-base sm:text-lg font-bold text-stone-800 group-hover:text-amber-800 transition-colors break-words flex-1 min-w-0">
+              <h3 :title="project.name" class="text-base sm:text-lg font-bold text-stone-800 group-hover:text-amber-800 transition-colors break-words flex-1 min-w-0">
                 📁 {{ project.name }}
               </h3>
               <span :class="project.isOwner ? 'bg-amber-100 text-amber-900 border-amber-200' : 'bg-stone-100 text-stone-700 border-stone-300'" class="text-[10px] font-black px-2 py-0.5 rounded-full border shrink-0">
@@ -151,12 +151,35 @@
         <h2 class="text-lg sm:text-xl font-extrabold text-stone-800 mb-1 mt-2">📁 {{ isEditProjectMode ? 'แก้ไขรายละเอียดโปรเจกต์' : 'สร้างโปรเจกต์ใหม่' }}</h2>
         <form @submit.prevent="isEditProjectMode ? handleUpdateProject() : handleCreateProject()" class="space-y-4 mt-4">
           <div>
-            <label class="block text-sm font-semibold text-stone-600 mb-1">ชื่อโปรเจกต์</label>
-            <input v-model="projectName" type="text" placeholder="เช่น พัฒนาแอปคลังมังงะ" required class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all" />
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-sm font-semibold text-stone-600">ชื่อโปรเจกต์</label>
+              <span class="text-[11px] font-mono" :class="projectName.length >= 50 ? 'text-rose-600 font-bold' : 'text-stone-400'">
+                {{ projectName.length }}/50
+              </span>
+            </div>
+            <input 
+              v-model="projectName" 
+              type="text" 
+              maxlength="50" 
+              placeholder="เช่น พัฒนาแอปคลังมังงะ" 
+              required 
+              class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all" 
+            />
           </div>
           <div>
-            <label class="block text-sm font-semibold text-stone-600 mb-1">รายละเอียด</label>
-            <textarea v-model="projectDescription" rows="3" placeholder="อธิบายจุดประสงค์สั้นๆ..." class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"></textarea>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-sm font-semibold text-stone-600">รายละเอียด</label>
+              <span class="text-[11px] font-mono text-stone-400">
+                {{ projectDescription.length }}/500
+              </span>
+            </div>
+            <textarea 
+              v-model="projectDescription" 
+              maxlength="500" 
+              rows="3" 
+              placeholder="อธิบายจุดประสงค์สั้นๆ..." 
+              class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+            ></textarea>
           </div>
           <p v-if="modalMessage" class="text-sm text-center font-bold py-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">{{ modalMessage }}</p>
           <div class="flex justify-end gap-2.5 pt-2">
@@ -302,6 +325,14 @@ onMounted(async () => {
 
 const handleCreateProject = async () => {
   if (!projectName.value.trim() || !currentUser.value) return
+  if (projectName.value.trim().length > 50) {
+    modalMessage.value = 'ชื่อโปรเจกต์ต้องมีความยาวไม่เกิน 50 ตัวอักษร'
+    return
+  }
+  if (projectDescription.value.trim().length > 500) {
+    modalMessage.value = 'รายละเอียดโปรเจกต์ต้องมีความยาวไม่เกิน 500 ตัวอักษร'
+    return
+  }
   isSubmitting.value = true
   modalMessage.value = ''
   try {
@@ -316,6 +347,14 @@ const handleCreateProject = async () => {
 
 const handleUpdateProject = async () => {
   if (!projectName.value.trim() || !currentUser.value || !editingProjectId.value) return
+  if (projectName.value.trim().length > 50) {
+    modalMessage.value = 'ชื่อโปรเจกต์ต้องมีความยาวไม่เกิน 50 ตัวอักษร'
+    return
+  }
+  if (projectDescription.value.trim().length > 500) {
+    modalMessage.value = 'รายละเอียดโปรเจกต์ต้องมีความยาวไม่เกิน 500 ตัวอักษร'
+    return
+  }
   isSubmitting.value = true
   modalMessage.value = ''
   try {

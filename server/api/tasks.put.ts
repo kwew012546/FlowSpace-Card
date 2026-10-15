@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   if (!parseResult.success) {
     throw createError({
       statusCode: 400,
-      message: parseResult.error.errors[0].message
+      message: parseResult.error.issues?.[0]?.message || parseResult.error.message
     })
   }
 

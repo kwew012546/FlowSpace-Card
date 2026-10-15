@@ -21,6 +21,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  if (name.trim().length > 50) {
+    throw createError({
+      statusCode: 400,
+      message: 'ชื่อโปรเจกต์ต้องมีความยาวไม่เกิน 50 ตัวอักษร'
+    })
+  }
+
+  if (description && description.trim().length > 500) {
+    throw createError({
+      statusCode: 400,
+      message: 'รายละเอียดโปรเจกต์ต้องมีความยาวไม่เกิน 500 ตัวอักษร'
+    })
+  }
+
   try {
     const inviteCode = generateInviteCode()
 
