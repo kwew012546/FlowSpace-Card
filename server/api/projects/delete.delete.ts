@@ -16,11 +16,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'ไม่พบโปรเจกต์ที่ต้องการลบ' })
   }
 
-  // เฉพาะเจ้าของโปรเจกต์ (Owner) เท่านั้นที่ลบได้
-  if (project.ownerId !== userId) {
+  const isOwner = project.ownerId === userId
+  const isAdmin = event.context.auth.user.role === 'ADMIN'
+
+  // เฉพาะเจ้าของโปรเจกต์ (Owner) หรือแอดมินระบบเท่านั้นที่ลบได้
+  if (!isOwner && !isAdmin) {
     throw createError({
       statusCode: 403,
-      message: 'คุณไม่มีสิทธิ์ลบโปรเจกต์นี้ ❌ เฉพาะเจ้าของโครงการเท่านั้นที่จะสามารถลบถาวรได้'
+      message: 'คุณไม่มีสิทธิ์ลบโปรเจกต์นี้ ❌ เฉพาะเจ้าของโครงการหรือผู้ดูแลระบบเท่านั้นที่จะสามารถลบได้'
     })
   }
 
@@ -29,6 +32,7 @@ export default defineEventHandler(async (event) => {
   })
 
   // ส่งสัญญาณแจ้งอัปเดตสมาชิกทุกคนในโปรเจกต์
+  broadcastProjectUpdate(projectId, 'PROJECT_DELETED')
   broadcastProjectUpdate(projectId, 'TEAM_UPDATED')
 
   return { success: true, message: 'ลบโปรเจกต์ออกจากการทำงานเรียบร้อยแล้ว!' }

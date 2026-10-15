@@ -17,6 +17,9 @@ model User {
   email          String          @unique
   username       String
   password       String          // เก็บแบบแฮชผ่าน bcrypt เพื่อความปลอดภัย
+  role           String          @default("USER") // สิทธิ์ระดับแพลตฟอร์ม "USER" | "ADMIN"
+  isBanned       Boolean         @default(false)  // สถานะระงับการใช้งาน
+  banReason      String?                          // เหตุผลในการระงับการใช้งาน
   isVerified     Boolean         @default(false)
   createdAt      DateTime        @default(now())
   

@@ -25,8 +25,9 @@ export default defineEventHandler(async (event) => {
     })
   ])
   const isOwner = project && project.ownerId === userId
+  const isAdmin = event.context.auth?.user?.role === 'ADMIN'
 
-  if (!isMember && !isOwner) {
+  if (!isMember && !isOwner && !isAdmin) {
     throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์เข้าถึงโปรเจกต์นี้ ❌' })
   }
 

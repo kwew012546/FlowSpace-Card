@@ -52,9 +52,17 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // 2.6 ตรวจสอบสถานะการระงับบัญชี (Ban check)
+    if (user.isBanned) {
+      throw createError({
+        statusCode: 403,
+        message: `บัญชีของคุณถูกระงับการใช้งาน 🔒 เหตุผล: ${user.banReason || 'กรุณาติดต่อผู้ดูแลระบบ'}`
+      })
+    }
+
     // 3. สร้าง JWT Token สำหรับยืนยันตัวตนฝั่งหลังบ้าน
     const token = jwt.sign(
-      { id: user.id, email: user.email, username: user.username },
+      { id: user.id, email: user.email, username: user.username, role: user.role },
       JWT_SECRET_TO_USE,
       { expiresIn: '7d' }
     )
@@ -74,7 +82,8 @@ export default defineEventHandler(async (event) => {
       user: {
         id: user.id,
         email: user.email,
-        username: user.username
+        username: user.username,
+        role: user.role
       }
     }
 

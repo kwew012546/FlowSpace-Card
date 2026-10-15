@@ -19,8 +19,19 @@
             <span>📖</span>
             <span class="hidden sm:inline">คู่มือใช้งาน</span>
           </a>
-          <span class="min-h-[40px] text-xs sm:text-sm font-semibold text-stone-600 bg-[#f3e9d7] px-3 py-2 rounded-lg border border-amber-200 flex items-center">
-            👤 {{ currentUser?.username || 'User' }}
+          <NuxtLink 
+            v-if="currentUser?.role === 'ADMIN'"
+            to="/admin" 
+            class="min-h-[40px] bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-2 rounded-lg border border-amber-300 transition-all text-xs sm:text-sm flex items-center gap-1.5 shadow-sm"
+            title="เปิดแผงควบคุมระบบ (Admin Portal)"
+          >
+            <span>🛡️</span>
+            <span class="hidden sm:inline">แผงควบคุม Admin</span>
+          </NuxtLink>
+          <span class="min-h-[40px] text-xs sm:text-sm font-semibold text-stone-600 bg-[#f3e9d7] px-3 py-2 rounded-lg border border-amber-200 flex items-center gap-1">
+            <span>👤</span>
+            <span>{{ currentUser?.username || 'User' }}</span>
+            <span v-if="currentUser?.role === 'ADMIN'" class="ml-1 text-[10px] bg-amber-600 text-white font-extrabold px-1.5 py-0.5 rounded-full">ADMIN</span>
           </span>
           <button @click="handleLogout" class="min-h-[40px] bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold px-3.5 py-2 rounded-lg transition-all border border-stone-300 text-xs sm:text-sm flex items-center">
             🚪 ออกจากระบบ
@@ -264,7 +275,7 @@
 </style>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -298,7 +309,18 @@ const fetchProjects = async () => {
   finally { isLoading.value = false }
 }
 
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible' && currentUser.value) {
+    fetchProjects()
+  }
+}
+
 onMounted(async () => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleVisibilityChange)
+  }
+
   const cachedUser = localStorage.getItem('user')
   if (cachedUser) {
     try {
@@ -320,6 +342,13 @@ onMounted(async () => {
   } catch (error) {
     localStorage.removeItem('user')
     navigateTo('/login')
+  }
+})
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('visibilitychange', handleVisibilityChange)
+    window.removeEventListener('focus', handleVisibilityChange)
   }
 })
 

@@ -4,6 +4,49 @@
     <div class="absolute top-[-10%] left-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute bottom-[-10%] right-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
 
+    <!-- Top Admin Bar (Exclusive when Super Admin inspects OTHER users' boards) -->
+    <aside 
+      v-if="currentUser?.role === 'ADMIN' && projectOwnerId && projectOwnerId !== currentUser?.id" 
+      aria-label="Admin Control Bar"
+      class="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 text-amber-50 px-3 sm:px-6 py-2 shadow-sm text-xs relative z-50 flex flex-wrap items-center justify-between gap-2 border-b border-amber-900/30"
+    >
+      <div class="flex items-center gap-2">
+        <span class="flex h-2 w-2 relative shrink-0">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-200 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-300"></span>
+        </span>
+        <span class="font-black tracking-wide flex items-center gap-1.5 shrink-0">
+          <span>🛡️</span> โหมดผู้ดูแลระบบ (Admin Inspection)
+        </span>
+        <span class="text-amber-300/60 hidden sm:inline">•</span>
+        <span class="text-amber-100 hidden sm:inline">
+          เจ้าของบอร์ด: <strong class="text-white font-bold">{{ projectOwnerUsername || 'กำลังโหลด...' }}</strong>
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- Delete project shortcut for Admin -->
+        <button 
+          @click="isDeleteProjectModalOpen = true" 
+          class="min-h-[32px] px-2.5 py-1 bg-rose-600/90 hover:bg-rose-600 text-white font-bold rounded-lg transition-all text-xs flex items-center gap-1 shadow-sm border border-rose-400/40"
+          title="ลบโปรเจกต์นี้ในฐานะผู้ดูแลระบบ"
+        >
+          <span>🗑️</span>
+          <span>ลบโครงการนี้</span>
+        </button>
+
+        <!-- Back to Admin Portal link -->
+        <NuxtLink 
+          to="/admin" 
+          class="min-h-[32px] px-3 py-1 bg-white hover:bg-amber-50 text-amber-900 font-extrabold rounded-lg transition-all text-xs flex items-center gap-1 shadow-sm"
+          title="กลับสู่หน้าแผงควบคุมหลัก Admin Portal"
+        >
+          <span>⬅️</span>
+          <span>กลับหน้า Admin</span>
+        </NuxtLink>
+      </div>
+    </aside>
+
     <header class="bg-[#fdfaf5] border-b border-amber-200/80 p-3 sm:p-4 shadow-sm relative z-40">
       <div class="container mx-auto flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3 sm:gap-4">
         
@@ -133,7 +176,7 @@
             👥 จัดการสมาชิกและยศ
           </button>
           
-          <button v-if="currentUser && projectOwnerId !== currentUser.id" @click="leaveProject" class="min-h-[40px] bg-stone-100 hover:bg-stone-200 text-rose-600 font-bold px-3.5 sm:px-4 py-2 rounded-lg transition-all border border-stone-200 text-xs sm:text-sm flex items-center">
+          <button v-if="currentUser && projectOwnerId !== currentUser.id && currentUser.role !== 'ADMIN'" @click="leaveProject" class="min-h-[40px] bg-stone-100 hover:bg-stone-200 text-rose-600 font-bold px-3.5 sm:px-4 py-2 rounded-lg transition-all border border-stone-200 text-xs sm:text-sm flex items-center">
             🚪 ออกจากโครงการ
           </button>
           <button v-if="currentUser && projectOwnerId === currentUser.id" @click="isDeleteProjectModalOpen = true" class="min-h-[40px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3.5 sm:px-4 py-2 rounded-lg transition-all border border-rose-250 text-xs sm:text-sm flex items-center">
@@ -197,7 +240,25 @@
     </div>
 
     <main class="flex-1 p-3 sm:p-6 overflow-x-auto relative z-10">
-      <div class="flex gap-4 sm:gap-6 h-full items-start pb-4 min-w-max">
+      <!-- Empty State if columns.length === 0 -->
+      <div v-if="columns.length === 0" class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
+        <div class="bg-white/80 backdrop-blur-md border border-amber-200/80 rounded-2xl p-6 sm:p-8 max-w-md shadow-sm">
+          <span class="text-4xl mb-3 block">📌</span>
+          <h3 class="text-base font-extrabold text-stone-800 mb-1">ยังไม่มีคอลัมน์ในโปรเจกต์นี้</h3>
+          <p class="text-xs text-stone-500 mb-4">
+            เริ่มต้นจัดการงานด้วยการเพิ่มคอลัมน์แรกสำหรับติดตามความคืบหน้า (เช่น To Do, In Progress, Done)
+          </p>
+          <button 
+            v-if="hasPermission('MANAGE_PROJECT')" 
+            @click="isAddingColumn = true" 
+            class="min-h-[40px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center gap-1.5"
+          >
+            ➕ เพิ่มคอลัมน์แรกเลย
+          </button>
+        </div>
+      </div>
+
+      <div v-else class="flex gap-4 sm:gap-6 h-full items-start pb-4 min-w-max">
         
         <div v-for="col in columns" :key="col.id" data-testid="column-container" @dragover.prevent @drop="onDrop(col.id)" class="bg-[#fdfaf5]/95 border border-amber-200/80 rounded-2xl p-3.5 sm:p-4 shadow-sm w-[85vw] sm:w-80 shrink-0 relative flex flex-col max-h-[calc(100dvh-17rem)] sm:max-h-[72vh]">
           
@@ -809,6 +870,7 @@ const projectId = Number(route.params.id)
 
 const currentUser = ref(null)
 const projectOwnerId = ref(null)
+const projectOwnerUsername = ref('')
 const tasks = ref([])
 const currentInviteCode = ref('')
 const isInviteActive = ref(true)
@@ -920,7 +982,10 @@ const fetchColumns = async () => {
     }
   } catch (err) {
     console.error('Error fetching columns:', err)
-    if (err.statusCode === 403 || err.statusCode === 401) {
+    if (err.statusCode === 404) {
+      showToast('โปรเจกต์นี้ถูกลบไปแล้ว 🗑️', 'info')
+      navigateTo('/dashboard')
+    } else if ((err.statusCode === 403 || err.statusCode === 401) && currentUser.value?.role !== 'ADMIN') {
       navigateTo('/dashboard')
     }
   }
@@ -1005,10 +1070,14 @@ const fetchTasks = async () => {
       }
       projectName.value = response.projectName
       projectOwnerId.value = response.ownerId
+      projectOwnerUsername.value = response.ownerUsername || ''
     }
   } catch (error) {
     console.error(error)
-    if (error.statusCode === 403 || error.statusCode === 401) {
+    if (error.statusCode === 404) {
+      showToast('โปรเจกต์นี้ถูกลบไปแล้ว 🗑️', 'info')
+      navigateTo('/dashboard')
+    } else if ((error.statusCode === 403 || error.statusCode === 401) && currentUser.value?.role !== 'ADMIN') {
       navigateTo('/dashboard')
     }
   }
@@ -1221,8 +1290,8 @@ const fetchTeamAndRoles = async () => {
     ])
     if (membersRes.success) {
       projectMembers.value = membersRes.data
-      // Check if current user is kicked
-      if (currentUser.value && projectOwnerId.value !== currentUser.value.id) {
+      // Check if current user is kicked (Admins are immune to kick checks)
+      if (currentUser.value && currentUser.value.role !== 'ADMIN' && projectOwnerId.value && projectOwnerId.value !== currentUser.value.id) {
         const isStillMember = projectMembers.value.some(m => m.user.id === currentUser.value.id)
         if (!isStillMember) {
           navigateTo('/dashboard')
@@ -1233,7 +1302,7 @@ const fetchTeamAndRoles = async () => {
     if (rolesRes.success) projectRoles.value = rolesRes.data
   } catch (error) {
     console.error('Error fetching team or roles:', error)
-    if (error.statusCode === 403 || error.statusCode === 401) {
+    if ((error.statusCode === 403 || error.statusCode === 401) && currentUser.value?.role !== 'ADMIN') {
       navigateTo('/dashboard')
     }
   }
@@ -1273,10 +1342,16 @@ const initSse = () => {
 
     eventSource.onmessage = (event) => {
       if (event.data === 'connected') return
-      // ป้องกันการโหลดซ้ำซ้อนหากผู้ใช้คนนี้เพิ่งเป็นคนกดย้าย/แก้ไขการ์ดเองเมื่อไม่เกิน 1.5 วินาทีที่ผ่านมา
-      if (Date.now() - lastLocalMutationAt < 1500) return
       try {
         const data = JSON.parse(event.data)
+        if (data.type === 'PROJECT_DELETED') {
+          showToast('โปรเจกต์นี้ถูกลบไปแล้ว 🗑️', 'info')
+          navigateTo('/dashboard')
+          return
+        }
+        // ป้องกันการโหลดซ้ำซ้อนหากผู้ใช้คนนี้เพิ่งเป็นคนกดย้าย/แก้ไขการ์ดเองเมื่อไม่เกิน 1.5 วินาทีที่ผ่านมา
+        if (Date.now() - lastLocalMutationAt < 1500) return
+
         if (data.type === 'TASKS_UPDATED') {
           Promise.all([fetchTasks(), fetchColumns(), fetchNotifications()])
         } else if (data.type === 'TEAM_UPDATED') {
@@ -1327,24 +1402,31 @@ onMounted(async () => {
     } catch (e) {}
   }
 
-  // ดึงข้อมูลทุกส่วนของบอร์ดพร้อมกันในครั้งเดียว (Parallel Fetching) แทนการรอคิวทีละตัว
-  const [meResult] = await Promise.allSettled([
-    $fetch('/api/auth/me'),
+  // 1. ตรวจสอบสถานะผู้ใช้และอัปเดต role ล่าสุด (เช่น ADMIN) ก่อนเสมอ
+  try {
+    const meRes = await $fetch('/api/auth/me')
+    if (meRes?.success && meRes.user) {
+      currentUser.value = meRes.user
+      localStorage.setItem('user', JSON.stringify(meRes.user))
+    } else {
+      localStorage.removeItem('user')
+      navigateTo('/login')
+      return
+    }
+  } catch (err) {
+    localStorage.removeItem('user')
+    navigateTo('/login')
+    return
+  }
+
+  // 2. ดึงข้อมูลส่วนประกอบของบอร์ดพร้อมกันในครั้งเดียว (Parallel Fetching)
+  await Promise.allSettled([
     fetchColumns(),
     fetchTasks(),
     fetchLabels(),
     fetchNotifications(),
     fetchTeamAndRoles()
   ])
-
-  if (meResult.status === 'fulfilled' && meResult.value?.success) {
-    currentUser.value = meResult.value.user
-    localStorage.setItem('user', JSON.stringify(meResult.value.user))
-  } else {
-    localStorage.removeItem('user')
-    navigateTo('/login')
-    return
-  }
 
   initSse()
 
@@ -1375,6 +1457,7 @@ onUnmounted(() => {
 
 const hasPermission = (permission) => {
   if (!currentUser.value) return false
+  if (currentUser.value.role === 'ADMIN') return true
   if (projectOwnerId.value && currentUser.value && projectOwnerId.value === currentUser.value.id) return true
   
   const myMemberInfo = projectMembers.value.find(m => m.user.id === currentUser.value.id)

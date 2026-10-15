@@ -9,8 +9,12 @@ import { prisma } from './prisma'
  */
 export async function checkPermission(userId: number, projectId: number, permission: string): Promise<boolean> {
   try {
-    // ดึงรายละเอียดของโปรเจกต์และข้อมูลสมาชิกพร้อมกันในรอบเดียว (Parallel Query)
-    const [project, member] = await Promise.all([
+    // ดึงรายละเอียดของผู้ใช้, โปรเจกต์ และข้อมูลสมาชิกพร้อมกันในรอบเดียว (Parallel Query)
+    const [user, project, member] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true }
+      }),
       prisma.project.findUnique({
         where: { id: projectId },
         select: { ownerId: true }
@@ -27,6 +31,9 @@ export async function checkPermission(userId: number, projectId: number, permiss
     ])
 
     if (!project) return false
+
+    // 🛡️ Super Admin ของแพลตฟอร์ม มีสิทธิ์เต็มในการจัดการทุกโปรเจกต์
+    if (user?.role === 'ADMIN') return true
 
     // ถ้าผู้ใช้เป็นเจ้าของบอร์ด (Owner) จะได้สิทธิ์เข้าถึงทั้งหมดเสมอ
     if (project.ownerId === userId) return true
@@ -51,7 +58,11 @@ export async function checkPermission(userId: number, projectId: number, permiss
  */
 export async function isProjectMember(userId: number, projectId: number): Promise<boolean> {
   try {
-    const [project, count] = await Promise.all([
+    const [user, project, count] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true }
+      }),
       prisma.project.findUnique({
         where: { id: projectId },
         select: { ownerId: true }
@@ -62,6 +73,10 @@ export async function isProjectMember(userId: number, projectId: number): Promis
     ])
 
     if (!project) return false
+
+    // 🛡️ Super Admin เข้าดูได้ทุกบอร์ดเพื่อกำกับดูแลระบบ
+    if (user?.role === 'ADMIN') return true
+
     if (project.ownerId === userId) return true
 
     return count > 0

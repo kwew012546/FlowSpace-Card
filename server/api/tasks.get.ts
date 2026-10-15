@@ -33,7 +33,12 @@ export default defineEventHandler(async (event) => {
           name: true,
           inviteCode: true,
           isInviteActive: true,
-          ownerId: true
+          ownerId: true,
+          owner: {
+            select: {
+              username: true
+            }
+          }
         }
       }),
       prisma.task.findMany({
@@ -66,13 +71,14 @@ export default defineEventHandler(async (event) => {
     }
 
     const isOwner = projectInfo.ownerId === userId
+    const isAdmin = event.context.auth?.user?.role === 'ADMIN'
 
-    if (!memberRecord && !isOwner) {
+    if (!memberRecord && !isOwner && !isAdmin) {
       throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์เข้าถึงโปรเจกต์นี้ ❌' })
     }
 
-    // ตรวจสอบสิทธิ์การมองเห็นรหัสเชิญ (Owner หรือมียศ INVITE_MEMBERS / MANAGE_PROJECT)
-    const canInvite = isOwner || 
+    // ตรวจสอบสิทธิ์การมองเห็นรหัสเชิญ (Owner หรือ Admin หรือมียศ INVITE_MEMBERS / MANAGE_PROJECT)
+    const canInvite = isOwner || isAdmin ||
       memberRecord?.role?.permissions.includes('INVITE_MEMBERS') || 
       memberRecord?.role?.permissions.includes('MANAGE_PROJECT')
 
@@ -83,6 +89,7 @@ export default defineEventHandler(async (event) => {
       inviteCode: canInvite ? projectInfo.inviteCode : null,   // 👈 ส่งรหัส 6 หลักเฉพาะผู้มีสิทธิ์
       isInviteActive: projectInfo.isInviteActive, // 👈 ส่งสถานะเปิด/ปิดรับคน
       ownerId: projectInfo.ownerId,       // 👈 ส่งไอดีเจ้าของโปรเจกต์กลับไป
+      ownerUsername: projectInfo.owner?.username, // 👈 ส่งชื่อผู้ใช้เจ้าของโปรเจกต์
       data: tasks
     }
 
