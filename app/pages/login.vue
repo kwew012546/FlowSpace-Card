@@ -26,7 +26,12 @@
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-stone-600 mb-1">รหัสผ่าน (Password)</label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-sm font-semibold text-stone-600">รหัสผ่าน (Password)</label>
+            <NuxtLink to="/forgot-password" class="text-xs text-amber-700 hover:text-amber-800 font-bold hover:underline transition-colors py-0.5">
+              ลืมรหัสผ่าน?
+            </NuxtLink>
+          </div>
           <div class="relative">
             <input 
               v-model="password" 

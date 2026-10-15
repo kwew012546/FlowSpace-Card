@@ -1,13 +1,14 @@
 // app/middleware/auth.ts
 export default defineNuxtRouteMiddleware((to, from) => {
-  const isPublic = to.path === '/login' || to.path === '/register' || to.path.startsWith('/verify-email')
+  const isPublic = to.path === '/login' || to.path === '/register' || to.path.startsWith('/verify-email') || to.path === '/forgot-password' || to.path.startsWith('/reset-password')
+  const isAuthPage = to.path === '/login' || to.path === '/register' || to.path === '/forgot-password' || to.path.startsWith('/reset-password')
 
   if (import.meta.server) {
     const token = useCookie('auth_token')
     if (!token.value && !isPublic) {
       return navigateTo('/login', { replace: true })
     }
-    if (token.value && (to.path === '/login' || to.path === '/register')) {
+    if (token.value && isAuthPage) {
       return navigateTo('/dashboard', { replace: true })
     }
   }
@@ -20,8 +21,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
       return navigateTo('/login', { replace: true })
     }
 
-    // สเต็ปเสริม: ถ้าล็อกอินค้างไว้แล้วดันแอบพิมพ์ URL ไปหน้า login หรือ register ให้ดีดไปหน้าแดชบอร์ดทันที
-    if (user && (to.path === '/login' || to.path === '/register')) {
+    // สเต็ปเสริม: ถ้าล็อกอินค้างไว้แล้วดันแอบพิมพ์ URL ไปหน้า auth ให้ดีดไปหน้าแดชบอร์ดทันที
+    if (user && isAuthPage) {
       return navigateTo('/dashboard', { replace: true })
     }
   }
