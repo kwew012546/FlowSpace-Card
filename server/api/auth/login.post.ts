@@ -14,6 +14,8 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    await ensureDbSchema()
+
     // 1. ค้นหายูสเซอร์จากอีเมล
     const user = await prisma.user.findUnique({
       where: { email }
@@ -81,6 +83,7 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     if (error.statusCode) throw error
+    console.error('[Login Error]:', error)
     throw createError({
       statusCode: 500,
       message: 'ระบบล็อกอินขัดข้อง กรุณาลองใหม่ในภายหลัง'
