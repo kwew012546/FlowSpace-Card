@@ -201,7 +201,7 @@
           <button @click="navigateTo('/dashboard')" class="min-h-[40px] bg-[#f3e9d7] hover:bg-[#ebdcc5] text-stone-700 font-bold px-3.5 sm:px-4 py-2 rounded-lg transition-all border border-amber-200 text-xs sm:text-sm flex items-center">
             ⬅️ แดชบอร์ด
           </button>
-          <button v-if="hasPermission('CREATE_TASK')" @click="openAddModal(columns[0]?.id)" class="min-h-[40px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-4 py-2 rounded-lg transition-all shadow-md text-xs sm:text-sm flex items-center">
+          <button v-if="hasPermission('CREATE_TASK') && columns.length > 0" @click="openAddModal(columns[0]?.id)" class="min-h-[40px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-4 py-2 rounded-lg transition-all shadow-md text-xs sm:text-sm flex items-center">
             + เพิ่มงานใหม่
           </button>
         </div>
@@ -241,7 +241,7 @@
           </select>
         </div>
 
-        <div v-if="hasPermission('MANAGE_PROJECT')" class="relative">
+        <div v-if="hasPermission('MANAGE_PROJECT') && columns.length > 0" class="relative">
           <button v-if="!isAddingColumn" @click="isAddingColumn = true" class="min-h-[38px] bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1">
             ➕ เพิ่มคอลัมน์
           </button>
@@ -257,35 +257,52 @@
     <main class="flex-1 p-3 sm:p-6 overflow-x-auto relative z-10">
       <!-- Empty State if columns.length === 0 -->
       <div v-if="columns.length === 0" class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
-        <div class="bg-white/80 backdrop-blur-md border border-amber-200/80 rounded-2xl p-6 sm:p-8 max-w-md shadow-sm">
+        <div class="bg-white/80 backdrop-blur-md border border-amber-200/80 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-sm">
           <span class="text-4xl mb-3 block">📌</span>
           <h3 class="text-base font-extrabold text-stone-800 mb-1">ยังไม่มีคอลัมน์ในโปรเจกต์นี้</h3>
           <p class="text-xs text-stone-500 mb-4">
-            เริ่มต้นจัดการงานด้วยการเพิ่มคอลัมน์แรกสำหรับติดตามความคืบหน้า (เช่น To Do, In Progress, Done)
+            เริ่มต้นจัดการงานด้วยการเพิ่มคอลัมน์แรกสำหรับติดตามความคืบหน้า (เช่น To Do, Doing, Done)
           </p>
-          <button 
-            v-if="hasPermission('MANAGE_PROJECT')" 
-            @click="isAddingColumn = true" 
-            class="min-h-[40px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center gap-1.5"
-          >
-            ➕ เพิ่มคอลัมน์แรกเลย
-          </button>
+          <template v-if="hasPermission('MANAGE_PROJECT')">
+            <div v-if="isAddingColumn" class="flex items-center justify-center gap-2 mt-2">
+              <input v-model="newColumnTitle" type="text" placeholder="ระบุชื่อคอลัมน์แรก..." class="px-3 py-2 text-xs flex-1 min-h-[40px] bg-white border border-amber-300 rounded-xl focus:outline-none font-bold text-stone-800" @keyup.enter="addColumn" />
+              <button @click="addColumn" class="min-h-[40px] px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-sm">บันทึก</button>
+              <button @click="isAddingColumn = false" class="min-h-[40px] px-3 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 text-xs font-bold rounded-xl">ยกเลิก</button>
+            </div>
+            <button 
+              v-else
+              @click="isAddingColumn = true" 
+              class="min-h-[44px] px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center gap-1.5"
+            >
+              ➕ เพิ่มคอลัมน์แรกเลย
+            </button>
+          </template>
         </div>
       </div>
 
       <div v-else class="flex gap-4 sm:gap-6 h-full items-start pb-4 min-w-max">
         
-        <div v-for="col in columns" :key="col.id" data-testid="column-container" @dragover.prevent @drop="onDrop(col.id)" class="bg-[#fdfaf5]/95 border border-amber-200/80 rounded-2xl p-3.5 sm:p-4 shadow-sm w-[85vw] sm:w-80 shrink-0 relative flex flex-col max-h-[calc(100dvh-17rem)] sm:max-h-[72vh]">
+        <div
+          v-for="col in columns"
+          :key="col.id"
+          data-testid="column-container"
+          :draggable="hasPermission('MANAGE_PROJECT') && editingColumnId !== col.id"
+          @dragstart="onColumnDragStart(col.id)"
+          @dragover.prevent
+          @drop="onDrop(col.id)"
+          class="bg-[#fdfaf5]/95 border border-amber-200/80 rounded-2xl p-3.5 sm:p-4 shadow-sm w-[85vw] sm:w-80 shrink-0 relative flex flex-col max-h-[calc(100dvh-17rem)] sm:max-h-[72vh] transition-all"
+        >
           
-          <div class="flex justify-between items-center mb-3 sm:mb-4">
+          <div class="flex justify-between items-center mb-3 sm:mb-4" :class="hasPermission('MANAGE_PROJECT') && editingColumnId !== col.id ? 'cursor-grab active:cursor-grabbing' : ''">
             <div class="flex-1 min-w-0">
               <div v-if="editingColumnId === col.id" class="flex items-center gap-1.5">
                 <input v-model="editingColumnTitle" type="text" class="bg-white border border-amber-400 rounded px-2 py-1 text-xs font-bold text-stone-800 focus:outline-none w-full min-h-[32px]" @keyup.enter="saveColumnName(col.id)" />
                 <button @click="saveColumnName(col.id)" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-emerald-500 text-xs">💾</button>
                 <button @click="editingColumnId = null" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-stone-400 text-xs">❌</button>
               </div>
-              <h2 v-else class="font-extrabold text-sm text-amber-900 flex items-center gap-1.5 truncate">
-                📌 {{ col.title }}
+              <h2 v-else class="font-extrabold text-sm text-amber-900 flex items-center gap-1.5 truncate" :title="hasPermission('MANAGE_PROJECT') ? 'ลากหัวคอลัมน์เพื่อสลับตำแหน่ง' : col.title">
+                <span v-if="hasPermission('MANAGE_PROJECT')" class="text-stone-400 text-xs select-none" title="ลากเพื่อย้ายตำแหน่งคอลัมน์">⠿</span>
+                <span>📌 {{ col.title }}</span>
                 <span class="bg-[#f3e9d7] text-amber-950 text-[10px] px-1.5 py-0.5 rounded-full font-black">
                   {{ getFilteredTasks(col.id).length }}
                 </span>
@@ -294,13 +311,13 @@
             
             <div v-if="hasPermission('MANAGE_PROJECT') && editingColumnId !== col.id" class="flex items-center gap-1">
               <button @click="editingColumnId = col.id; editingColumnTitle = col.title" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-stone-400 hover:text-amber-600 text-xs p-1" title="เปลี่ยนชื่อช่อง">✏️</button>
-              <button @click="triggerDeleteColumn(col.id, col.title)" :disabled="columns.length <= 1" :class="columns.length <= 1 ? 'opacity-30 cursor-not-allowed' : 'hover:text-rose-600'" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-stone-400 text-xs p-1 transition-all" :title="columns.length <= 1 ? 'ต้องมีอย่างน้อย 1 คอลัมน์บนบอร์ด ❌' : 'ลบช่อง'">🗑️</button>
+              <button @click="triggerDeleteColumn(col.id, col.title)" class="min-h-[32px] min-w-[32px] flex items-center justify-center text-stone-400 hover:text-rose-600 text-xs p-1 transition-all" title="ลบช่อง">🗑️</button>
             </div>
           </div>
 
           <div class="space-y-3 overflow-y-auto pr-1 flex-1">
             
-            <div v-for="task in getFilteredTasks(col.id)" :key="task.id" :draggable="hasPermission('CREATE_TASK')" @dragstart="onDragStart(task.id)" :class="!hasPermission('CREATE_TASK') ? 'cursor-default' : 'cursor-grab active:cursor-grabbing hover:border-amber-400'" class="bg-white p-3.5 sm:p-4 rounded-xl border border-amber-100 shadow-sm transition-all group relative">
+            <div v-for="task in getFilteredTasks(col.id)" :key="task.id" :draggable="hasPermission('CREATE_TASK')" @dragstart.stop="onDragStart(task.id)" :class="!hasPermission('CREATE_TASK') ? 'cursor-default' : 'cursor-grab active:cursor-grabbing hover:border-amber-400'" class="bg-white p-3.5 sm:p-4 rounded-xl border border-amber-100 shadow-sm transition-all group relative">
               
               <div v-if="task.labels && task.labels.length > 0" class="flex flex-wrap gap-1 mb-2">
                 <span v-for="lbl in task.labels" :key="lbl.id" :style="{ backgroundColor: lbl.color }" class="text-[9px] font-black text-white px-2 py-0.5 rounded shadow-sm">
@@ -351,25 +368,7 @@
                   <div class="flex items-center gap-2 mt-3 pt-2.5 border-t border-stone-100">
                     <button v-if="hasPermission('CREATE_TASK')" @click="openEditModal(task)" class="min-h-[36px] px-2 py-1 text-amber-600 text-xs font-black flex items-center">✏️ แก้ไข</button>
                     <button v-else @click="openEditModal(task)" class="min-h-[36px] px-2 py-1 text-stone-600 hover:text-amber-700 text-xs font-black flex items-center">🔍 ดูรายละเอียด</button>
-                    <button v-if="hasPermission('DELETE_TASK')" @click="deleteTask(task.id)" class="min-h-[36px] px-2 py-1 text-rose-600 text-xs font-black flex items-center">🗑️ ลบ</button>
-                    
-                    <!-- Backwards compatible status navigation buttons for E2E testing compatibility -->
-                    <template v-if="hasPermission('CREATE_TASK')">
-                      <button v-if="col.title === 'To Do'" @click="moveTask(task.id, columns.find(c => c.title === 'Doing')?.id || columns[1]?.id)" class="min-h-[36px] bg-[#f3e9d7] hover:bg-[#ebdcc5] text-amber-900 font-bold text-xs px-3 py-1.5 rounded-lg shrink-0 ml-auto transition-all flex items-center justify-center">
-                        เริ่มทำ ⚡
-                      </button>
-                      
-                      <div v-else-if="col.title === 'Doing'" class="flex items-center gap-1.5 ml-auto">
-                        <button @click="moveTask(task.id, columns.find(c => c.title === 'To Do')?.id || columns[0]?.id)" class="min-h-[36px] px-2 flex items-center text-stone-400 text-[10px] underline">ถอยกลับ</button>
-                        <button @click="moveTask(task.id, columns.find(c => c.title === 'Done')?.id || columns[2]?.id)" class="min-h-[36px] bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm transition-all flex items-center justify-center">
-                          เสร็จสิ้น ✅
-                        </button>
-                      </div>
-                      
-                      <button v-else-if="col.title === 'Done'" @click="moveTask(task.id, columns.find(c => c.title === 'Doing')?.id || columns[1]?.id)" class="min-h-[36px] px-2 text-amber-700 text-[11px] font-bold underline ml-auto shrink-0 self-center flex items-center">
-                        ทำใหม่
-                      </button>
-                    </template>
+                    <button v-if="hasPermission('DELETE_TASK')" @click="deleteTask(task.id)" class="min-h-[36px] px-2 py-1 text-rose-600 text-xs font-black flex items-center ml-auto">🗑️ ลบ</button>
                   </div>
                 </div>
               </div>
@@ -769,26 +768,31 @@
                 ⚠️ พบการ์ดงานค้างอยู่ในคอลัมน์นี้จำนวน {{ tasks.filter(t => t.columnId === columnToDeleteId).length }} ใบ:
               </p>
 
-              <label class="flex items-start gap-2 cursor-pointer font-bold text-stone-700">
-                <input type="radio" value="move" v-model="deleteColumnTaskAction" class="mt-0.5 text-amber-600 focus:ring-amber-500" />
-                <div class="flex-1 space-y-1.5">
-                  <span>📦 ย้ายการ์ดทั้งหมดไปที่คอลัมน์อื่น (แนะนำ)</span>
-                  <select
-                    v-if="deleteColumnTaskAction === 'move'"
-                    v-model="deleteColumnTargetId"
-                    class="w-full min-h-[38px] bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-stone-800 focus:outline-none"
-                  >
-                    <option v-for="col in columns.filter(c => c.id !== columnToDeleteId)" :key="col.id" :value="col.id">
-                      📌 {{ col.title }}
-                    </option>
-                  </select>
-                </div>
-              </label>
+              <template v-if="columns.length > 1">
+                <label class="flex items-start gap-2 cursor-pointer font-bold text-stone-700">
+                  <input type="radio" value="move" v-model="deleteColumnTaskAction" class="mt-0.5 text-amber-600 focus:ring-amber-500" />
+                  <div class="flex-1 space-y-1.5">
+                    <span>📦 ย้ายการ์ดทั้งหมดไปที่คอลัมน์อื่น (แนะนำ)</span>
+                    <select
+                      v-if="deleteColumnTaskAction === 'move'"
+                      v-model="deleteColumnTargetId"
+                      class="w-full min-h-[38px] bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-stone-800 focus:outline-none"
+                    >
+                      <option v-for="col in columns.filter(c => c.id !== columnToDeleteId)" :key="col.id" :value="col.id">
+                        📌 {{ col.title }}
+                      </option>
+                    </select>
+                  </div>
+                </label>
 
-              <label class="flex items-start gap-2 cursor-pointer font-bold text-rose-700 pt-1 border-t border-amber-200/60">
-                <input type="radio" value="delete" v-model="deleteColumnTaskAction" class="mt-0.5 text-rose-600 focus:ring-rose-500" />
-                <span>🗑️ ลบการ์ดทั้ง {{ tasks.filter(t => t.columnId === columnToDeleteId).length }} ใบในคอลัมน์นี้ทิ้งไปพร้อมกัน</span>
-              </label>
+                <label class="flex items-start gap-2 cursor-pointer font-bold text-rose-700 pt-1 border-t border-amber-200/60">
+                  <input type="radio" value="delete" v-model="deleteColumnTaskAction" class="mt-0.5 text-rose-600 focus:ring-rose-500" />
+                  <span>🗑️ ลบการ์ดทั้ง {{ tasks.filter(t => t.columnId === columnToDeleteId).length }} ใบในคอลัมน์นี้ทิ้งไปพร้อมกัน</span>
+                </label>
+              </template>
+              <p v-else class="font-bold text-rose-700 leading-relaxed">
+                🗑️ เนื่องจากเป็นคอลัมน์สุดท้ายของบอร์ด การ์ดทั้ง {{ tasks.filter(t => t.columnId === columnToDeleteId).length }} ใบจะถูกลบทิ้งไปพร้อมกับคอลัมน์นี้
+              </p>
             </div>
             <p v-else class="text-stone-500 text-xs leading-relaxed">
               คอลัมน์นี้ไม่มีการ์ดงานค้างอยู่ สามารถลบออกได้ทันทีครับ
@@ -1078,14 +1082,10 @@ const addColumn = async () => {
 }
 
 const triggerDeleteColumn = (columnId, columnTitle) => {
-  if (columns.value.length <= 1) {
-    showToast('บอร์ดต้องมีอย่างน้อย 1 คอลัมน์ ไม่สามารถลบคอลัมน์สุดท้ายได้ ❌', 'error')
-    return
-  }
   columnToDeleteId.value = columnId
   columnToDeleteTitle.value = columnTitle
-  deleteColumnTaskAction.value = 'move'
   const fallbackCol = columns.value.find(c => c.id !== columnId)
+  deleteColumnTaskAction.value = fallbackCol ? 'move' : 'delete'
   deleteColumnTargetId.value = fallbackCol ? fallbackCol.id : null
   isDeleteColumnModalOpen.value = true
 }
@@ -1930,9 +1930,57 @@ const moveTask = async (id, targetColumnId) => {
 }
 
 let draggedTaskId = null
-const onDragStart = (id) => { draggedTaskId = id }
+let draggedColumnId = null
+
+const onDragStart = (id) => {
+  draggedTaskId = id
+  draggedColumnId = null
+}
+
+const onColumnDragStart = (colId) => {
+  if (!hasPermission('MANAGE_PROJECT')) return
+  draggedColumnId = colId
+  draggedTaskId = null
+}
+
+const reorderColumn = async (sourceColId, targetColId) => {
+  if (!hasPermission('MANAGE_PROJECT') || sourceColId === targetColId) return
+  const fromIndex = columns.value.findIndex(c => c.id === sourceColId)
+  const toIndex = columns.value.findIndex(c => c.id === targetColId)
+  if (fromIndex === -1 || toIndex === -1) return
+
+  const backupColumns = [...columns.value]
+  const updated = [...columns.value]
+  const [movedCol] = updated.splice(fromIndex, 1)
+  updated.splice(toIndex, 0, movedCol)
+  columns.value = updated.map((col, idx) => ({ ...col, position: idx }))
+  lastLocalMutationAt = Date.now()
+
+  try {
+    await $fetch('/api/columns/update', {
+      method: 'PUT',
+      body: {
+        projectId: Number(route.params.id),
+        orderedColumnIds: columns.value.map(c => c.id)
+      }
+    })
+  } catch (err) {
+    columns.value = backupColumns
+    showToast(err.data?.message || 'ไม่สามารถย้ายตำแหน่งคอลัมน์ได้', 'error')
+  }
+}
+
 const onDrop = (columnId) => {
+  if (draggedColumnId !== null) {
+    const srcColId = draggedColumnId
+    draggedColumnId = null
+    reorderColumn(srcColId, columnId)
+    return
+  }
   if (!hasPermission('CREATE_TASK')) return
-  if (draggedTaskId) { moveTask(draggedTaskId, columnId); draggedTaskId = null }
+  if (draggedTaskId) {
+    moveTask(draggedTaskId, columnId)
+    draggedTaskId = null
+  }
 }
 </script>

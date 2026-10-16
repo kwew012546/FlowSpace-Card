@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     }),
     prisma.column.findMany({
       where: { projectId },
-      orderBy: { position: 'asc' }
+      orderBy: [{ position: 'asc' }, { id: 'asc' }]
     })
   ])
 

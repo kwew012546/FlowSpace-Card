@@ -1,9 +1,11 @@
 import { z } from 'zod'
 
 const updateColumnSchema = z.object({
-  id: z.union([z.number(), z.string()]).transform(Number),
+  id: z.union([z.number(), z.string()]).transform(Number).optional(),
   title: z.string().min(1, 'กรุณาระบุชื่อคอลัมน์').max(100, 'ชื่อคอลัมน์ยาวเกินไป').optional(),
-  position: z.number().optional()
+  position: z.number().optional(),
+  projectId: z.union([z.number(), z.string()]).transform(Number).optional(),
+  orderedColumnIds: z.array(z.union([z.number(), z.string()]).transform(Number)).optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -13,12 +15,37 @@ export default defineEventHandler(async (event) => {
   if (!parseResult.success) {
     throw createError({ statusCode: 400, message: parseResult.error.issues?.[0]?.message || parseResult.error.message })
   }
-  const { id, title, position } = parseResult.data
+  const { id, title, position, projectId, orderedColumnIds } = parseResult.data
 
   if (!event.context.auth?.user) {
     throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบ' })
   }
   const userId = event.context.auth.user.id
+
+  // กรณีจัดเรียงลำดับคอลัมน์ใหม่จากการลากวาง (Drag & Drop Column Reordering)
+  if (projectId && Array.isArray(orderedColumnIds) && orderedColumnIds.length > 0) {
+    const hasPerm = await checkPermission(userId, projectId, 'MANAGE_PROJECT')
+    if (!hasPerm) {
+      throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์ในการจัดเรียงคอลัมน์ของโปรเจกต์นี้ ❌' })
+    }
+
+    await prisma.$transaction(
+      orderedColumnIds.map((colId, idx) =>
+        prisma.column.updateMany({
+          where: { id: colId, projectId },
+          data: { position: idx }
+        })
+      )
+    )
+
+    await notifyOwnerIfExternalAdmin(userId, projectId, 'จัดเรียงลำดับคอลัมน์ในบอร์ดใหม่')
+    broadcastProjectUpdate(projectId, 'TASKS_UPDATED')
+    return { success: true, message: 'จัดเรียงลำดับคอลัมน์เรียบร้อย!' }
+  }
+
+  if (!id) {
+    throw createError({ statusCode: 400, message: 'กรุณาระบุไอดีคอลัมน์ (id)' })
+  }
 
   const column = await prisma.column.findUnique({
     where: { id }
