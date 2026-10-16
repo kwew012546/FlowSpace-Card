@@ -40,6 +40,8 @@ export default defineEventHandler(async (event) => {
     }
   })
 
+  await notifyOwnerIfExternalAdmin(userId, projectId, `สร้างคอลัมน์ใหม่ "${newCol.title}"`)
+
   // ส่งสัญญาณ Real-time
   broadcastProjectUpdate(projectId, 'TASKS_UPDATED')
 

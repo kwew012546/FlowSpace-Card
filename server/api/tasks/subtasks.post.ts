@@ -24,14 +24,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'ไม่พบงานหลักที่ระบุ' })
   }
 
-  // ตรวจสอบความถูกต้องของการเข้าใช้โปรเจกต์
-  const isMember = await prisma.projectMember.findFirst({
-    where: { projectId: task.projectId, userId }
-  })
-  const project = await prisma.project.findUnique({ where: { id: task.projectId } })
-  const isOwner = project && project.ownerId === userId
-
-  if (!isMember && !isOwner) {
+  // ตรวจสอบความถูกต้องของการเข้าใช้โปรเจกต์ (รวมถึง Super Admin)
+  const canAccess = await isProjectMember(userId, task.projectId)
+  if (!canAccess) {
     throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์จัดการการ์ดงานในโปรเจกต์นี้ ❌' })
   }
 

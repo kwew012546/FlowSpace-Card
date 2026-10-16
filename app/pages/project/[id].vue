@@ -8,15 +8,17 @@
     <aside 
       v-if="currentUser?.role === 'ADMIN' && projectOwnerId && projectOwnerId !== currentUser?.id" 
       aria-label="Admin Control Bar"
-      class="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 text-amber-50 px-3 sm:px-6 py-2 shadow-sm text-xs relative z-50 flex flex-wrap items-center justify-between gap-2 border-b border-amber-900/30"
+      :class="isAdminEditUnlocked ? 'from-rose-700 via-amber-700 to-amber-800' : 'from-amber-600 via-amber-700 to-amber-800'"
+      class="bg-gradient-to-r text-amber-50 px-3 sm:px-6 py-2 shadow-sm text-xs relative z-50 flex flex-wrap items-center justify-between gap-2 border-b border-amber-900/30 transition-all"
     >
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <span class="flex h-2 w-2 relative shrink-0">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-200 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-300"></span>
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" :class="isAdminEditUnlocked ? 'bg-rose-300' : 'bg-amber-200'"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2" :class="isAdminEditUnlocked ? 'bg-rose-400' : 'bg-amber-300'"></span>
         </span>
         <span class="font-black tracking-wide flex items-center gap-1.5 shrink-0">
-          <span>🛡️</span> โหมดผู้ดูแลระบบ (Admin Inspection)
+          <span>🛡️</span>
+          <span>{{ isAdminEditUnlocked ? 'โหมดผู้ดูแลระบบ (เปิดแก้ไขฉุกเฉิน)' : 'โหมดผู้ดูแลระบบ (ดูอย่างเดียว)' }}</span>
         </span>
         <span class="text-amber-300/60 hidden sm:inline">•</span>
         <span class="text-amber-100 hidden sm:inline">
@@ -24,7 +26,20 @@
         </span>
       </div>
 
-      <div class="flex items-center gap-2 shrink-0">
+      <div class="flex flex-wrap items-center gap-2 shrink-0">
+        <!-- Read-Only vs Admin Override Toggle -->
+        <button
+          @click="toggleAdminEditMode"
+          :class="isAdminEditUnlocked 
+            ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-300/50' 
+            : 'bg-amber-950/50 hover:bg-amber-950/80 text-amber-100 border-amber-400/30'"
+          class="min-h-[32px] px-2.5 py-1 font-bold rounded-lg transition-all text-xs flex items-center gap-1 shadow-sm border"
+          :title="isAdminEditUnlocked ? 'คลิกเพื่อกลับสู่โหมดดูอย่างเดียว (ป้องกันการเผลอแก้ไข)' : 'คลิกเพื่อปลดล็อกแก้ไขบอร์ดนี้ (ทุกการกระทำจะติดป้าย 🛡️ [ผู้ดูแลระบบ])'"
+        >
+          <span>{{ isAdminEditUnlocked ? '🔓' : '🔒' }}</span>
+          <span>{{ isAdminEditUnlocked ? 'เปิดโหมดแก้ไขอยู่ (คลิกเพื่อล็อก)' : 'โหมดดูอย่างเดียว (คลิกเพื่อแก้ไข)' }}</span>
+        </button>
+
         <!-- Delete project shortcut for Admin -->
         <button 
           @click="isDeleteProjectModalOpen = true" 
@@ -335,23 +350,26 @@
                   
                   <div class="flex items-center gap-2 mt-3 pt-2.5 border-t border-stone-100">
                     <button v-if="hasPermission('CREATE_TASK')" @click="openEditModal(task)" class="min-h-[36px] px-2 py-1 text-amber-600 text-xs font-black flex items-center">✏️ แก้ไข</button>
+                    <button v-else @click="openEditModal(task)" class="min-h-[36px] px-2 py-1 text-stone-600 hover:text-amber-700 text-xs font-black flex items-center">🔍 ดูรายละเอียด</button>
                     <button v-if="hasPermission('DELETE_TASK')" @click="deleteTask(task.id)" class="min-h-[36px] px-2 py-1 text-rose-600 text-xs font-black flex items-center">🗑️ ลบ</button>
                     
                     <!-- Backwards compatible status navigation buttons for E2E testing compatibility -->
-                    <button v-if="col.title === 'To Do'" @click="moveTask(task.id, columns.find(c => c.title === 'Doing')?.id || columns[1]?.id)" class="min-h-[36px] bg-[#f3e9d7] hover:bg-[#ebdcc5] text-amber-900 font-bold text-xs px-3 py-1.5 rounded-lg shrink-0 ml-auto transition-all flex items-center justify-center">
-                      เริ่มทำ ⚡
-                    </button>
-                    
-                    <div v-else-if="col.title === 'Doing'" class="flex items-center gap-1.5 ml-auto">
-                      <button @click="moveTask(task.id, columns.find(c => c.title === 'To Do')?.id || columns[0]?.id)" class="min-h-[36px] px-2 flex items-center text-stone-400 text-[10px] underline">ถอยกลับ</button>
-                      <button @click="moveTask(task.id, columns.find(c => c.title === 'Done')?.id || columns[2]?.id)" class="min-h-[36px] bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm transition-all flex items-center justify-center">
-                        เสร็จสิ้น ✅
+                    <template v-if="hasPermission('CREATE_TASK')">
+                      <button v-if="col.title === 'To Do'" @click="moveTask(task.id, columns.find(c => c.title === 'Doing')?.id || columns[1]?.id)" class="min-h-[36px] bg-[#f3e9d7] hover:bg-[#ebdcc5] text-amber-900 font-bold text-xs px-3 py-1.5 rounded-lg shrink-0 ml-auto transition-all flex items-center justify-center">
+                        เริ่มทำ ⚡
                       </button>
-                    </div>
-                    
-                    <button v-else-if="col.title === 'Done'" @click="moveTask(task.id, columns.find(c => c.title === 'Doing')?.id || columns[1]?.id)" class="min-h-[36px] px-2 text-amber-700 text-[11px] font-bold underline ml-auto shrink-0 self-center flex items-center">
-                      ทำใหม่
-                    </button>
+                      
+                      <div v-else-if="col.title === 'Doing'" class="flex items-center gap-1.5 ml-auto">
+                        <button @click="moveTask(task.id, columns.find(c => c.title === 'To Do')?.id || columns[0]?.id)" class="min-h-[36px] px-2 flex items-center text-stone-400 text-[10px] underline">ถอยกลับ</button>
+                        <button @click="moveTask(task.id, columns.find(c => c.title === 'Done')?.id || columns[2]?.id)" class="min-h-[36px] bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm transition-all flex items-center justify-center">
+                          เสร็จสิ้น ✅
+                        </button>
+                      </div>
+                      
+                      <button v-else-if="col.title === 'Done'" @click="moveTask(task.id, columns.find(c => c.title === 'Doing')?.id || columns[1]?.id)" class="min-h-[36px] px-2 text-amber-700 text-[11px] font-bold underline ml-auto shrink-0 self-center flex items-center">
+                        ทำใหม่
+                      </button>
+                    </template>
                   </div>
                 </div>
               </div>
@@ -374,7 +392,7 @@
 
         <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-stone-200/60 bg-white flex justify-between items-center mt-1">
           <h2 class="text-base sm:text-lg font-black text-stone-850 flex items-center gap-2">
-            {{ isEditMode ? '✏️ รายละเอียดการ์ดงาน' : '➕ เพิ่มการ์ดงานใหม่' }}
+            {{ !hasPermission('CREATE_TASK') ? '🔍 รายละเอียดการ์ดงาน (โหมดดูอย่างเดียว)' : (isEditMode ? '✏️ รายละเอียดการ์ดงาน' : '➕ เพิ่มการ์ดงานใหม่') }}
           </h2>
           <button @click="isModalOpen = false" class="min-h-[40px] min-w-[40px] flex items-center justify-center text-stone-400 hover:text-stone-600 focus:outline-none">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -393,12 +411,12 @@
 
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">หัวข้องาน</label>
-              <input v-model="taskTitle" type="text" placeholder="เช่น เขียนคู่มือระบบ..." class="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-stone-800 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
+              <input v-model="taskTitle" :disabled="!hasPermission('CREATE_TASK')" type="text" placeholder="เช่น เขียนคู่มือระบบ..." class="w-full bg-white disabled:bg-stone-100 disabled:text-stone-500 border border-stone-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-stone-800 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500" />
             </div>
 
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">รายละเอียด</label>
-              <textarea v-model="taskDescription" rows="4" placeholder="อธิบายรายละเอียดงานเล็กน้อย..." class="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-stone-800 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"></textarea>
+              <textarea v-model="taskDescription" :disabled="!hasPermission('CREATE_TASK')" rows="4" placeholder="อธิบายรายละเอียดงานเล็กน้อย..." class="w-full bg-white disabled:bg-stone-100 disabled:text-stone-500 border border-stone-200 rounded-xl px-3.5 py-2.5 text-stone-800 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"></textarea>
             </div>
 
             <div v-if="isEditMode" class="border-t border-stone-200/60 pt-4">
@@ -407,16 +425,16 @@
               <div v-if="subtasks.length > 0" class="space-y-2 mb-3">
                 <div v-for="sub in subtasks" :key="sub.id" class="flex items-center justify-between bg-white border border-stone-100 rounded-xl p-2.5 shadow-xs">
                   <div class="flex items-center gap-2.5 flex-1 min-w-0">
-                    <input v-model="sub.isCompleted" type="checkbox" @change="toggleSubtask(sub)" class="w-5 h-5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer" />
+                    <input v-model="sub.isCompleted" :disabled="!hasPermission('CREATE_TASK')" type="checkbox" @change="toggleSubtask(sub)" class="w-5 h-5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer disabled:cursor-not-allowed" />
                     <span :class="sub.isCompleted ? 'line-through text-stone-400 font-normal' : 'text-stone-700 font-bold'" class="text-sm truncate">
                       {{ sub.title }}
                     </span>
                   </div>
-                  <button @click="deleteSubtask(sub.id)" class="min-h-[36px] min-w-[36px] flex items-center justify-center text-stone-400 hover:text-rose-600 p-1 text-xs font-bold transition-all">ลบ</button>
+                  <button v-if="hasPermission('CREATE_TASK')" @click="deleteSubtask(sub.id)" class="min-h-[36px] min-w-[36px] flex items-center justify-center text-stone-400 hover:text-rose-600 p-1 text-xs font-bold transition-all">ลบ</button>
                 </div>
               </div>
 
-              <div class="flex items-center gap-2">
+              <div v-if="hasPermission('CREATE_TASK')" class="flex items-center gap-2">
                 <input v-model="newSubtaskTitle" type="text" placeholder="ระบุงานย่อยใหม่..." class="flex-1 min-h-[40px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none focus:border-amber-500" @keyup.enter="addSubtask" />
                 <button @click="addSubtask" class="min-h-[40px] bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm flex items-center justify-center">
                   เพิ่ม
@@ -438,7 +456,7 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-2">
+              <div v-if="hasPermission('CREATE_TASK')" class="flex items-center gap-2">
                 <label class="min-h-[40px] bg-white border border-dashed border-amber-300 hover:border-amber-500 text-amber-800 hover:bg-amber-50 font-bold px-4 py-2 rounded-xl cursor-pointer transition-all text-xs sm:text-sm flex items-center justify-center gap-1.5">
                   📁 เลือกไฟล์เพื่ออัปโหลด
                   <input type="file" class="hidden" @change="handleFileUpload" />
@@ -452,14 +470,19 @@
               <div v-if="comments.length > 0" class="space-y-2 mb-3 max-h-48 overflow-y-auto pr-1">
                 <div v-for="c in comments" :key="c.id" class="bg-white border border-stone-100 rounded-xl p-3 shadow-xs">
                   <div class="flex justify-between items-center mb-1 text-[11px]">
-                    <span class="font-black text-amber-900">{{ c.user.username }}</span>
+                    <span class="font-black text-amber-900 flex items-center gap-1 flex-wrap">
+                      <span v-if="isAdminOverrideActor(c.user)" class="inline-flex items-center gap-0.5 bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded text-[9px] font-black">
+                        🛡️ [ผู้ดูแลระบบ]
+                      </span>
+                      <span>{{ c.user.username }}</span>
+                    </span>
                     <span class="text-stone-400 font-mono">{{ new Date(c.createdAt).toLocaleString('th-TH') }}</span>
                   </div>
                   <p class="text-stone-700 text-xs font-semibold break-words leading-relaxed">{{ c.content }}</p>
                 </div>
               </div>
 
-              <div class="flex gap-2">
+              <div v-if="hasPermission('CREATE_TASK')" class="flex gap-2">
                 <input v-model="newCommentContent" type="text" placeholder="พิมพ์ความคิดเห็นของคุณ..." class="flex-1 min-h-[40px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-850 text-base sm:text-xs focus:outline-none focus:border-amber-500" @keyup.enter="addComment" />
                 <button @click="addComment" class="min-h-[40px] bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm flex items-center justify-center">
                   ส่ง
@@ -472,7 +495,7 @@
           <div class="bg-stone-50 border-t md:border-t-0 md:border-l border-stone-200/60 p-4 rounded-xl md:rounded-none md:-my-6 md:-mr-6 space-y-4 sm:space-y-5 overflow-y-auto">
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">👤 ผู้รับผิดชอบ</label>
-              <select v-model="taskAssigneeId" class="w-full min-h-[44px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none">
+              <select v-model="taskAssigneeId" :disabled="!hasPermission('CREATE_TASK')" class="w-full min-h-[44px] bg-white disabled:bg-stone-100 border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none">
                 <option value="">ไม่มี (Unassigned)</option>
                 <option v-for="member in projectMembers" :key="member.user.id" :value="member.user.id">
                   {{ member.user.username }}
@@ -482,12 +505,12 @@
 
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">📅 กำหนดส่งงาน</label>
-              <input v-model="taskDueDate" type="date" class="w-full min-h-[44px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none cursor-pointer" />
+              <input v-model="taskDueDate" :disabled="!hasPermission('CREATE_TASK')" type="date" class="w-full min-h-[44px] bg-white disabled:bg-stone-100 border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none cursor-pointer disabled:cursor-not-allowed" />
             </div>
 
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">🎯 ความสำคัญ (Priority)</label>
-              <select v-model="taskPriority" class="w-full min-h-[44px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none">
+              <select v-model="taskPriority" :disabled="!hasPermission('CREATE_TASK')" class="w-full min-h-[44px] bg-white disabled:bg-stone-100 border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none">
                 <option value="LOW">Low (ต่ำ)</option>
                 <option value="MEDIUM">Medium (ปานกลาง)</option>
                 <option value="HIGH">High (สูง)</option>
@@ -499,7 +522,7 @@
             <div>
               <div class="flex justify-between items-center mb-1.5">
                 <label class="block text-xs font-black text-stone-500 uppercase tracking-wider">🏷️ ป้ายกำกับสี (Labels)</label>
-                <button v-if="!isCreatingLabel" @click="isCreatingLabel = true" class="text-xs font-black text-amber-600 hover:underline py-1">เพิ่มป้าย</button>
+                <button v-if="hasPermission('CREATE_TASK') && !isCreatingLabel" @click="isCreatingLabel = true" class="text-xs font-black text-amber-600 hover:underline py-1">เพิ่มป้าย</button>
               </div>
               
               <div v-if="isCreatingLabel" class="bg-white border border-stone-200 rounded-xl p-2.5 mb-2.5 space-y-2 text-xs">
@@ -515,7 +538,7 @@
 
               <div v-if="projectLabels.length > 0" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                 <label v-for="lbl in projectLabels" :key="lbl.id" class="flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-600 py-1">
-                  <input type="checkbox" :value="lbl.id" v-model="selectedLabelIds" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500" />
+                  <input type="checkbox" :disabled="!hasPermission('CREATE_TASK')" :value="lbl.id" v-model="selectedLabelIds" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 disabled:cursor-not-allowed" />
                   <span :style="{ backgroundColor: lbl.color }" class="text-[9px] font-black text-white px-2 py-0.5 rounded shadow-sm">
                     {{ lbl.name }}
                   </span>
@@ -534,6 +557,9 @@
                   <div class="w-1.5 h-1.5 rounded-full shrink-0 mt-1 bg-amber-500"></div>
                   <div class="flex-1 min-w-0">
                     <p class="text-stone-700 font-bold break-words">
+                      <span v-if="isAdminOverrideActor(log.user)" class="inline-flex items-center gap-0.5 bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded text-[9px] font-black mr-1">
+                        🛡️ [ผู้ดูแลระบบ]
+                      </span>
                       <span class="font-black text-stone-900">{{ log.user.username }}</span>
                       {{ log.details }}
                     </p>
@@ -546,8 +572,9 @@
         </div>
 
         <div class="px-4 sm:px-6 py-3 sm:py-4 border-t border-stone-200/60 bg-white flex justify-end gap-2.5">
-          <button @click="isModalOpen = false" :disabled="isSavingTask" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 disabled:opacity-50 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">ยกเลิก</button>
+          <button @click="isModalOpen = false" :disabled="isSavingTask" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 disabled:opacity-50 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">{{ hasPermission('CREATE_TASK') ? 'ยกเลิก' : 'ปิดหน้าต่าง' }}</button>
           <button 
+            v-if="hasPermission('CREATE_TASK')"
             @click="handleSubmit" 
             :disabled="isSavingTask" 
             class="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-1.5"
@@ -1463,16 +1490,38 @@ onUnmounted(() => {
   }
 })
 
+const isAdminEditUnlocked = ref(false)
+
+const toggleAdminEditMode = () => {
+  isAdminEditUnlocked.value = !isAdminEditUnlocked.value
+  if (!isAdminEditUnlocked.value) {
+    isEditingProjectName.value = false
+    isAddingColumn.value = false
+    editingColumnId.value = null
+  }
+}
+
+const isAdminOverrideActor = (actor) => {
+  if (!actor || actor.role !== 'ADMIN') return false
+  if (projectOwnerId.value && actor.id === projectOwnerId.value) return false
+  return !projectMembers.value.some(m => m.user?.id === actor.id)
+}
+
 const hasPermission = (permission) => {
   if (!currentUser.value) return false
-  if (currentUser.value.role === 'ADMIN') return true
   if (projectOwnerId.value && currentUser.value && projectOwnerId.value === currentUser.value.id) return true
   
   const myMemberInfo = projectMembers.value.find(m => m.user.id === currentUser.value.id)
-  if (!myMemberInfo) return false
-  
-  if (myMemberInfo.role?.permissions.includes('MANAGE_PROJECT')) return true
-  return myMemberInfo.role?.permissions.includes(permission) || false
+  if (myMemberInfo) {
+    if (myMemberInfo.role?.permissions.includes('MANAGE_PROJECT')) return true
+    if (myMemberInfo.role?.permissions.includes(permission)) return true
+  }
+
+  // สำหรับ Super Admin ที่กำลังเปิดส่องบอร์ดของคนอื่น จะเป็น Read-Only เป็นค่าเริ่มต้นจนกว่าจะกดปลดล็อกโหมดแก้ไข
+  if (currentUser.value.role === 'ADMIN') {
+    return isAdminEditUnlocked.value
+  }
+  return false
 }
 
 const openManageTeamModal = async () => {

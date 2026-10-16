@@ -84,3 +84,45 @@ export async function isProjectMember(userId: number, projectId: number): Promis
     return false
   }
 }
+
+/**
+ * ตรวจสอบว่าผู้กระทำเป็น Platform Admin ที่ไม่ได้เป็นเจ้าของหรือสมาชิกในโปรเจกต์นั้นหรือไม่
+ * หากใช่ และมีการแก้ไขโครงสร้างบอร์ด (เช่น คอลัมน์) สามารถส่งแจ้งเตือนให้เจ้าของโปรเจกต์รับทราบได้
+ */
+export async function notifyOwnerIfExternalAdmin(
+  userId: number,
+  projectId: number,
+  actionDescription: string
+): Promise<boolean> {
+  try {
+    const [user, project, memberCount] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { username: true, role: true }
+      }),
+      prisma.project.findUnique({
+        where: { id: projectId },
+        select: { ownerId: true, name: true }
+      }),
+      prisma.projectMember.count({
+        where: { projectId, userId }
+      })
+    ])
+
+    if (!user || !project) return false
+
+    const isExternalAdmin = user.role === 'ADMIN' && project.ownerId !== userId && memberCount === 0
+    if (isExternalAdmin && actionDescription) {
+      await prisma.notification.create({
+        data: {
+          userId: project.ownerId,
+          title: '🛡️ [ผู้ดูแลระบบ] แก้ไขข้อมูลในบอร์ดของคุณ',
+          message: `ผู้ดูแลระบบ (${user.username}) ${actionDescription} ในโปรเจกต์ "${project.name}"`
+        }
+      })
+    }
+    return isExternalAdmin
+  } catch {
+    return false
+  }
+}

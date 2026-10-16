@@ -28,14 +28,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'ไม่พบงานย่อยที่ระบุ' })
   }
 
-  // ตรวจสอบสิทธิ์การเข้าใช้โปรเจกต์
-  const isMember = await prisma.projectMember.findFirst({
-    where: { projectId: subtask.task.projectId, userId }
-  })
-  const project = await prisma.project.findUnique({ where: { id: subtask.task.projectId } })
-  const isOwner = project && project.ownerId === userId
-
-  if (!isMember && !isOwner) {
+  // ตรวจสอบสิทธิ์การเข้าใช้โปรเจกต์ (รวมถึง Super Admin)
+  const canAccess = await isProjectMember(userId, subtask.task.projectId)
+  if (!canAccess) {
     throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์แก้ไขงานย่อยในโปรเจกต์นี้ ❌' })
   }
 

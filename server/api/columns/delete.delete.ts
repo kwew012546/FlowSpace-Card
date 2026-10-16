@@ -52,6 +52,8 @@ export default defineEventHandler(async (event) => {
     where: { id }
   })
 
+  await notifyOwnerIfExternalAdmin(userId, column.projectId, `ลบคอลัมน์ "${column.title}"`)
+
   // ส่งสัญญาณ Real-time บรอดแคสต์คนในโปรเจกต์
   broadcastProjectUpdate(column.projectId, 'TASKS_UPDATED')
 

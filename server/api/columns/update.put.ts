@@ -41,6 +41,10 @@ export default defineEventHandler(async (event) => {
     }
   })
 
+  if (title !== undefined && title.trim() !== column.title) {
+    await notifyOwnerIfExternalAdmin(userId, column.projectId, `เปลี่ยนชื่อคอลัมน์จาก "${column.title}" เป็น "${updatedCol.title}"`)
+  }
+
   // ส่งสัญญาณ Real-time บรอดแคสต์คนในโปรเจกต์
   broadcastProjectUpdate(column.projectId, 'TASKS_UPDATED')
 
