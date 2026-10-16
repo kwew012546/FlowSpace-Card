@@ -1,8 +1,5 @@
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET
-const JWT_SECRET_TO_USE = JWT_SECRET || 'super-secret-fallback-key'
-
 export default defineEventHandler(async (event) => {
   if (!event.context.auth?.user) {
     throw createError({
@@ -42,7 +39,7 @@ export default defineEventHandler(async (event) => {
   if (event.context.auth.user.role !== dbUser.role) {
     const token = jwt.sign(
       { id: dbUser.id, email: dbUser.email, username: dbUser.username, role: dbUser.role },
-      JWT_SECRET_TO_USE,
+      JWT_SECRET,
       { expiresIn: '7d' }
     )
     setCookie(event, 'auth_token', token, {

@@ -1,8 +1,6 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-fallback-key'
-
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { username, password } = body

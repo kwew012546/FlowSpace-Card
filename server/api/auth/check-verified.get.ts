@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-fallback-key'
-
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const token = query.token as string
@@ -29,6 +27,7 @@ export default defineEventHandler(async (event) => {
         id: true,
         email: true,
         username: true,
+        role: true,
         isVerified: true
       }
     })
@@ -48,7 +47,7 @@ export default defineEventHandler(async (event) => {
 
     // เมื่ออีเมลได้รับการยืนยันแล้ว ออก JWT Session Cookie ให้ทันที
     const sessionToken = jwt.sign(
-      { id: user.id, email: user.email, username: user.username },
+      { id: user.id, email: user.email, username: user.username, role: user.role },
       JWT_SECRET,
       { expiresIn: '7d' }
     )
@@ -57,6 +56,7 @@ export default defineEventHandler(async (event) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
+      path: '/',
       maxAge: 60 * 60 * 24 * 7 // 7 วัน
     })
 
@@ -65,7 +65,8 @@ export default defineEventHandler(async (event) => {
       user: {
         id: user.id,
         email: user.email,
-        username: user.username
+        username: user.username,
+        role: user.role
       }
     }
   } catch (error: any) {

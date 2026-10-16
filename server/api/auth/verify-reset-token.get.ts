@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-fallback-key'
-
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const token = query?.token ? String(query.token) : ''

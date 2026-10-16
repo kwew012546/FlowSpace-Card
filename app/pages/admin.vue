@@ -211,6 +211,32 @@
           </div>
         </div>
 
+        <!-- Bulk Actions Bar (ปรากฏเมื่อมีการเลือกผู้ใช้งานตั้งแต่ 1 คนขึ้นไป) -->
+        <div v-if="selectedUserIds.length > 0" class="bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 border border-amber-300 rounded-xl p-3 px-4 shadow-sm flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+          <div class="flex items-center gap-2">
+            <span class="text-base">☑️</span>
+            <span class="text-xs sm:text-sm font-extrabold text-amber-950">
+              เลือกผู้ใช้งานอยู่ <span class="bg-amber-600 text-white px-2 py-0.5 rounded-full text-xs font-black">{{ selectedUserIds.length }}</span> คน
+            </span>
+            <button 
+              @click="clearSelection" 
+              class="text-xs text-stone-500 hover:text-stone-800 underline ml-2 font-medium cursor-pointer"
+            >
+              ยกเลิกการเลือก
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button 
+              @click="openBulkDeleteModal" 
+              class="min-h-[38px] px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>🗑️</span>
+              <span>ลบผู้ใช้ที่เลือก ({{ selectedUserIds.length }} คน)</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Users Table Container (Lock horizontal scroll on mobile) -->
         <div class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl shadow-sm overflow-hidden">
           
@@ -229,6 +255,15 @@
             <table class="w-full text-left text-xs sm:text-sm">
               <thead class="bg-amber-100/60 border-b border-amber-200/80 text-stone-700 font-extrabold uppercase text-[11px] tracking-wider">
                 <tr>
+                  <th class="py-3 px-3 text-center w-10">
+                    <input 
+                      type="checkbox" 
+                      :checked="isAllCurrentPageSelected" 
+                      @change="toggleSelectAllCurrentPage"
+                      class="rounded text-amber-600 focus:ring-amber-500 w-4 h-4 cursor-pointer align-middle"
+                      title="เลือกทั้งหมดในหน้านี้"
+                    />
+                  </th>
                   <th class="py-3 px-4">ผู้ใช้งาน</th>
                   <th class="py-3 px-3">สถานะอีเมล</th>
                   <th class="py-3 px-3">สิทธิ์ระบบ</th>
@@ -238,8 +273,20 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-amber-100">
-                <tr v-for="u in usersList" :key="u.id" class="hover:bg-amber-50/60 transition-colors">
+                <tr v-for="u in usersList" :key="u.id" :class="selectedUserIds.includes(u.id) ? 'bg-amber-100/50' : 'hover:bg-amber-50/60'" class="transition-colors">
                   
+                  <!-- Checkbox Column -->
+                  <td class="py-3 px-3 text-center w-10">
+                    <input 
+                      v-if="u.id !== currentAdmin?.id"
+                      type="checkbox" 
+                      :checked="selectedUserIds.includes(u.id)"
+                      @change="toggleSelectUser(u.id)"
+                      class="rounded text-amber-600 focus:ring-amber-500 w-4 h-4 cursor-pointer align-middle"
+                    />
+                    <span v-else class="text-xs text-stone-300 select-none" title="บัญชีของคุณ (ป้องกันการเลือกลบ)">🔒</span>
+                  </td>
+
                   <!-- Column: User Info -->
                   <td class="py-3 px-4">
                     <div class="flex items-center gap-2.5">
@@ -339,6 +386,17 @@
                         {{ u.role === 'ADMIN' ? '⬇️ ปลดแอดมิน' : '👑 ตั้งแอดมิน' }}
                       </button>
 
+                      <!-- ลบบัญชีผู้ใช้งานถาวร (ซ่อนถ้าเป็นตัวเอง) -->
+                      <button 
+                        v-if="u.id !== currentAdmin?.id"
+                        @click="openDeleteUserModal(u)"
+                        class="min-h-[34px] px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-lg border border-rose-200 transition-all flex items-center gap-1"
+                        title="ลบบัญชีผู้ใช้นี้ออกจากระบบถาวร"
+                      >
+                        <span>🗑️</span>
+                        <span>ลบ</span>
+                      </button>
+
                     </div>
                   </td>
                 </tr>
@@ -346,27 +404,113 @@
             </table>
           </div>
 
-          <!-- Pagination -->
-          <div v-if="userPagination.totalPages > 1" class="p-3.5 bg-amber-50/40 border-t border-amber-200/80 flex items-center justify-between">
-            <span class="text-xs text-stone-500 font-medium">
-              แสดงหน้า {{ userPagination.page }} จาก {{ userPagination.totalPages }} (ผู้ใช้ทั้งหมด {{ userPagination.total }} คน)
-            </span>
-            <div class="flex items-center gap-1.5">
+          <!-- Advanced Pagination Bar -->
+          <div class="p-3.5 sm:p-4 bg-amber-50/40 border-t border-amber-200/80 flex flex-col lg:flex-row items-center justify-between gap-3 text-xs">
+            
+            <!-- Left: Info & Items Per Page -->
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-3 text-stone-500 font-medium">
+              <span>
+                แสดง 
+                <strong class="font-bold text-stone-800">
+                  {{ userPagination.total === 0 ? 0 : (userPagination.page - 1) * userPagination.limit + 1 }} - 
+                  {{ Math.min(userPagination.page * userPagination.limit, userPagination.total) }}
+                </strong> 
+                จากทั้งหมด <strong class="font-bold text-stone-800">{{ userPagination.total }}</strong> คน
+              </span>
+
+              <div class="flex items-center gap-1.5 border-l border-amber-200/80 pl-2.5">
+                <span>แสดงหน้าละ:</span>
+                <select 
+                  v-model="userPageSize" 
+                  @change="handleUserPageSizeChange"
+                  class="bg-white border border-amber-200 rounded-lg px-2 py-1 text-xs font-bold text-stone-700 focus:outline-none cursor-pointer"
+                >
+                  <option :value="10">10</option>
+                  <option :value="20">20</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                </select>
+                <span>คน</span>
+              </div>
+            </div>
+
+            <!-- Right: Page Navigation Buttons & Direct Jump -->
+            <div class="flex flex-wrap items-center justify-center gap-1.5">
+              
+              <!-- First Page Button -->
+              <button 
+                @click="fetchUsers(1)" 
+                :disabled="userPagination.page <= 1"
+                class="min-h-[32px] px-2 py-1 bg-white hover:bg-stone-50 disabled:opacity-30 rounded-lg font-bold border border-stone-250 transition-all text-xs cursor-pointer disabled:cursor-not-allowed"
+                title="หน้าแรก"
+              >
+                ⏮️
+              </button>
+
+              <!-- Prev Page Button -->
               <button 
                 @click="fetchUsers(userPagination.page - 1)" 
                 :disabled="userPagination.page <= 1"
-                class="min-h-[36px] px-3 py-1 bg-white hover:bg-stone-50 disabled:opacity-40 rounded-lg text-xs font-bold border border-stone-250 transition-all"
+                class="min-h-[32px] px-2.5 py-1 bg-white hover:bg-stone-50 disabled:opacity-30 rounded-lg font-bold border border-stone-250 transition-all text-xs flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+                title="หน้าก่อนหน้า"
               >
                 ◀ ก่อนหน้า
               </button>
+
+              <!-- Numeric Page Buttons (Windowed) -->
+              <template v-for="(p, idx) in getUserPageNumbers" :key="idx">
+                <span v-if="p === '...'" class="px-1 text-stone-400 font-bold select-none">...</span>
+                <button 
+                  v-else 
+                  @click="fetchUsers(p)"
+                  :class="userPagination.page === p ? 'bg-amber-500 text-white border-amber-500 shadow-sm font-black' : 'bg-white hover:bg-amber-50 text-stone-700 border-stone-250 font-bold'"
+                  class="min-h-[32px] min-w-[32px] px-2 py-1 rounded-lg border transition-all text-xs flex items-center justify-center cursor-pointer"
+                >
+                  {{ p }}
+                </button>
+              </template>
+
+              <!-- Next Page Button -->
               <button 
                 @click="fetchUsers(userPagination.page + 1)" 
                 :disabled="userPagination.page >= userPagination.totalPages"
-                class="min-h-[36px] px-3 py-1 bg-white hover:bg-stone-50 disabled:opacity-40 rounded-lg text-xs font-bold border border-stone-250 transition-all"
+                class="min-h-[32px] px-2.5 py-1 bg-white hover:bg-stone-50 disabled:opacity-30 rounded-lg font-bold border border-stone-250 transition-all text-xs flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+                title="หน้าถัดไป"
               >
                 ถัดไป ▶
               </button>
+
+              <!-- Last Page Button -->
+              <button 
+                @click="fetchUsers(userPagination.totalPages)" 
+                :disabled="userPagination.page >= userPagination.totalPages"
+                class="min-h-[32px] px-2 py-1 bg-white hover:bg-stone-50 disabled:opacity-30 rounded-lg font-bold border border-stone-250 transition-all text-xs cursor-pointer disabled:cursor-not-allowed"
+                title="หน้าสุดท้าย"
+              >
+                ⏭️
+              </button>
+
+              <!-- Direct Jump Input -->
+              <div v-if="userPagination.totalPages > 1" class="flex items-center gap-1 ml-2 pl-2 border-l border-amber-200/80">
+                <span>ไปหน้า:</span>
+                <input 
+                  v-model.number="userJumpPage" 
+                  type="number" 
+                  min="1" 
+                  :max="userPagination.totalPages || 1"
+                  @keyup.enter="jumpToUserPage"
+                  class="w-12 bg-white border border-amber-200 rounded-lg px-1.5 py-1 text-xs text-center font-bold focus:outline-none"
+                />
+                <button 
+                  @click="jumpToUserPage"
+                  class="min-h-[30px] px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg font-bold text-xs transition-all border border-amber-300 cursor-pointer"
+                >
+                  ไป
+                </button>
+              </div>
+
             </div>
+
           </div>
 
         </div>
@@ -660,6 +804,128 @@
       </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- MODAL: DELETE USER (SINGLE OR BULK) -->
+    <!-- ========================================== -->
+    <div v-if="isDeleteUserModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-lg p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90dvh] overflow-y-auto">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-500"></div>
+
+        <h3 class="text-lg font-extrabold text-stone-800 mb-1 mt-2 flex items-center gap-2">
+          <span>🗑️</span> 
+          <span>{{ usersToDeleteList.length > 1 ? `ลบบัญชีผู้ใช้งานที่เลือก (${usersToDeleteList.length} คน)` : 'ลบบัญชีผู้ใช้งานถาวร' }}</span>
+        </h3>
+
+        <!-- Single User Target Info -->
+        <p v-if="usersToDeleteList.length === 1" class="text-xs text-stone-500 mb-4">
+          คุณกำลังจะลบบัญชีของ: <strong class="text-stone-800 font-bold">@{{ usersToDeleteList[0]?.username }}</strong> (<span class="font-mono text-amber-900">{{ usersToDeleteList[0]?.email }}</span>)
+        </p>
+
+        <!-- Multi-User Target Chips / List -->
+        <div v-else class="mb-4">
+          <p class="text-xs text-stone-500 mb-2">
+            คุณกำลังจะลบผู้ใช้งานจำนวน <strong class="text-rose-600 font-bold">{{ usersToDeleteList.length }}</strong> คนพร้อมกัน:
+          </p>
+          <div class="max-h-28 overflow-y-auto bg-white border border-stone-200 rounded-xl p-2.5 flex flex-wrap gap-1.5">
+            <span 
+              v-for="u in usersToDeleteList" 
+              :key="u.id"
+              class="inline-flex items-center gap-1 bg-stone-100 border border-stone-250 text-stone-700 px-2 py-0.5 rounded-lg text-xs font-semibold"
+            >
+              <span>👤</span>
+              <strong class="font-bold">@{{ u.username }}</strong>
+              <span class="text-[10px] text-stone-400">({{ u.email }})</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Information & Aggregate Stats Badges -->
+        <div class="grid grid-cols-3 gap-2.5 mb-4 text-center">
+          <div class="bg-white border border-amber-200/80 rounded-xl p-2.5 shadow-sm">
+            <span class="text-xs text-stone-400 font-bold block">เป็นเจ้าของรวม</span>
+            <span class="text-sm font-black text-amber-950">{{ totalProjectsOwnedByTarget }} บอร์ด 🗂️</span>
+          </div>
+          <div class="bg-white border border-amber-200/80 rounded-xl p-2.5 shadow-sm">
+            <span class="text-xs text-stone-400 font-bold block">เป็นสมาชิกรวม</span>
+            <span class="text-sm font-black text-stone-800">{{ totalMembershipsByTarget }} บอร์ด 👥</span>
+          </div>
+          <div class="bg-white border border-amber-200/80 rounded-xl p-2.5 shadow-sm">
+            <span class="text-xs text-stone-400 font-bold block">ถือการ์ดงานรวม</span>
+            <span class="text-sm font-black text-stone-800">{{ totalTasksAssignedToTarget }} งาน 📋</span>
+          </div>
+        </div>
+
+        <!-- Project Handling Section (If users own projects) -->
+        <div v-if="totalProjectsOwnedByTarget > 0" class="bg-amber-50/80 border border-amber-200 rounded-xl p-3.5 mb-4 space-y-2.5">
+          <p class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+            <span>⚙️</span> จัดการบอร์ดที่ผู้ใช้กลุ่มนี้เป็นเจ้าของ (รวม {{ totalProjectsOwnedByTarget }} โครงการ):
+          </p>
+          <div class="space-y-2 text-xs">
+            <label class="flex items-start gap-2.5 p-2.5 bg-white rounded-lg border border-amber-200/80 cursor-pointer hover:bg-amber-50/50 transition-colors">
+              <input 
+                type="radio" 
+                v-model="projectHandlingChoice" 
+                value="transfer" 
+                class="mt-0.5 text-amber-600 focus:ring-amber-500"
+              />
+              <div>
+                <strong class="text-stone-800 font-bold block">โอนสิทธิ์โครงการให้สมาชิกคนถัดไป (แนะนำ) 👑</strong>
+                <span class="text-stone-500 text-[11px] block mt-0.5 leading-snug">
+                  หากบอร์ดมีสมาชิกอื่นอยู่ จะโอนสิทธิ์ Owner ให้สมาชิกคนถัดไปในทีมอัตโนมัติ เพื่อไม่ให้เพื่อนร่วมทีมสูญเสียข้อมูล และลบเฉพาะบอร์ดที่ไม่มีสมาชิกอื่น
+                </span>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2.5 bg-white rounded-lg border border-rose-200/80 cursor-pointer hover:bg-rose-50/50 transition-colors">
+              <input 
+                type="radio" 
+                v-model="projectHandlingChoice" 
+                value="delete" 
+                class="mt-0.5 text-rose-600 focus:ring-rose-500"
+              />
+              <div>
+                <strong class="text-rose-700 font-bold block">ลบทุกโครงการที่ผู้ใช้กลุ่มนี้สร้างทิ้งทั้งหมด 💥</strong>
+                <span class="text-rose-500 text-[11px] block mt-0.5 leading-snug">
+                  บอร์ดโครงการทั้งหมดที่ผู้ใช้กลุ่มนี้เป็นเจ้าของจะถูกลบถาวรไปพร้อมกัน (รวมถึงการ์ดงานและสมาชิกในบอร์ดเหล่านั้น)
+                </span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Impact Summary Card -->
+        <div class="bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-xs text-rose-800 mb-4 space-y-1.5">
+          <p class="font-black flex items-center gap-1">
+            <span>⚠️</span> ผลกระทบหลังการลบบัญชี:
+          </p>
+          <ul class="list-disc list-inside space-y-0.5 text-[11px] text-rose-700">
+            <li><strong>ปลดล็อกอีเมล:</strong> อีเมลของผู้ใช้ที่ถูกลบทั้งหมดจะว่างทันที สามารถนำกลับมาสมัครใหม่ได้</li>
+            <li><strong>การ์ดงาน:</strong> งานที่เคยมอบหมายให้ผู้ใช้กลุ่มนี้จะกลายเป็น "ยังไม่ระบุผู้รับผิดชอบ" (Unassigned)</li>
+            <li><strong>สมาชิกภาพ:</strong> รายชื่อจะถูกถอดออกจากทุกบอร์ดโครงการที่เคยเข้าร่วม</li>
+          </ul>
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-2">
+          <button 
+            type="button" 
+            @click="isDeleteUserModalOpen = false; userToDelete = null" 
+            class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all"
+          >
+            ยกเลิก
+          </button>
+          <button 
+            type="button"
+            @click="handleConfirmDeleteUser"
+            :disabled="isSubmittingAction"
+            class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-1.5"
+          >
+            <span v-if="isSubmittingAction" class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+            {{ isSubmittingAction ? 'กำลังลบบัญชี...' : (usersToDeleteList.length > 1 ? `ยืนยันลบผู้ใช้ทั้ง ${usersToDeleteList.length} คน 🗑️` : 'ยืนยันลบบัญชีถาวร 🗑️') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast Notification -->
     <Toast />
 
@@ -674,7 +940,7 @@
 </style>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 definePageMeta({
   middleware: 'admin'
@@ -694,7 +960,10 @@ const usersList = ref([])
 const isLoadingUsers = ref(false)
 const userSearchQuery = ref('')
 const userFilter = ref('all')
+const userPageSize = ref(20)
+const userJumpPage = ref(1)
 const userPagination = ref({ page: 1, limit: 20, total: 0, totalPages: 1 })
+const selectedUserIds = ref([]) // array of selected user IDs for bulk actions
 
 // Workspaces state
 const projectsList = ref([])
@@ -706,7 +975,10 @@ const projectPagination = ref({ page: 1, limit: 20, total: 0, totalPages: 1 })
 const isResetModalOpen = ref(false)
 const isBanModalOpen = ref(false)
 const isDeleteProjectModalOpen = ref(false)
+const isDeleteUserModalOpen = ref(false)
 const selectedUser = ref(null)
+const userToDelete = ref(null)
+const projectHandlingChoice = ref('transfer')
 const selectedProject = ref(null)
 const customNewPassword = ref('')
 const tempPasswordResult = ref('')
@@ -731,11 +1003,13 @@ const fetchStats = async () => {
 
 const fetchUsers = async (page = 1) => {
   isLoadingUsers.value = true
+  userJumpPage.value = page
+  selectedUserIds.value = []
   try {
     const res = await $fetch('/api/admin/users', {
       params: {
         page,
-        limit: 20,
+        limit: userPageSize.value,
         q: userSearchQuery.value.trim(),
         filter: userFilter.value
       }
@@ -784,6 +1058,73 @@ const handleProjectSearchInput = () => {
   searchDebounceTimer = setTimeout(() => {
     fetchProjects(1)
   }, 350)
+}
+
+// User Selection & Bulk Action Helpers
+const selectableUsersOnCurrentPage = computed(() => {
+  return usersList.value.filter(u => u.id !== currentAdmin.value?.id)
+})
+
+const isAllCurrentPageSelected = computed(() => {
+  return (
+    selectableUsersOnCurrentPage.value.length > 0 &&
+    selectableUsersOnCurrentPage.value.every(u => selectedUserIds.value.includes(u.id))
+  )
+})
+
+const toggleSelectAllCurrentPage = () => {
+  if (isAllCurrentPageSelected.value) {
+    const pageIds = selectableUsersOnCurrentPage.value.map(u => u.id)
+    selectedUserIds.value = selectedUserIds.value.filter(id => !pageIds.includes(id))
+  } else {
+    const pageIds = selectableUsersOnCurrentPage.value.map(u => u.id)
+    selectedUserIds.value = Array.from(new Set([...selectedUserIds.value, ...pageIds]))
+  }
+}
+
+const toggleSelectUser = (id) => {
+  if (id === currentAdmin.value?.id) return
+  const idx = selectedUserIds.value.indexOf(id)
+  if (idx > -1) {
+    selectedUserIds.value.splice(idx, 1)
+  } else {
+    selectedUserIds.value.push(id)
+  }
+}
+
+const clearSelection = () => {
+  selectedUserIds.value = []
+}
+
+// User Advanced Pagination Helpers
+const getUserPageNumbers = computed(() => {
+  const total = userPagination.value.totalPages || 1
+  const current = userPagination.value.page || 1
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+  const pages = [1]
+  if (current > 3) pages.push('...')
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  if (current < total - 2) pages.push('...')
+  pages.push(total)
+  return pages
+})
+
+const jumpToUserPage = () => {
+  const maxPage = userPagination.value.totalPages || 1
+  const target = Math.max(1, Math.min(Number(userJumpPage.value) || 1, maxPage))
+  userJumpPage.value = target
+  fetchUsers(target)
+}
+
+const handleUserPageSizeChange = () => {
+  userPagination.value.limit = userPageSize.value
+  fetchUsers(1)
 }
 
 // User Actions
@@ -883,6 +1224,74 @@ const handleToggleRole = async (user) => {
     fetchStats()
   } catch (err) {
     showToast(err.data?.message || 'เปลี่ยนระดับสิทธิ์ไม่สำเร็จ', 'error')
+  }
+}
+
+// User Deletion (Single & Bulk) Helpers
+const usersToDeleteList = computed(() => {
+  if (userToDelete.value) {
+    return [userToDelete.value]
+  }
+  return usersList.value.filter(u => selectedUserIds.value.includes(u.id))
+})
+
+const totalProjectsOwnedByTarget = computed(() => {
+  return usersToDeleteList.value.reduce((sum, u) => sum + (u._count?.projectsOwned || 0), 0)
+})
+
+const totalMembershipsByTarget = computed(() => {
+  return usersToDeleteList.value.reduce((sum, u) => sum + (u._count?.projectMembers || 0), 0)
+})
+
+const totalTasksAssignedToTarget = computed(() => {
+  return usersToDeleteList.value.reduce((sum, u) => sum + (u._count?.assignedTasks || 0), 0)
+})
+
+const openDeleteUserModal = (user) => {
+  userToDelete.value = user
+  projectHandlingChoice.value = 'transfer'
+  isDeleteUserModalOpen.value = true
+}
+
+const openBulkDeleteModal = () => {
+  if (selectedUserIds.value.length === 0) return
+  userToDelete.value = null
+  projectHandlingChoice.value = 'transfer'
+  isDeleteUserModalOpen.value = true
+}
+
+const handleConfirmDeleteUser = async () => {
+  const targetIds = usersToDeleteList.value.map(u => u.id)
+  if (targetIds.length === 0) return
+  isSubmittingAction.value = true
+
+  try {
+    const res = await $fetch('/api/admin/users/delete', {
+      method: 'DELETE',
+      body: {
+        userIds: targetIds,
+        projectHandling: projectHandlingChoice.value
+      }
+    })
+    showToast(res.message || 'ลบบัญชีผู้ใช้งานเรียบร้อยแล้ว 🗑️', 'success')
+
+    // Instant Closed-Loop Reactive UI Update
+    usersList.value = usersList.value.filter(u => !targetIds.includes(u.id))
+    selectedUserIds.value = selectedUserIds.value.filter(id => !targetIds.includes(id))
+    isDeleteUserModalOpen.value = false
+    userToDelete.value = null
+    fetchStats()
+
+    // If current page is now empty and not on first page, go back 1 page
+    if (usersList.value.length === 0 && userPagination.value.page > 1) {
+      fetchUsers(userPagination.value.page - 1)
+    } else {
+      fetchUsers(userPagination.value.page)
+    }
+  } catch (err) {
+    showToast(err.data?.message || 'เกิดข้อผิดพลาดในการลบผู้ใช้งาน', 'error')
+  } finally {
+    isSubmittingAction.value = false
   }
 }
 

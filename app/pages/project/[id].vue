@@ -431,7 +431,7 @@
                 <div v-for="att in attachments" :key="att.id" class="flex items-center justify-between bg-stone-50 border border-stone-200/60 rounded-xl p-2.5 text-xs">
                   <div class="flex items-center gap-2 truncate">
                     <span class="text-amber-700">📄</span>
-                    <a :href="att.filePath" target="_blank" class="font-bold text-amber-700 hover:underline truncate">{{ att.fileName }}</a>
+                    <a :href="att.filePath" :download="att.fileName" target="_blank" class="font-bold text-amber-700 hover:underline truncate">{{ att.fileName }}</a>
                     <span class="text-stone-400">({{ (att.fileSize / 1024).toFixed(1) }} KB)</span>
                   </div>
                   <span class="text-[10px] text-stone-400">{{ new Date(att.createdAt).toLocaleDateString('th-TH') }}</span>
@@ -1376,10 +1376,9 @@ const initSse = () => {
 }
 
 const handleVisibilityChange = () => {
-  if (document.visibilityState === 'visible' && !eventSource && isComponentMounted) {
-    initSse()
-    fetchTasks()
-    fetchNotifications()
+  if (document.visibilityState === 'visible' && isComponentMounted) {
+    if (!eventSource) initSse()
+    Promise.allSettled([fetchTasks(), fetchColumns(), fetchTeamAndRoles(), fetchNotifications()])
   }
 }
 
@@ -1430,8 +1429,16 @@ onMounted(async () => {
 
   initSse()
 
+  // shortcut: 15s visible-tab sync covers multi-instance Vercel serverless where in-memory SSE is per-lambda
+  pollingInterval = setInterval(() => {
+    if (document.visibilityState === 'visible' && !isModalOpen.value && Date.now() - lastLocalMutationAt > 3000) {
+      Promise.allSettled([fetchTasks(), fetchColumns(), fetchNotifications()])
+    }
+  }, 15000)
+
   if (typeof window !== 'undefined') {
     window.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleVisibilityChange)
     window.addEventListener('online', handleOnline)
   }
 })
@@ -1451,6 +1458,7 @@ onUnmounted(() => {
   }
   if (typeof window !== 'undefined') {
     window.removeEventListener('visibilitychange', handleVisibilityChange)
+    window.removeEventListener('focus', handleVisibilityChange)
     window.removeEventListener('online', handleOnline)
   }
 })

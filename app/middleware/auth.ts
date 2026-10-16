@@ -1,19 +1,25 @@
 // app/middleware/auth.ts
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware((to) => {
   const isPublic = to.path === '/login' || to.path === '/register' || to.path.startsWith('/verify-email') || to.path === '/forgot-password' || to.path.startsWith('/reset-password')
   const isAuthPage = to.path === '/login' || to.path === '/register' || to.path === '/forgot-password' || to.path.startsWith('/reset-password')
 
   if (import.meta.server) {
-    const token = useCookie('auth_token')
-    if (!token.value && !isPublic) {
+    const user = useRequestEvent()?.context.auth?.user
+    if (!user && !isPublic) {
       return navigateTo('/login', { replace: true })
     }
-    if (token.value && isAuthPage) {
+    if (user && isAuthPage) {
       return navigateTo('/dashboard', { replace: true })
     }
   }
 
   if (import.meta.client) {
+    // shortcut: trust SSR route decision during hydration so Vue never hydrates page B onto page A's DOM
+    if (useNuxtApp().isHydrating) {
+      if (isAuthPage) localStorage.removeItem('user')
+      return
+    }
+
     const user = localStorage.getItem('user')
 
     // ถ้าไม่มีข้อมูลยูสเซอร์ในเครื่อง ให้ดีดไปหน้าล็อกอินเสมอ

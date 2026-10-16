@@ -2,8 +2,6 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { z } from 'zod'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-fallback-key'
-
 const resetPasswordSchema = z.object({
   token: z.string().min(1, { message: 'กรุณาระบุโทเค็นสำหรับรีเซ็ตรหัสผ่าน' }),
   newPassword: z.string().min(6, { message: 'รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 6 ตัวอักษร' })

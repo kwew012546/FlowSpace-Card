@@ -1,8 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { z } from 'zod'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-fallback-key'
-
 const forgotPasswordSchema = z.object({
   email: z.string().trim().toLowerCase().email({ message: 'รูปแบบอีเมลไม่ถูกต้อง' })
 })

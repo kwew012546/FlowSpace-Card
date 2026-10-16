@@ -33,14 +33,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'ไม่พบงานหลักที่ต้องการแนบไฟล์' })
   }
 
-  // ตรวจสอบสิทธิ์
+  // ตรวจสอบสิทธิ์ (สมาชิกบอร์ด, เจ้าของบอร์ด, หรือ Super Admin)
   const isMember = await prisma.projectMember.findFirst({
     where: { projectId: task.projectId, userId }
   })
   const project = await prisma.project.findUnique({ where: { id: task.projectId } })
   const isOwner = project && project.ownerId === userId
+  const isAdmin = event.context.auth.user.role === 'ADMIN'
 
-  if (!isMember && !isOwner) {
+  if (!isMember && !isOwner && !isAdmin) {
     throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์อัปโหลดไฟล์ในโปรเจกต์นี้ ❌' })
   }
 
@@ -60,8 +61,9 @@ export default defineEventHandler(async (event) => {
   // ป้องกัน Path Traversal ดึงเฉพาะ basename
   const baseName = path.basename(rawFilename).replace(/\s+/g, '_')
   const safeName = `${Date.now()}-${baseName}`
+  let storedFilePath = `/uploads/${safeName}`
 
-  // สร้างโฟลเดอร์ uploads เสมอหากยังไม่มี และเขียนไฟล์แบบดักจับข้อผิดพลาด (Fail-safe for Serverless)
+  // สร้างโฟลเดอร์ uploads หากเขียนดิสก์ได้ (Local/Docker) และสำรองเป็น Base64 Data URL เมื่อรันบน Read-only Serverless (Vercel)
   try {
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
     if (!fs.existsSync(uploadsDir)) {
@@ -70,19 +72,24 @@ export default defineEventHandler(async (event) => {
 
     const fileFullPath = path.join(uploadsDir, safeName)
     fs.writeFileSync(fileFullPath, fileData.data)
-  } catch (fsErr: any) {
-    console.error('File write failure (likely read-only serverless filesystem):', fsErr)
-    throw createError({
-      statusCode: 500,
-      message: 'ไม่สามารถบันทึกไฟล์ลงเซิร์ฟเวอร์ได้ในขณะนี้ (ระบบคลาวด์อาจไม่อนุญาตให้เขียนไฟล์ในพื้นที่เครื่อง) ❌'
-    })
+  } catch {
+    // shortcut: store <=4.5MB files as Data URL in Attachment.filePath TEXT column on read-only serverless disks, upgrade to S3/Blob for >4.5MB
+    const maxServerlessBytes = 4.5 * 1024 * 1024
+    if (fileData.data.length > maxServerlessBytes) {
+      throw createError({
+        statusCode: 400,
+        message: 'บนระบบคลาวด์ขนาดไฟล์แนบต้องไม่เกิน 4.5MB ❌'
+      })
+    }
+    const mimeType = fileData.type || 'application/octet-stream'
+    storedFilePath = `data:${mimeType};base64,${fileData.data.toString('base64')}`
   }
 
   const attachment = await prisma.attachment.create({
     data: {
       taskId,
       fileName: baseName,
-      filePath: `/uploads/${safeName}`, // พาธเสมือนสำหรับหน้าบ้านเข้าถึงไฟล์ได้ทันที
+      filePath: storedFilePath,
       fileSize: fileData.data.length
     }
   })

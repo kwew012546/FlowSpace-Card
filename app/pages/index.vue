@@ -6,10 +6,10 @@
 <script setup>
 definePageMeta({
   middleware: [
-    (to, from) => {
+    () => {
       if (import.meta.server) {
-        const token = useCookie('auth_token')
-        return navigateTo(token.value ? '/dashboard' : '/login', { replace: true })
+        const user = useRequestEvent()?.context.auth?.user
+        return navigateTo(user ? '/dashboard' : '/login', { replace: true })
       }
       if (import.meta.client) {
         const user = localStorage.getItem('user')

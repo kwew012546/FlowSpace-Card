@@ -1,14 +1,6 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET
-
-if (process.env.NODE_ENV === 'production' && !JWT_SECRET) {
-  console.warn('WARN: JWT_SECRET environment variable is not set in production; using fallback key.')
-}
-
-const JWT_SECRET_TO_USE = JWT_SECRET || 'super-secret-fallback-key'
-
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const password = body.password
@@ -63,7 +55,7 @@ export default defineEventHandler(async (event) => {
     // 3. สร้าง JWT Token สำหรับยืนยันตัวตนฝั่งหลังบ้าน
     const token = jwt.sign(
       { id: user.id, email: user.email, username: user.username, role: user.role },
-      JWT_SECRET_TO_USE,
+      JWT_SECRET,
       { expiresIn: '7d' }
     )
 
