@@ -1,6 +1,8 @@
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const id = Number(query.id)
+  const targetColumnId = query.targetColumnId ? Number(query.targetColumnId) : null
+  const forceDeleteTasks = query.forceDeleteTasks === 'true'
 
   if (!id) {
     throw createError({ statusCode: 400, message: 'กรุณาระบุไอดีคอลัมน์ (id)' })
@@ -36,16 +38,57 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // ตรวจสอบว่ายังมีงานค้างอยู่ในคอลัมน์หรือไม่ (Safety Guard)
+  // ตรวจสอบว่ายังมีงานค้างอยู่ในคอลัมน์หรือไม่
   const tasksCount = await prisma.task.count({
     where: { columnId: id }
   })
 
   if (tasksCount > 0) {
-    throw createError({
-      statusCode: 400,
-      message: `ไม่สามารถลบคอลัมน์นี้ได้ เนื่องจากยังมีงานค้างอยู่ ${tasksCount} ชิ้น ❌ กรุณาย้ายงานทั้งหมดออกไปช่องอื่นก่อนทำการลบ`
-    })
+    if (targetColumnId) {
+      const targetCol = await prisma.column.findFirst({
+        where: { id: targetColumnId, projectId: column.projectId }
+      })
+      if (!targetCol || targetCol.id === id) {
+        throw createError({
+          statusCode: 400,
+          message: 'คอลัมน์ปลายทางที่เลือกสำหรับย้ายงานไม่ถูกต้อง ❌'
+        })
+      }
+
+      await prisma.$transaction([
+        prisma.task.updateMany({
+          where: { columnId: id },
+          data: { columnId: targetColumnId }
+        }),
+        prisma.column.delete({
+          where: { id }
+        })
+      ])
+
+      await notifyOwnerIfExternalAdmin(
+        userId,
+        column.projectId,
+        `ลบคอลัมน์ "${column.title}" (และย้ายการ์ด ${tasksCount} ใบไปยัง "${targetCol.title}")`
+      )
+      broadcastProjectUpdate(column.projectId, 'TASKS_UPDATED')
+      return { success: true, message: 'ย้ายงานและลบคอลัมน์เรียบร้อยแล้ว!' }
+    } else if (forceDeleteTasks) {
+      await prisma.column.delete({
+        where: { id }
+      })
+      await notifyOwnerIfExternalAdmin(
+        userId,
+        column.projectId,
+        `ลบคอลัมน์ "${column.title}" (พร้อมลบการ์ดในคอลัมน์ ${tasksCount} ใบ)`
+      )
+      broadcastProjectUpdate(column.projectId, 'TASKS_UPDATED')
+      return { success: true, message: 'ลบคอลัมน์และการ์ดภายในเรียบร้อยแล้ว!' }
+    } else {
+      throw createError({
+        statusCode: 400,
+        message: `ไม่สามารถลบคอลัมน์นี้ได้ เนื่องจากยังมีงานค้างอยู่ ${tasksCount} ชิ้น ❌ กรุณาเลือกคอลัมน์ปลายทางเพื่อย้ายงานก่อนลบ`
+      })
+    }
   }
 
   await prisma.column.delete({

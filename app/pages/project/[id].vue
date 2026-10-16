@@ -494,6 +494,15 @@
           <!-- Right settings column -->
           <div class="bg-stone-50 border-t md:border-t-0 md:border-l border-stone-200/60 p-4 rounded-xl md:rounded-none md:-my-6 md:-mr-6 space-y-4 sm:space-y-5 overflow-y-auto">
             <div>
+              <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">📌 คอลัมน์ (สถานะงาน)</label>
+              <select v-model="activeAddColumnId" :disabled="!hasPermission('CREATE_TASK')" class="w-full min-h-[44px] bg-white disabled:bg-stone-100 border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-bold text-base sm:text-xs focus:outline-none">
+                <option v-for="col in columns" :key="col.id" :value="col.id">
+                  📌 {{ col.title }}
+                </option>
+              </select>
+            </div>
+
+            <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">👤 ผู้รับผิดชอบ</label>
               <select v-model="taskAssigneeId" :disabled="!hasPermission('CREATE_TASK')" class="w-full min-h-[44px] bg-white disabled:bg-stone-100 border border-stone-200 rounded-xl px-3 py-2 text-stone-800 text-base sm:text-xs focus:outline-none">
                 <option value="">ไม่มี (Unassigned)</option>
@@ -749,13 +758,40 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
             </svg>
           </div>
-          <div>
+          <div class="flex-1 min-w-0">
             <h3 class="text-base sm:text-lg font-black text-rose-700 mb-1">🗑️ ลบคอลัมน์?</h3>
             <p class="text-stone-700 text-sm font-bold leading-relaxed mb-2">
               คุณแน่ใจหรือไม่ว่าต้องการลบคอลัมน์ <span class="text-rose-600 font-black">"{{ columnToDeleteTitle }}"</span> ใช่หรือไม่?
             </p>
-            <p class="text-stone-500 text-xs leading-relaxed">
-              หมายเหตุ: เพื่อความปลอดภัย ระบบจะยอมให้ลบคอลัมน์ได้เฉพาะคอลัมน์ที่ไม่มีการ์ดงานค้างอยู่เท่านั้น หากมีงานค้างอยู่ กรุณาย้ายงานออกไปช่องอื่นก่อนทำการลบครับ
+
+            <div v-if="tasks.filter(t => t.columnId === columnToDeleteId).length > 0" class="mt-3 p-3 bg-amber-50/80 border border-amber-200 rounded-xl space-y-2.5 text-xs">
+              <p class="font-extrabold text-amber-900">
+                ⚠️ พบการ์ดงานค้างอยู่ในคอลัมน์นี้จำนวน {{ tasks.filter(t => t.columnId === columnToDeleteId).length }} ใบ:
+              </p>
+
+              <label class="flex items-start gap-2 cursor-pointer font-bold text-stone-700">
+                <input type="radio" value="move" v-model="deleteColumnTaskAction" class="mt-0.5 text-amber-600 focus:ring-amber-500" />
+                <div class="flex-1 space-y-1.5">
+                  <span>📦 ย้ายการ์ดทั้งหมดไปที่คอลัมน์อื่น (แนะนำ)</span>
+                  <select
+                    v-if="deleteColumnTaskAction === 'move'"
+                    v-model="deleteColumnTargetId"
+                    class="w-full min-h-[38px] bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-stone-800 focus:outline-none"
+                  >
+                    <option v-for="col in columns.filter(c => c.id !== columnToDeleteId)" :key="col.id" :value="col.id">
+                      📌 {{ col.title }}
+                    </option>
+                  </select>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-2 cursor-pointer font-bold text-rose-700 pt-1 border-t border-amber-200/60">
+                <input type="radio" value="delete" v-model="deleteColumnTaskAction" class="mt-0.5 text-rose-600 focus:ring-rose-500" />
+                <span>🗑️ ลบการ์ดทั้ง {{ tasks.filter(t => t.columnId === columnToDeleteId).length }} ใบในคอลัมน์นี้ทิ้งไปพร้อมกัน</span>
+              </label>
+            </div>
+            <p v-else class="text-stone-500 text-xs leading-relaxed">
+              คอลัมน์นี้ไม่มีการ์ดงานค้างอยู่ สามารถลบออกได้ทันทีครับ
             </p>
           </div>
         </div>
@@ -963,6 +999,8 @@ const isDeleteProjectModalOpen = ref(false)
 const isDeleteColumnModalOpen = ref(false)
 const columnToDeleteId = ref(null)
 const columnToDeleteTitle = ref('')
+const deleteColumnTaskAction = ref('move')
+const deleteColumnTargetId = ref(null)
 const activeTab = ref('members')
 const projectMembers = ref([])
 const projectRoles = ref([])
@@ -1035,7 +1073,7 @@ const addColumn = async () => {
       await fetchColumns()
     }
   } catch (err) {
-    showToast(err.message || 'สร้างคอลัมน์ไม่สำเร็จ', 'error')
+    showToast(err.data?.message || 'สร้างคอลัมน์ไม่สำเร็จ', 'error')
   }
 }
 
@@ -1046,27 +1084,47 @@ const triggerDeleteColumn = (columnId, columnTitle) => {
   }
   columnToDeleteId.value = columnId
   columnToDeleteTitle.value = columnTitle
+  deleteColumnTaskAction.value = 'move'
+  const fallbackCol = columns.value.find(c => c.id !== columnId)
+  deleteColumnTargetId.value = fallbackCol ? fallbackCol.id : null
   isDeleteColumnModalOpen.value = true
 }
 
 const confirmDeleteColumn = async () => {
   if (!columnToDeleteId.value) return
   const idToDelete = columnToDeleteId.value
+  const hasTasksInCol = tasks.value.some(t => t.columnId === idToDelete)
+
+  const params = new URLSearchParams({ id: String(idToDelete) })
+  if (hasTasksInCol) {
+    if (deleteColumnTaskAction.value === 'move' && deleteColumnTargetId.value) {
+      params.set('targetColumnId', String(deleteColumnTargetId.value))
+    } else if (deleteColumnTaskAction.value === 'delete') {
+      params.set('forceDeleteTasks', 'true')
+    }
+  }
+
   try {
-    const res = await $fetch(`/api/columns/delete?id=${idToDelete}`, {
+    const res = await $fetch(`/api/columns/delete?${params.toString()}`, {
       method: 'DELETE'
     })
     if (res.success) {
       isDeleteColumnModalOpen.value = false
       // Instant UI reactivity update
+      if (hasTasksInCol) {
+        if (deleteColumnTaskAction.value === 'move' && deleteColumnTargetId.value) {
+          tasks.value = tasks.value.map(t => t.columnId === idToDelete ? { ...t, columnId: Number(deleteColumnTargetId.value) } : t)
+        } else {
+          tasks.value = tasks.value.filter(t => t.columnId !== idToDelete)
+        }
+      }
       columns.value = columns.value.filter(c => c.id !== idToDelete)
       columnToDeleteId.value = null
       columnToDeleteTitle.value = ''
-      await fetchColumns()
-      await fetchTasks()
+      await Promise.all([fetchColumns(), fetchTasks()])
     }
   } catch (err) {
-    showToast(err.message || 'ไม่สามารถลบคอลัมน์ได้', 'error')
+    showToast(err.data?.message || 'ไม่สามารถลบคอลัมน์ได้', 'error')
   }
 }
 
@@ -1082,7 +1140,7 @@ const saveColumnName = async (columnId) => {
       await fetchColumns()
     }
   } catch (err) {
-    showToast(err.message || 'เปลี่ยนชื่อคอลัมน์ไม่สำเร็จ', 'error')
+    showToast(err.data?.message || 'เปลี่ยนชื่อคอลัมน์ไม่สำเร็จ', 'error')
   }
 }
 
@@ -1734,6 +1792,7 @@ const openAddModal = (columnId) => {
 const openEditModal = (task) => {
   isEditMode.value = true
   editingTaskId.value = task.id
+  activeAddColumnId.value = task.columnId
   taskTitle.value = task.title
   taskDescription.value = task.description || ''
   taskAssigneeId.value = task.assigneeId || ''
@@ -1772,6 +1831,7 @@ const handleSubmit = async () => {
         method: 'PUT', 
         body: { 
           id: targetId, 
+          columnId: activeAddColumnId.value ? Number(activeAddColumnId.value) : undefined,
           title: taskTitle.value.trim(), 
           description: taskDescription.value ? taskDescription.value.trim() : null,
           assigneeId: taskAssigneeId.value ? Number(taskAssigneeId.value) : null,
