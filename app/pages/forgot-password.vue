@@ -1,41 +1,70 @@
 <!-- app/pages/forgot-password.vue -->
 <template>
-  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] flex items-center justify-center p-4 relative overflow-x-hidden bg-grid">
+  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-x-hidden bg-grid text-stone-800">
     
-    <!-- Background ambient lighting -->
-    <div class="absolute top-[-10%] left-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Ambient Lighting (Reduced GPU load on mobile, rich glow on desktop) -->
+    <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[420px] h-[420px] bg-amber-200/35 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[420px] h-[420px] bg-orange-200/25 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
 
-    <div class="bg-[#fdfaf5] border border-amber-200/80 p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-xl shadow-amber-900/5 relative z-10">
-      
-      <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-100 text-amber-800 text-2xl mb-3 shadow-inner">
-          🔑
+    <!-- Brand Identity Header -->
+    <div class="mb-6 text-center relative z-10">
+      <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-[#fdfaf5]/90 border border-amber-200/80 shadow-sm mb-3">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white shadow-sm shadow-amber-600/20">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+            <rect width="7" height="9" x="3" y="3" rx="1" />
+            <rect width="7" height="5" x="14" y="3" rx="1" />
+            <rect width="7" height="9" x="14" y="12" rx="1" />
+            <rect width="7" height="5" x="3" y="16" rx="1" />
+          </svg>
         </div>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-stone-800">
+        <span class="text-base font-black tracking-tight text-stone-800">FlowSpace</span>
+      </div>
+    </div>
+
+    <!-- Auth Card -->
+    <main class="bg-[#fdfaf5] border border-amber-200/80 p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-xl shadow-amber-950/5 relative z-10 overflow-hidden">
+      <!-- Top Accent Line -->
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500" aria-hidden="true"></div>
+
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-13 h-13 rounded-2xl bg-amber-100 text-amber-800 mb-3 shadow-inner">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true">
+            <circle cx="7.5" cy="15.5" r="5.5" />
+            <path d="m21 2-9.6 9.6" />
+            <path d="m15.5 7.5 3 3L22 7l-3-3" />
+          </svg>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-800 tracking-tight">
           ลืมรหัสผ่าน?
-        </h2>
-        <p class="text-stone-500 text-xs sm:text-sm mt-1.5 font-medium max-w-xs mx-auto">
-          กรอกอีเมลที่คุณใช้ลงทะเบียน เราจะส่งคำแนะนำและลิงก์สำหรับตั้งรหัสผ่านใหม่ไปให้คุณ
+        </h1>
+        <p class="text-stone-500 text-xs sm:text-sm mt-1.5 font-medium max-w-xs mx-auto leading-relaxed">
+          กรอกอีเมลที่คุณใช้ลงทะเบียน เราจะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปให้คุณทันที
         </p>
       </div>
 
       <!-- ข้อความแจ้งผลลัพธ์ -->
-      <div v-if="message" class="mb-5">
+      <div v-if="message" role="alert" aria-live="polite" class="mb-5">
         <div 
-          :class="isSuccess ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'"
-          class="border rounded-xl p-3.5 text-xs sm:text-sm font-medium transition-all"
+          :class="isSuccess ? 'bg-emerald-50/90 border-emerald-200 text-emerald-800' : 'bg-rose-50/90 border-rose-200 text-rose-800'"
+          class="border rounded-xl p-4 text-xs sm:text-sm font-medium transition-all"
         >
           <div class="flex items-start gap-2.5">
-            <span class="text-base shrink-0">{{ isSuccess ? '📬' : '⚠️' }}</span>
+            <svg v-if="isSuccess" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-rose-600 shrink-0 mt-0.5" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" />
+            </svg>
             <div class="flex-1">
-              <p class="font-bold mb-0.5">{{ isSuccess ? 'ส่งคำขอสำเร็จ' : 'เกิดข้อผิดพลาด' }}</p>
-              <p>{{ message }}</p>
+              <p class="font-bold mb-0.5">{{ isSuccess ? 'ส่งคำขอรีเซ็ตรหัสผ่านสำเร็จ' : 'เกิดข้อผิดพลาด' }}</p>
+              <p class="leading-relaxed">{{ message }}</p>
+
               <!-- ลิงก์ทดสอบสำหรับ Local Development กรณีไม่มี SMTP -->
               <div v-if="devResetUrl" class="mt-3 pt-2.5 border-t border-emerald-200/60">
-                <p class="text-[11px] text-stone-500 font-bold uppercase tracking-wider mb-1">💻 ลิงก์สำหรับทดสอบ (Local Dev):</p>
-                <NuxtLink :to="devResetUrl" class="text-xs text-amber-700 hover:text-amber-900 font-bold underline break-all block">
-                  คลิกที่นี่เพื่อตั้งรหัสผ่านใหม่ →
+                <p class="text-[11px] text-stone-500 font-bold uppercase tracking-wider mb-1">ลิงก์สำหรับทดสอบ (Local Dev):</p>
+                <NuxtLink :to="devResetUrl" class="text-xs text-amber-800 hover:text-amber-950 font-bold underline break-all inline-flex items-center gap-1">
+                  <span>คลิกที่นี่เพื่อตั้งรหัสผ่านใหม่</span>
+                  <span aria-hidden="true">→</span>
                 </NuxtLink>
               </div>
             </div>
@@ -43,39 +72,65 @@
         </div>
       </div>
 
-      <form v-if="!isSuccess" @submit.prevent="handleForgotPassword" class="space-y-4">
+      <form v-if="!isSuccess" @submit.prevent="handleForgotPassword" class="space-y-4" novalidate>
         <div>
-          <label class="block text-sm font-semibold text-stone-600 mb-1">อีเมลของคุณ (Email)</label>
-          <input 
-            v-model="email" 
-            type="email" 
-            placeholder="name@example.com" 
-            required 
-            :disabled="isLoading"
-            class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 transition-all shadow-sm" 
-          />
+          <label for="forgot-email" class="block text-xs sm:text-sm font-bold text-stone-700 mb-1.5">
+            อีเมลของคุณ <span class="text-stone-400 font-medium">(Email)</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                <rect width="20" height="16" x="2" y="4" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+            </span>
+            <input 
+              id="forgot-email"
+              v-model="email" 
+              type="email" 
+              autocomplete="email"
+              placeholder="name@example.com" 
+              required 
+              :disabled="isLoading"
+              class="w-full bg-white border border-amber-200/90 rounded-xl pl-10 pr-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all shadow-xs" 
+            />
+          </div>
         </div>
 
         <button 
           type="submit" 
           :disabled="isLoading || !email.trim()" 
-          class="w-full min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-stone-300 disabled:to-stone-400 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-xl transition-all shadow-md shadow-amber-600/20 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 text-sm sm:text-base"
+          class="w-full min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-stone-300 disabled:to-stone-400 disabled:cursor-not-allowed text-white font-bold py-2.5 px-4 rounded-xl transition-all shadow-md shadow-amber-600/20 active:scale-[0.99] flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
         >
-          <span v-if="isLoading" class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-          {{ isLoading ? 'กำลังส่งข้อมูล...' : 'ส่งลิงก์รีเซ็ตรหัสผ่าน ✉️' }}
+          <span v-if="isLoading" class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" aria-hidden="true"></span>
+          <span>{{ isLoading ? 'กำลังส่งข้อมูล...' : 'ส่งลิงก์รีเซ็ตรหัสผ่าน' }}</span>
+          <svg v-if="!isLoading" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+            <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
+          </svg>
         </button>
       </form>
 
-      <div class="mt-6 pt-5 border-t border-stone-200/60 text-center space-y-2">
-        <NuxtLink 
-          to="/login" 
-          class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-stone-600 hover:text-amber-800 transition-colors py-1"
+      <!-- Humane Retry option if already sent -->
+      <div v-else class="space-y-2.5">
+        <button
+          type="button"
+          @click="isSuccess = false; message = ''"
+          class="w-full min-h-[44px] bg-white hover:bg-stone-50 text-amber-900 font-bold py-2.5 px-4 rounded-xl border border-amber-300 transition-all text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer"
         >
-          <span>←</span> กลับไปหน้าเข้าสู่ระบบ
-        </NuxtLink>
+          <span>ส่งไปยังอีเมลอื่น หรือขอรับลิงก์อีกครั้ง</span>
+        </button>
       </div>
 
-    </div>
+      <div class="mt-6 pt-5 border-t border-amber-200/60 text-center">
+        <NuxtLink 
+          to="/login" 
+          class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-stone-600 hover:text-amber-800 transition-colors py-1 px-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+        >
+          <span aria-hidden="true">←</span>
+          <span>กลับไปหน้าเข้าสู่ระบบ</span>
+        </NuxtLink>
+      </div>
+    </main>
   </div>
 </template>
 
