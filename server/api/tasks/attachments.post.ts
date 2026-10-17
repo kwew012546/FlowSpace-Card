@@ -46,9 +46,9 @@ export default defineEventHandler(async (event) => {
   }
 
   // ตรวจสอบขนาดไฟล์และประเภทไฟล์ป้องกัน RCE, DoS และ Path Traversal
-  const maxSizeBytes = 20 * 1024 * 1024 // 20MB
+  const maxSizeBytes = 30 * 1024 * 1024 // 30MB
   if (fileData.data.length > maxSizeBytes) {
-    throw createError({ statusCode: 400, message: 'ขนาดไฟล์ต้องไม่เกิน 20MB ❌' })
+    throw createError({ statusCode: 400, message: 'ขนาดไฟล์ต้องไม่เกิน 30MB ❌' })
   }
 
   const rawFilename = fileData.filename || 'unnamed'

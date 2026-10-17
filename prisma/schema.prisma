@@ -116,6 +116,7 @@ model Task {
   title       String
   description String?
   priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  position    Int       @default(0)        // ลำดับการ์ดภายในคอลัมน์
   assigneeId  Int?      // ID ของยูสเซอร์ที่ได้รับมอบหมายงาน (เป็น Null ได้ถ้ายังไม่สั่งงานใคร)
   dueDate     DateTime? // วันกำหนดส่งงาน / เส้นตาย
   createdAt   DateTime  @default(now())

@@ -57,43 +57,28 @@ export default defineEventHandler(async (event) => {
     console.log('Reset URL:', resetUrl)
     console.log('----------------------------------------\n')
 
-    let emailSent = false
-    const smtpConfigured = !!(process.env.SMTP_HOST && process.env.SMTP_USER)
-    if (smtpConfigured) {
-      try {
-        const nodemailer = await import('nodemailer')
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_SECURE === 'true',
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-          }
-        })
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || `"FlowSpace Support" <${process.env.SMTP_USER}>`,
-          to: user.email,
-          subject: 'คำขอรีเซ็ตรหัสผ่านสำหรับ FlowSpace 🔑',
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #fdfaf5;">
-              <h2 style="color: #b45309; text-align: center;">รีเซ็ตรหัสผ่าน FlowSpace 🔑</h2>
-              <p>สวัสดีคุณ <b>${user.username}</b>,</p>
-              <p>เราได้รับคำขอรีเซ็ตรหัสผ่านสำหรับบัญชี FlowSpace ของคุณ กรุณาคลิกปุ่มด้านล่างเพื่อตั้งรหัสผ่านใหม่ ลิงก์นี้มีอายุการใช้งาน 15 นาที:</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${resetUrl}" style="background-color: #d97706; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">ตั้งรหัสผ่านใหม่ ⚡</a>
-              </div>
-              <p style="color: #6b7280; font-size: 13px;">หากคุณไม่ได้เป็นผู้ส่งคำขอนี้ สามารถเพิกเฉยต่ออีเมลฉบับนี้ได้ บัญชีของคุณยังคงปลอดภัย</p>
-              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-              <p style="color: #9ca3af; font-size: 12px; text-align: center;">หากปุ่มด้านบนใช้งานไม่ได้ คัดลอกลิงก์นี้ไปวางในเบราว์เซอร์:<br><a href="${resetUrl}">${resetUrl}</a></p>
-            </div>
-          `
-        })
-        emailSent = true
-      } catch (err) {
-        console.error('Nodemailer Error: Failed to send password reset email.', err)
-      }
-    }
+    const emailSent = await sendTransactionalEmail({
+      to: user.email,
+      subject: '[FlowSpace] คำขอตั้งรหัสผ่านใหม่สำหรับบัญชีของคุณ',
+      text: `สวัสดีคุณ ${user.username},\n\nเราได้รับคำขอตั้งรหัสผ่านใหม่สำหรับบัญชี FlowSpace ของคุณ กรุณาคลิกลิงก์ด้านล่างเพื่อกำหนดรหัสผ่านใหม่ (ลิงก์มีอายุใช้งาน 15 นาที):\n\n${resetUrl}\n\nหากคุณไม่ได้เป็นผู้ส่งคำขอนี้ คุณสามารถเพิกเฉยต่ออีเมลฉบับนี้ได้ บัญชีของคุณยังคงปลอดภัย\n\nทีมงาน FlowSpace`,
+      html: `<!DOCTYPE html>
+<html lang="th">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:24px;background-color:#f7f0e4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1c1917;">
+  <div style="max-width:560px;margin:0 auto;padding:28px;border:1px solid #e7e5e4;border-radius:14px;background-color:#fdfaf5;">
+    <h2 style="color:#b45309;margin-top:0;text-align:center;">ตั้งรหัสผ่านใหม่ FlowSpace</h2>
+    <p style="font-size:15px;line-height:1.6;">สวัสดีคุณ <strong>${user.username}</strong>,</p>
+    <p style="font-size:15px;line-height:1.6;">เราได้รับคำขอตั้งรหัสผ่านใหม่สำหรับบัญชี FlowSpace ของคุณ กรุณาคลิกปุ่มด้านล่างเพื่อกำหนดรหัสผ่านใหม่ (ลิงก์นี้มีอายุใช้งาน 15 นาที):</p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${resetUrl}" style="background-color:#d97706;color:#ffffff;padding:12px 28px;text-decoration:none;border-radius:10px;font-weight:bold;display:inline-block;font-size:15px;">ตั้งรหัสผ่านใหม่</a>
+    </div>
+    <p style="color:#57534e;font-size:13px;line-height:1.5;">หากคุณไม่ได้เป็นผู้ส่งคำขอนี้ สามารถเพิกเฉยต่ออีเมลฉบับนี้ได้ทันที บัญชีของคุณยังคงปลอดภัย</p>
+    <hr style="border:none;border-top:1px solid #e7e5e4;margin:24px 0;" />
+    <p style="color:#78716c;font-size:12px;margin-bottom:0;">หากปุ่มด้านบนไม่สามารถคลิกได้ คัดลอกลิงก์นี้ไปวางในเบราว์เซอร์:<br><a href="${resetUrl}" style="color:#b45309;word-break:break-all;">${resetUrl}</a></p>
+  </div>
+</body>
+</html>`
+    })
 
     const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1')
 

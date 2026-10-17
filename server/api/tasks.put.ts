@@ -3,6 +3,8 @@ import { z } from 'zod'
 const updateTaskSchema = z.object({
   id: z.union([z.number(), z.string()]).transform((val) => Number(val)),
   columnId: z.union([z.number(), z.string()]).transform((val) => Number(val)).optional(),
+  position: z.number().int().min(0).optional(),
+  orderedTaskIds: z.array(z.number().int()).optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
   title: z.string().min(1, 'หัวข้องานต้องไม่ว่างเปล่า').max(150, 'หัวข้องานต้องยาวไม่เกิน 150 ตัวอักษร').optional(),
   description: z.string().max(1000, 'รายละเอียดงานยาวเกินไป').nullable().optional(),
@@ -23,7 +25,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { id, columnId, priority, title, description, assigneeId, dueDate, labelIds } = parseResult.data
+  const { id, columnId, position, orderedTaskIds, priority, title, description, assigneeId, dueDate, labelIds } = parseResult.data
 
   if (!event.context.auth?.user) {
     throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบ' })
@@ -31,6 +33,8 @@ export default defineEventHandler(async (event) => {
   const userId = event.context.auth.user.id
 
   try {
+    await ensureDbSchema()
+
     // 3. ตรวจสอบว่ามีงาน ID นี้อยู่ในตารางจริงไหมก่อนจะสั่งอัปเดต
     const existingTask = await prisma.task.findUnique({
       where: { id: Number(id) }
@@ -43,9 +47,18 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // ตรวจสอบสิทธิ์แก้ไขงาน และตรวจสอบผู้รับผิดชอบพร้อมกันในรอบเดียว
-    const [hasPerm, isAssigneeMember] = await Promise.all([
+    const isContentUpdate =
+      title !== undefined ||
+      description !== undefined ||
+      priority !== undefined ||
+      assigneeId !== undefined ||
+      dueDate !== undefined ||
+      labelIds !== undefined
+
+    // ตรวจสอบสิทธิ์แก้ไขงาน/ย้ายงาน และตรวจสอบผู้รับผิดชอบพร้อมกันในรอบเดียว
+    const [canCreateOrEdit, canMoveTask, isAssigneeMember] = await Promise.all([
       checkPermission(userId, existingTask.projectId, 'CREATE_TASK'),
+      checkPermission(userId, existingTask.projectId, 'MOVE_TASK'),
       assigneeId
         ? prisma.projectMember.findFirst({
             where: { projectId: existingTask.projectId, userId: Number(assigneeId) },
@@ -54,8 +67,13 @@ export default defineEventHandler(async (event) => {
         : Promise.resolve(true)
     ])
 
-    if (!hasPerm) {
-      throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์ในการแก้ไขหรือย้ายงานในโปรเจกต์นี้ ❌' })
+    if (isContentUpdate ? !canCreateOrEdit : (!canMoveTask && !canCreateOrEdit)) {
+      throw createError({
+        statusCode: 403,
+        message: isContentUpdate
+          ? 'คุณไม่มีสิทธิ์ในการแก้ไขรายละเอียดการ์ดงานในโปรเจกต์นี้ ❌'
+          : 'คุณไม่มีสิทธิ์ในการย้ายหรือจัดลำดับการ์ดงานในโปรเจกต์นี้ ❌'
+      })
     }
 
     if (assigneeId && !isAssigneeMember) {
@@ -67,6 +85,7 @@ export default defineEventHandler(async (event) => {
       where: { id: Number(id) },
       data: {
         ...(columnId !== undefined && { columnId }),
+        ...(position !== undefined && { position }),
         ...(priority !== undefined && { priority }),
         ...(title !== undefined && { title: title.trim() }),
         ...(description !== undefined && { description: description ? description.trim() : null }),
@@ -79,6 +98,18 @@ export default defineEventHandler(async (event) => {
         })
       }
     })
+
+    // หากส่งลำดับการ์ดในคอลัมน์มาด้วย ให้อัปเดต position ของการ์ดทุกใบในคอลัมน์นั้นแบบ Transaction
+    if (orderedTaskIds && orderedTaskIds.length > 0) {
+      await prisma.$transaction(
+        orderedTaskIds.map((taskId, idx) =>
+          prisma.task.updateMany({
+            where: { id: Number(taskId), projectId: existingTask.projectId },
+            data: { position: idx }
+          })
+        )
+      )
+    }
 
     // 5. บันทึกกิจกรรมการเปลี่ยนแปลงและการแจ้งเตือนแบบขนาน (Parallel)
     const sideEffects: Promise<any>[] = []

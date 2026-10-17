@@ -235,6 +235,7 @@
         <div class="flex items-center gap-1.5 text-xs font-bold text-stone-500">
           <span>เรียงโดย:</span>
           <select v-model="sortBy" class="py-2 px-3 min-h-[38px] bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-stone-700 focus:outline-none">
+            <option value="position">⠿ ลำดับในคอลัมน์ (ลากเรียงเอง)</option>
             <option value="createdAt">⏰ วันที่สร้าง</option>
             <option value="dueDate">📅 วันกำหนดส่ง</option>
             <option value="priority">🎯 ระดับความเร่งด่วน</option>
@@ -317,7 +318,16 @@
 
           <div class="space-y-3 overflow-y-auto pr-1 flex-1">
             
-            <div v-for="task in getFilteredTasks(col.id)" :key="task.id" :draggable="hasPermission('CREATE_TASK')" @dragstart.stop="onDragStart(task.id)" :class="!hasPermission('CREATE_TASK') ? 'cursor-default' : 'cursor-grab active:cursor-grabbing hover:border-amber-400'" class="bg-white p-3.5 sm:p-4 rounded-xl border border-amber-100 shadow-sm transition-all group relative">
+            <div
+              v-for="task in getFilteredTasks(col.id)"
+              :key="task.id"
+              :draggable="hasPermission('MOVE_TASK')"
+              @dragstart.stop="onDragStart(task.id)"
+              @dragover.prevent
+              @drop.stop="onDropOnTask(task.id, col.id)"
+              :class="!hasPermission('MOVE_TASK') ? 'cursor-default' : 'cursor-grab active:cursor-grabbing hover:border-amber-400'"
+              class="bg-white p-3.5 sm:p-4 rounded-xl border border-amber-100 shadow-sm transition-all group relative"
+            >
               
               <div v-if="task.labels && task.labels.length > 0" class="flex flex-wrap gap-1 mb-2">
                 <span v-for="lbl in task.labels" :key="lbl.id" :style="{ backgroundColor: lbl.color }" class="text-[9px] font-black text-white px-2 py-0.5 rounded shadow-sm">
@@ -445,21 +455,34 @@
               <label class="block text-xs font-black text-stone-500 mb-2 uppercase tracking-wider">📎 ไฟล์แนบ (Attachments)</label>
               
               <div v-if="attachments.length > 0" class="space-y-2 mb-3">
-                <div v-for="att in attachments" :key="att.id" class="flex items-center justify-between bg-stone-50 border border-stone-200/60 rounded-xl p-2.5 text-xs">
-                  <div class="flex items-center gap-2 truncate">
-                    <span class="text-amber-700">📄</span>
+                <div v-for="att in attachments" :key="att.id" class="flex items-center justify-between gap-2 bg-stone-50 border border-stone-200/60 rounded-xl p-2.5 text-xs">
+                  <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="text-amber-700 shrink-0">📄</span>
                     <a :href="att.filePath" :download="att.fileName" target="_blank" class="font-bold text-amber-700 hover:underline truncate">{{ att.fileName }}</a>
-                    <span class="text-stone-400">({{ (att.fileSize / 1024).toFixed(1) }} KB)</span>
+                    <span class="text-stone-400 shrink-0">({{ att.fileSize >= 1048576 ? `${(att.fileSize / 1048576).toFixed(1)} MB` : `${(att.fileSize / 1024).toFixed(1)} KB` }})</span>
                   </div>
-                  <span class="text-[10px] text-stone-400">{{ new Date(att.createdAt).toLocaleDateString('th-TH') }}</span>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-[10px] text-stone-400 hidden sm:inline">{{ new Date(att.createdAt).toLocaleDateString('th-TH') }}</span>
+                    <button
+                      v-if="hasPermission('CREATE_TASK') || hasPermission('DELETE_TASK')"
+                      type="button"
+                      @click="deleteAttachment(att.id)"
+                      class="min-h-[32px] px-2 py-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg font-bold text-xs transition-all flex items-center gap-1"
+                      title="ลบไฟล์แนบนี้ออกจากการ์ด"
+                    >
+                      <span>🗑️</span>
+                      <span>ลบ</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div v-if="hasPermission('CREATE_TASK')" class="flex items-center gap-2">
+              <div v-if="hasPermission('CREATE_TASK')" class="flex flex-wrap items-center gap-2">
                 <label class="min-h-[40px] bg-white border border-dashed border-amber-300 hover:border-amber-500 text-amber-800 hover:bg-amber-50 font-bold px-4 py-2 rounded-xl cursor-pointer transition-all text-xs sm:text-sm flex items-center justify-center gap-1.5">
                   📁 เลือกไฟล์เพื่ออัปโหลด
                   <input type="file" class="hidden" @change="handleFileUpload" />
                 </label>
+                <span class="text-[10px] text-stone-400 font-semibold">สูงสุดไม่เกิน 30MB</span>
               </div>
             </div>
 
@@ -494,7 +517,7 @@
           <div class="bg-stone-50 border-t md:border-t-0 md:border-l border-stone-200/60 p-4 rounded-xl md:rounded-none md:-my-6 md:-mr-6 space-y-4 sm:space-y-5 overflow-y-auto">
             <div>
               <label class="block text-xs font-black text-stone-500 mb-1 uppercase tracking-wider">📌 คอลัมน์ (สถานะงาน)</label>
-              <select v-model="activeAddColumnId" :disabled="!hasPermission('CREATE_TASK')" class="w-full min-h-[44px] bg-white disabled:bg-stone-100 border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-bold text-base sm:text-xs focus:outline-none">
+              <select v-model="activeAddColumnId" :disabled="isEditMode ? (!hasPermission('MOVE_TASK') && !hasPermission('CREATE_TASK')) : !hasPermission('CREATE_TASK')" class="w-full min-h-[44px] bg-white disabled:bg-stone-100 border border-stone-200 rounded-xl px-3 py-2 text-stone-800 font-bold text-base sm:text-xs focus:outline-none">
                 <option v-for="col in columns" :key="col.id" :value="col.id">
                   📌 {{ col.title }}
                 </option>
@@ -534,7 +557,7 @@
               </div>
               
               <div v-if="isCreatingLabel" class="bg-white border border-stone-200 rounded-xl p-2.5 mb-2.5 space-y-2 text-xs">
-                <input v-model="newLabelName" type="text" placeholder="ชื่อแท็ก..." class="w-full px-2.5 py-1.5 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none text-xs" />
+                <input v-model="newLabelName" type="text" placeholder="ชื่อแท็ก..." class="w-full px-2.5 py-1.5 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none text-xs" @keyup.enter="createProjectLabel" />
                 <div class="flex items-center justify-between gap-2">
                   <input v-model="newLabelColor" type="color" class="w-8 h-8 p-0 border border-stone-300 rounded cursor-pointer shrink-0" />
                   <div class="flex items-center gap-1.5">
@@ -544,13 +567,24 @@
                 </div>
               </div>
 
-              <div v-if="projectLabels.length > 0" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                <label v-for="lbl in projectLabels" :key="lbl.id" class="flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-600 py-1">
-                  <input type="checkbox" :disabled="!hasPermission('CREATE_TASK')" :value="lbl.id" v-model="selectedLabelIds" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 disabled:cursor-not-allowed" />
-                  <span :style="{ backgroundColor: lbl.color }" class="text-[9px] font-black text-white px-2 py-0.5 rounded shadow-sm">
-                    {{ lbl.name }}
-                  </span>
-                </label>
+              <div v-if="projectLabels.length > 0" class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                <div v-for="lbl in projectLabels" :key="lbl.id" class="flex items-center justify-between gap-2 py-1 px-1.5 rounded-lg hover:bg-stone-100/80 transition-colors">
+                  <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-600 flex-1 min-w-0">
+                    <input type="checkbox" :disabled="!hasPermission('CREATE_TASK')" :value="lbl.id" v-model="selectedLabelIds" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 disabled:cursor-not-allowed shrink-0" />
+                    <span :style="{ backgroundColor: lbl.color }" class="text-[9px] font-black text-white px-2 py-0.5 rounded shadow-sm truncate">
+                      {{ lbl.name }}
+                    </span>
+                  </label>
+                  <button
+                    v-if="hasPermission('CREATE_TASK') || hasPermission('DELETE_TASK')"
+                    type="button"
+                    @click.stop="deleteProjectLabel(lbl.id)"
+                    class="min-h-[28px] min-w-[28px] flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-md text-xs transition-all shrink-0"
+                    title="ลบป้ายกำกับนี้ออกจากบอร์ด"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
               <div v-else class="text-[10px] text-stone-400 py-1">ยังไม่มีการตั้งค่าป้ายสีบอร์ดนี้</div>
             </div>
@@ -580,9 +614,9 @@
         </div>
 
         <div class="px-4 sm:px-6 py-3 sm:py-4 border-t border-stone-200/60 bg-white flex justify-end gap-2.5">
-          <button @click="isModalOpen = false" :disabled="isSavingTask" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 disabled:opacity-50 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">{{ hasPermission('CREATE_TASK') ? 'ยกเลิก' : 'ปิดหน้าต่าง' }}</button>
+          <button @click="isModalOpen = false" :disabled="isSavingTask" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 disabled:opacity-50 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">{{ (hasPermission('CREATE_TASK') || (isEditMode && hasPermission('MOVE_TASK'))) ? 'ยกเลิก' : 'ปิดหน้าต่าง' }}</button>
           <button 
-            v-if="hasPermission('CREATE_TASK')"
+            v-if="hasPermission('CREATE_TASK') || (isEditMode && hasPermission('MOVE_TASK'))"
             @click="handleSubmit" 
             :disabled="isSavingTask" 
             class="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-1.5"
@@ -637,21 +671,29 @@
                 <tbody class="divide-y divide-stone-100 text-sm">
                   <tr v-for="member in projectMembers" :key="member.id" class="hover:bg-amber-50/30 transition-colors">
                     <td class="p-3">
-                      <p class="font-bold text-stone-800">{{ member.user.username }}</p>
+                      <p class="font-bold text-stone-800 flex items-center gap-1.5 flex-wrap">
+                        <span>{{ member.user.username }}</span>
+                        <span v-if="member.user.id === projectOwnerId" class="text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded-full">
+                          👑 เจ้าของบอร์ด
+                        </span>
+                      </p>
                       <p class="text-xs text-stone-400 font-mono">{{ member.user.email }}</p>
                     </td>
                     <td class="p-3">
                       <select 
                         :value="member.roleId || ''" 
-                        @change="changeMemberRole(member.id, $event.target.value)"
+                        @change="changeMemberRole(member.id, $event.target.value, $event)"
                         class="min-h-[38px] bg-stone-50 border border-stone-200 text-stone-700 text-xs rounded-xl px-2.5 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all cursor-pointer"
                       >
-                        <option value="">👤 สมาชิกทั่วไป (No Role)</option>
+                        <option value="">{{ member.user.id === projectOwnerId ? '👑 เจ้าของโปรเจกต์ (สิทธิ์สูงสุด)' : '👤 สมาชิกทั่วไป (No Role)' }}</option>
                         <option v-for="role in projectRoles" :key="role.id" :value="role.id">⚔️ {{ role.name }}</option>
                       </select>
                     </td>
                     <td class="p-3 text-center">
-                      <button @click="kickMember(member.id, member.user.username)" class="min-h-[38px] bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">
+                      <span v-if="member.user.id === projectOwnerId" class="text-xs font-bold text-amber-700">
+                        👑 เจ้าของโปรเจกต์
+                      </span>
+                      <button v-else @click="kickMember(member.id, member.user.username)" class="min-h-[38px] bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm">
                         🚪 เตะออก
                       </button>
                     </td>
@@ -689,7 +731,10 @@
                   <p class="text-[11px] font-bold text-stone-400 mb-2 uppercase tracking-wide">สิทธิ์เข้าถึงฟีเจอร์ต่างๆ (Permissions Check)</p>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-stone-600">
                     <label class="flex items-center gap-2 cursor-pointer py-1">
-                      <input type="checkbox" :checked="role.permissions.includes('CREATE_TASK')" @change="togglePermission(role, 'CREATE_TASK')" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-400" /> สร้างการ์ดงานได้
+                      <input type="checkbox" :checked="role.permissions.includes('CREATE_TASK')" @change="togglePermission(role, 'CREATE_TASK')" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-400" /> สร้าง/แก้ไขการ์ดงานได้
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer py-1">
+                      <input type="checkbox" :checked="role.permissions.includes('MOVE_TASK')" @change="togglePermission(role, 'MOVE_TASK')" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-400" /> เลื่อนปรับลำดับ/ย้ายการ์ดในคอลัมน์ได้
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer py-1">
                       <input type="checkbox" :checked="role.permissions.includes('DELETE_TASK')" @change="togglePermission(role, 'DELETE_TASK')" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-400" /> สั่งลบการ์ดงานได้
@@ -991,7 +1036,11 @@ const searchQuery = ref('')
 const filterAssigneeId = ref('')
 const filterPriority = ref('')
 const filterLabelId = ref('')
-const sortBy = ref('createdAt')
+const sortBy = ref('position')
+
+const getApiErrorMessage = (err, fallback) => {
+  return err?.data?.message || err?.data?.statusMessage || fallback
+}
 
 // [STATE การแจ้งเตือน]
 const notifications = ref([])
@@ -1077,7 +1126,7 @@ const addColumn = async () => {
       await fetchColumns()
     }
   } catch (err) {
-    showToast(err.data?.message || 'สร้างคอลัมน์ไม่สำเร็จ', 'error')
+    showToast(getApiErrorMessage(err, 'สร้างคอลัมน์ไม่สำเร็จ'), 'error')
   }
 }
 
@@ -1124,7 +1173,7 @@ const confirmDeleteColumn = async () => {
       await Promise.all([fetchColumns(), fetchTasks()])
     }
   } catch (err) {
-    showToast(err.data?.message || 'ไม่สามารถลบคอลัมน์ได้', 'error')
+    showToast(getApiErrorMessage(err, 'ไม่สามารถลบคอลัมน์ได้'), 'error')
   }
 }
 
@@ -1140,7 +1189,7 @@ const saveColumnName = async (columnId) => {
       await fetchColumns()
     }
   } catch (err) {
-    showToast(err.data?.message || 'เปลี่ยนชื่อคอลัมน์ไม่สำเร็จ', 'error')
+    showToast(getApiErrorMessage(err, 'เปลี่ยนชื่อคอลัมน์ไม่สำเร็จ'), 'error')
   }
 }
 
@@ -1184,11 +1233,37 @@ const createProjectLabel = async () => {
     })
     if (res.success) {
       projectLabels.value.push(res.data)
+      if (!selectedLabelIds.value.includes(res.data.id)) {
+        selectedLabelIds.value.push(res.data.id)
+      }
       newLabelName.value = ''
       isCreatingLabel.value = false
     }
   } catch (err) {
-    showToast(err.message || 'สร้างป้ายกำกับไม่สำเร็จ', 'error')
+    showToast(getApiErrorMessage(err, 'สร้างป้ายกำกับไม่สำเร็จ ❌'), 'error')
+  }
+}
+
+const deleteProjectLabel = async (labelId) => {
+  if (!labelId) return
+  const backupLabels = [...projectLabels.value]
+  const backupSelected = [...selectedLabelIds.value]
+  projectLabels.value = projectLabels.value.filter(l => l.id !== labelId)
+  selectedLabelIds.value = selectedLabelIds.value.filter(id => id !== labelId)
+  tasks.value = tasks.value.map(t => ({
+    ...t,
+    labels: t.labels ? t.labels.filter(l => l.id !== labelId) : []
+  }))
+  if (Number(filterLabelId.value) === Number(labelId)) {
+    filterLabelId.value = ''
+  }
+  try {
+    await $fetch(`/api/projects/labels?id=${labelId}`, { method: 'DELETE' })
+  } catch (err) {
+    projectLabels.value = backupLabels
+    selectedLabelIds.value = backupSelected
+    await fetchTasks()
+    showToast(getApiErrorMessage(err, 'ลบป้ายกำกับไม่สำเร็จ ❌'), 'error')
   }
 }
 
@@ -1228,7 +1303,7 @@ const leaveProject = async () => {
       navigateTo('/dashboard')
     }
   } catch (err) {
-    showToast(err.message || 'ออกจากโครงการไม่สำเร็จ', 'error')
+    showToast(getApiErrorMessage(err, 'ออกจากโครงการไม่สำเร็จ ❌'), 'error')
   }
 }
 
@@ -1241,7 +1316,7 @@ const confirmDeleteProject = async () => {
       navigateTo('/dashboard')
     }
   } catch (err) {
-    showToast(err.message || 'ลบโครงการไม่สำเร็จ', 'error')
+    showToast(getApiErrorMessage(err, 'ลบโครงการไม่สำเร็จ ❌'), 'error')
   }
 }
 
@@ -1273,7 +1348,7 @@ const addSubtask = async () => {
       newSubtaskTitle.value = ''
       fetchTasks()
     }
-  } catch (err) { showToast(err.message || 'เพิ่มงานย่อยไม่สำเร็จ', 'error') }
+  } catch (err) { showToast(getApiErrorMessage(err, 'เพิ่มงานย่อยไม่สำเร็จ ❌'), 'error') }
 }
 
 const toggleSubtask = async (sub) => {
@@ -1283,7 +1358,7 @@ const toggleSubtask = async (sub) => {
       body: { id: sub.id, isCompleted: sub.isCompleted }
     })
     fetchTasks()
-  } catch (err) { showToast(err.message || 'แก้ไขสถานะไม่สำเร็จ', 'error') }
+  } catch (err) { showToast(getApiErrorMessage(err, 'แก้ไขสถานะไม่สำเร็จ ❌'), 'error') }
 }
 
 const deleteSubtask = async (id) => {
@@ -1291,7 +1366,7 @@ const deleteSubtask = async (id) => {
     await $fetch(`/api/tasks/subtasks?id=${id}`, { method: 'DELETE' })
     subtasks.value = subtasks.value.filter(s => s.id !== id)
     fetchTasks()
-  } catch (err) { showToast(err.message || 'ลบงานย่อยไม่สำเร็จ', 'error') }
+  } catch (err) { showToast(getApiErrorMessage(err, 'ลบงานย่อยไม่สำเร็จ ❌'), 'error') }
 }
 
 const addComment = async () => {
@@ -1307,12 +1382,18 @@ const addComment = async () => {
       fetchTasks()
       fetchTaskLogs(editingTaskId.value)
     }
-  } catch (err) { showToast(err.message || 'ส่งความเห็นไม่สำเร็จ', 'error') }
+  } catch (err) { showToast(getApiErrorMessage(err, 'ส่งความเห็นไม่สำเร็จ ❌'), 'error') }
 }
 
 const handleFileUpload = async (event) => {
-  const file = event.target.files[0]
+  const file = event.target.files?.[0]
   if (!file || !editingTaskId.value) return
+  const maxSizeBytes = 30 * 1024 * 1024
+  if (file.size > maxSizeBytes) {
+    showToast('ขนาดไฟล์ต้องไม่เกิน 30MB ❌', 'error')
+    event.target.value = ''
+    return
+  }
   const formData = new FormData()
   formData.append('taskId', editingTaskId.value)
   formData.append('file', file)
@@ -1326,7 +1407,33 @@ const handleFileUpload = async (event) => {
       fetchTasks()
       fetchTaskLogs(editingTaskId.value)
     }
-  } catch (err) { showToast(err.message || 'อัปโหลดล้มเหลว', 'error') }
+  } catch (err) {
+    showToast(getApiErrorMessage(err, 'อัปโหลดไฟล์ล้มเหลว ❌'), 'error')
+  } finally {
+    event.target.value = ''
+  }
+}
+
+const deleteAttachment = async (attachmentId) => {
+  if (!attachmentId) return
+  const backupAttachments = [...attachments.value]
+  attachments.value = attachments.value.filter(a => a.id !== attachmentId)
+  tasks.value = tasks.value.map(t => (
+    t.id === editingTaskId.value
+      ? { ...t, attachments: (t.attachments || []).filter(a => a.id !== attachmentId) }
+      : t
+  ))
+  try {
+    await $fetch(`/api/tasks/attachments?id=${attachmentId}`, { method: 'DELETE' })
+    fetchTasks()
+    if (editingTaskId.value) {
+      fetchTaskLogs(editingTaskId.value)
+    }
+  } catch (err) {
+    attachments.value = backupAttachments
+    await fetchTasks()
+    showToast(getApiErrorMessage(err, 'ลบไฟล์แนบไม่สำเร็จ ❌'), 'error')
+  }
 }
 
 // --- ตัวกรองและการจัดเรียงฝั่ง Client ---
@@ -1357,10 +1464,16 @@ const getFilteredTasks = (columnId) => {
       return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
     })
   } else if (sortBy.value === 'priority') {
-    const priorityMap = { 'URGENT': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 }
-    list.sort((a, b) => (priorityMap[a.priority] || 2) - (priorityMap[b.priority] || 2))
-  } else {
+    const priorityMap = { 'URGENT': 1, 'HIGH': 2, 'MEDIUM': 3, 'LOW': 4 }
+    list.sort((a, b) => (priorityMap[a.priority] ?? 3) - (priorityMap[b.priority] ?? 3))
+  } else if (sortBy.value === 'createdAt') {
     list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+  } else {
+    list.sort((a, b) => {
+      const posDiff = (a.position ?? 0) - (b.position ?? 0)
+      if (posDiff !== 0) return posDiff
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    })
   }
 
   return list
@@ -1620,13 +1733,13 @@ const createNewRole = async () => {
   try {
     const response = await $fetch('/api/roles/create', {
       method: 'POST',
-      body: { projectId, name: newRoleName.value.trim(), permissions: ['CREATE_TASK'] }
+      body: { projectId, name: newRoleName.value.trim(), permissions: ['CREATE_TASK', 'MOVE_TASK'] }
     })
     if (response.success) {
       newRoleName.value = ''
       await fetchTeamAndRoles()
     }
-  } catch (error) { showToast('เกิดข้อผิดพลาดในการสร้างยศ ❌', 'error') }
+  } catch (error) { showToast(getApiErrorMessage(error, 'เกิดข้อผิดพลาดในการสร้างยศ ❌'), 'error') }
 }
 
 const updateRoleData = async (role) => {
@@ -1635,7 +1748,7 @@ const updateRoleData = async (role) => {
       method: 'PUT',
       body: { roleId: role.id, name: role.name, permissions: role.permissions }
     })
-  } catch (error) { showToast('ไม่สามารถบันทึกชื่อยศใหม่ได้ ❌', 'error') }
+  } catch (error) { showToast(getApiErrorMessage(error, 'ไม่สามารถบันทึกข้อมูลยศได้ ❌'), 'error') }
 }
 
 const togglePermission = async (role, permissionStr) => {
@@ -1665,10 +1778,12 @@ const confirmDeleteRole = async () => {
       isDeleteRoleModalOpen.value = false
       roleToDeleteId.value = null
     }
-  } catch (error) { showToast('ไม่สามารถลบยศนี้ได้ ❌', 'error') }
+  } catch (error) { showToast(getApiErrorMessage(error, 'ไม่สามารถลบยศนี้ได้ ❌'), 'error') }
 }
 
-const changeMemberRole = async (memberId, targetRoleId) => {
+const changeMemberRole = async (memberId, targetRoleId, event) => {
+  const previousMember = projectMembers.value.find(m => m.id === memberId)
+  const previousRoleId = previousMember?.roleId ? String(previousMember.roleId) : ''
   try {
     const response = await $fetch('/api/members/update-role', {
       method: 'PUT',
@@ -1677,7 +1792,13 @@ const changeMemberRole = async (memberId, targetRoleId) => {
     if (response.success) {
       await fetchTeamAndRoles()
     }
-  } catch (error) { showToast('เปลี่ยนยศไม่สำเร็จ ❌', 'error') }
+  } catch (error) {
+    if (event?.target) {
+      event.target.value = previousRoleId
+    }
+    await fetchTeamAndRoles()
+    showToast(getApiErrorMessage(error, 'เปลี่ยนยศไม่สำเร็จ ❌'), 'error')
+  }
 }
 
 const kickMember = (memberId, username) => {
@@ -1698,7 +1819,7 @@ const confirmKickMember = async () => {
       memberToKickId.value = null
       memberToKickUsername.value = ''
     }
-  } catch (error) { showToast('เตะคนออกไม่สำเร็จ ❌', 'error') }
+  } catch (error) { showToast(getApiErrorMessage(error, 'เตะสมาชิกออกไม่สำเร็จ ❌'), 'error') }
 }
 
 const copyInviteCode = () => {
@@ -1826,19 +1947,26 @@ const handleSubmit = async () => {
 
   if (isEditMode.value) {
     const targetId = editingTaskId.value
-    try {
-      const response = await $fetch('/api/tasks', { 
-        method: 'PUT', 
-        body: { 
-          id: targetId, 
+    const canEditFullTask = hasPermission('CREATE_TASK')
+    const payload = canEditFullTask
+      ? {
+          id: targetId,
           columnId: activeAddColumnId.value ? Number(activeAddColumnId.value) : undefined,
-          title: taskTitle.value.trim(), 
+          title: taskTitle.value.trim(),
           description: taskDescription.value ? taskDescription.value.trim() : null,
           assigneeId: taskAssigneeId.value ? Number(taskAssigneeId.value) : null,
           dueDate: taskDueDate.value || null,
           priority: taskPriority.value,
           labelIds: selectedLabelIds.value
-        } 
+        }
+      : {
+          id: targetId,
+          columnId: activeAddColumnId.value ? Number(activeAddColumnId.value) : undefined
+        }
+    try {
+      const response = await $fetch('/api/tasks', { 
+        method: 'PUT', 
+        body: payload
       })
       if (response.success) {
         isModalOpen.value = false
@@ -1846,7 +1974,7 @@ const handleSubmit = async () => {
       }
     } catch (error) {
       console.error(error)
-      taskModalError.value = error.data?.message || error.message || 'เกิดข้อผิดพลาดในการแก้ไขงาน กรุณาลองใหม่อีกครั้ง'
+      taskModalError.value = getApiErrorMessage(error, 'เกิดข้อผิดพลาดในการแก้ไขงาน กรุณาลองใหม่อีกครั้ง')
     } finally {
       isSavingTask.value = false
     }
@@ -1861,7 +1989,8 @@ const handleSubmit = async () => {
           columnId: activeAddColumnId.value,
           assigneeId: taskAssigneeId.value ? Number(taskAssigneeId.value) : null,
           dueDate: taskDueDate.value || null,
-          priority: taskPriority.value
+          priority: taskPriority.value,
+          labelIds: selectedLabelIds.value
         } 
       })
       if (response.success) {
@@ -1870,7 +1999,7 @@ const handleSubmit = async () => {
       }
     } catch (error) {
       console.error(error)
-      taskModalError.value = error.data?.message || error.message || 'เกิดข้อผิดพลาดในการสร้างงาน กรุณาลองใหม่อีกครั้ง'
+      taskModalError.value = getApiErrorMessage(error, 'เกิดข้อผิดพลาดในการสร้างงาน กรุณาลองใหม่อีกครั้ง')
     } finally {
       isSavingTask.value = false
     }
@@ -1904,28 +2033,82 @@ const confirmDeleteTask = async () => {
   } catch (error) {
     console.error(error)
     tasks.value = backupTasks
+    showToast(getApiErrorMessage(error, 'ลบการ์ดงานไม่สำเร็จ ❌'), 'error')
   }
 }
 
-const moveTask = async (id, targetColumnId) => {
-  const task = tasks.value.find(t => t.id === id)
-  if (!task || task.columnId === targetColumnId) return
+const getSortedColumnTasks = (columnId) => {
+  return tasks.value
+    .filter(t => t.columnId === columnId)
+    .sort((a, b) => {
+      const posDiff = (a.position ?? 0) - (b.position ?? 0)
+      if (posDiff !== 0) return posDiff
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    })
+}
 
-  // Optimistic UI: ย้ายการ์ดไปยังคอลัมน์ปลายทางบนหน้าจอทันที (0ms)
-  const previousColumnId = task.columnId
-  task.columnId = targetColumnId
+const moveTask = async (id, targetColumnId, targetTaskId = null) => {
+  const task = tasks.value.find(t => t.id === id)
+  if (!task) return
+  if (task.columnId === targetColumnId && targetTaskId === id) return
+
+  const backupTasks = tasks.value.map(t => ({ ...t }))
+  const sourceColumnId = task.columnId
   lastLocalMutationAt = Date.now()
+
+  // หากกำลังใช้ตัวเรียงลำดับแบบอื่นแล้วลากจัดลำดับการ์ด ให้สลับมาที่โหมดเรียงตามลำดับในคอลัมน์อัตโนมัติ
+  if (targetTaskId !== null && sortBy.value !== 'position') {
+    sortBy.value = 'position'
+  }
+
+  const destTasks = getSortedColumnTasks(targetColumnId).filter(t => t.id !== id)
+  if (targetTaskId !== null) {
+    const targetIdx = destTasks.findIndex(t => t.id === targetTaskId)
+    const sourceTasks = getSortedColumnTasks(sourceColumnId)
+    const fromIdx = sourceTasks.findIndex(t => t.id === id)
+    const toOrigIdx = sourceTasks.findIndex(t => t.id === targetTaskId)
+
+    if (targetIdx !== -1) {
+      // ถ้าลากในคอลัมน์เดิมจากบนลงล่าง ให้แทรกหลังการ์ดเป้าหมายเพื่อให้เลื่อนขึ้น-ลงได้เป็นธรรมชาติ
+      if (sourceColumnId === targetColumnId && fromIdx < toOrigIdx) {
+        destTasks.splice(targetIdx + 1, 0, task)
+      } else {
+        destTasks.splice(targetIdx, 0, task)
+      }
+    } else {
+      destTasks.push(task)
+    }
+  } else {
+    destTasks.push(task)
+  }
+
+  task.columnId = targetColumnId
+  const orderedTaskIds = destTasks.map(t => t.id)
+  orderedTaskIds.forEach((taskId, idx) => {
+    const item = tasks.value.find(t => t.id === taskId)
+    if (item) item.position = idx
+  })
+
+  if (sourceColumnId !== targetColumnId) {
+    const remainingSourceTasks = getSortedColumnTasks(sourceColumnId).filter(t => t.id !== id)
+    remainingSourceTasks.forEach((item, idx) => {
+      item.position = idx
+    })
+  }
 
   try {
     await $fetch('/api/tasks', { 
       method: 'PUT', 
-      body: { id, columnId: targetColumnId } 
+      body: {
+        id,
+        columnId: targetColumnId,
+        orderedTaskIds
+      } 
     })
   } catch (error) {
     console.error(error)
-    // หากเกิดข้อผิดพลาด ให้ดีดการ์ดกลับที่เดิม
-    task.columnId = previousColumnId
-    showToast('ไม่สามารถย้ายการ์ดได้ กรุณาลองใหม่', 'error')
+    tasks.value = backupTasks
+    showToast(getApiErrorMessage(error, 'ไม่สามารถย้ายหรือจัดลำดับการ์ดได้ ❌'), 'error')
   }
 }
 
@@ -1933,6 +2116,7 @@ let draggedTaskId = null
 let draggedColumnId = null
 
 const onDragStart = (id) => {
+  if (!hasPermission('MOVE_TASK')) return
   draggedTaskId = id
   draggedColumnId = null
 }
@@ -1966,7 +2150,22 @@ const reorderColumn = async (sourceColId, targetColId) => {
     })
   } catch (err) {
     columns.value = backupColumns
-    showToast(err.data?.message || 'ไม่สามารถย้ายตำแหน่งคอลัมน์ได้', 'error')
+    showToast(getApiErrorMessage(err, 'ไม่สามารถย้ายตำแหน่งคอลัมน์ได้ ❌'), 'error')
+  }
+}
+
+const onDropOnTask = (targetTaskId, targetColumnId) => {
+  if (draggedColumnId !== null) {
+    const srcColId = draggedColumnId
+    draggedColumnId = null
+    reorderColumn(srcColId, targetColumnId)
+    return
+  }
+  if (!hasPermission('MOVE_TASK')) return
+  if (draggedTaskId) {
+    const id = draggedTaskId
+    draggedTaskId = null
+    moveTask(id, targetColumnId, targetTaskId)
   }
 }
 
@@ -1977,10 +2176,11 @@ const onDrop = (columnId) => {
     reorderColumn(srcColId, columnId)
     return
   }
-  if (!hasPermission('CREATE_TASK')) return
+  if (!hasPermission('MOVE_TASK')) return
   if (draggedTaskId) {
-    moveTask(draggedTaskId, columnId)
+    const id = draggedTaskId
     draggedTaskId = null
+    moveTask(id, columnId, null)
   }
 }
 </script>

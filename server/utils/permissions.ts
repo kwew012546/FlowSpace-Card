@@ -41,8 +41,11 @@ export async function checkPermission(userId: number, projectId: number, permiss
     // ถ้าไม่ใช่สมาชิก ไม่มีสิทธิ์ใดๆ
     if (!member) return false
 
-    // ถ้ามีบทบาท (Role) ให้เช็คว่าในสิทธิ์ของบทบาทนั้นมีสิทธิ์ที่ต้องการหรือไม่
-    if (member.role && member.role.permissions.includes(permission)) {
+    // ถ้ามีบทบาท (Role) ให้เช็คว่าในสิทธิ์ของบทบาทนั้นมีสิทธิ์ที่ต้องการ หรือมีสิทธิ์ MANAGE_PROJECT หรือไม่
+    if (
+      member.role &&
+      (member.role.permissions.includes('MANAGE_PROJECT') || member.role.permissions.includes(permission))
+    ) {
       return true
     }
 

@@ -29,6 +29,9 @@ export function ensureDbSchema(): Promise<void> {
         await prisma.$executeRawUnsafe(
           `ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "isInviteActive" BOOLEAN NOT NULL DEFAULT true;`
         )
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "Task" ADD COLUMN IF NOT EXISTS "position" INTEGER NOT NULL DEFAULT 0;`
+        )
         // ตั้งค่าเจ้าของระบบให้เป็น ADMIN อัตโนมัติบน Production DB
         await prisma.$executeRawUnsafe(`
           UPDATE "User"

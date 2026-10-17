@@ -7,7 +7,8 @@ const createTaskSchema = z.object({
   columnId: z.union([z.number(), z.string()]).transform((val) => Number(val)),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   assigneeId: z.union([z.number(), z.string()]).nullable().optional().transform((val) => val ? Number(val) : null),
-  dueDate: z.string().nullable().optional()
+  dueDate: z.string().nullable().optional(),
+  labelIds: z.array(z.number()).optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -22,7 +23,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { title, description, projectId, columnId, priority, assigneeId, dueDate } = parseResult.data
+  const { title, description, projectId, columnId, priority, assigneeId, dueDate, labelIds } = parseResult.data
 
   if (!event.context.auth?.user) {
     throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบ' })
@@ -57,15 +58,26 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    await ensureDbSchema()
+    const existingTaskCount = await prisma.task.count({
+      where: { columnId: Number(columnId) }
+    })
+
     const newTask = await prisma.task.create({
       data: {
         title: title.trim(),
         description: description ? description.trim() : null,
         columnId: Number(columnId),
+        position: existingTaskCount,
         priority,
         projectId: Number(projectId),
         assigneeId: assigneeId ? Number(assigneeId) : null,
-        dueDate: dueDate ? new Date(dueDate) : null
+        dueDate: dueDate ? new Date(dueDate) : null,
+        ...(labelIds && labelIds.length > 0 && {
+          labels: {
+            connect: labelIds.map((lid) => ({ id: lid }))
+          }
+        })
       }
     })
 

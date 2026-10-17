@@ -16,6 +16,8 @@ export default defineEventHandler(async (event) => {
   const userId = event.context.auth.user.id
 
   try {
+    await ensureDbSchema()
+
     // ดึงสิทธิ์สมาชิก, ข้อมูลโปรเจกต์ และรายการการ์ดงานพร้อมกันในรอบเดียว (ลด Latency 3 เท่า)
     const [memberRecord, projectInfo, tasks] = await Promise.all([
       prisma.projectMember.findFirst({
@@ -57,9 +59,10 @@ export default defineEventHandler(async (event) => {
           subtasks: true,
           attachments: true
         },
-        orderBy: {
-          createdAt: 'asc'
-        }
+        orderBy: [
+          { position: 'asc' },
+          { createdAt: 'asc' }
+        ]
       })
     ])
 

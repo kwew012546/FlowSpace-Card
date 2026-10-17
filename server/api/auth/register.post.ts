@@ -85,41 +85,28 @@ export default defineEventHandler(async (event) => {
     console.log('Verification URL:', verifyUrl)
     console.log('---------------------------------------------\n')
 
-    let emailSent = false
-    const smtpConfigured = !!(process.env.SMTP_HOST && process.env.SMTP_USER)
-    if (smtpConfigured) {
-      try {
-        const nodemailer = await import('nodemailer')
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_SECURE === 'true',
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-          }
-        })
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || `"FlowSpace Support" <${process.env.SMTP_USER}>`,
-          to: newUser.email,
-          subject: 'ยืนยันการสมัครสมาชิก FlowSpace 🌌',
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #fdfaf5;">
-              <h2 style="color: #b45309; text-align: center;">ยินดีต้อนรับสู่ FlowSpace 🌌</h2>
-              <p>สวัสดีคุณ <b>${newUser.username}</b>,</p>
-              <p>ขอบคุณที่สมัครสมาชิกกับเรา กรุณาคลิกปุ่มด้านล่างเพื่อยืนยันอีเมลและเปิดใช้งานบัญชีของคุณ ลิงก์นี้มีอายุใช้งาน 15 นาที:</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${verifyUrl}" style="background-color: #d97706; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">ยืนยันอีเมลของคุณ ✉️</a>
-              </div>
-              <p style="color: #6b7280; font-size: 12px; text-align: center;">หากปุ่มด้านบนใช้งานไม่ได้ คุณสามารถคัดลอกลิงก์ด้านล่างไปวางในเบราว์เซอร์ได้:<br><a href="${verifyUrl}">${verifyUrl}</a></p>
-            </div>
-          `
-        })
-        emailSent = true
-      } catch (err) {
-        console.error('Nodemailer Error: Failed to send verification email.', err)
-      }
-    }
+    const emailSent = await sendTransactionalEmail({
+      to: newUser.email,
+      subject: '[FlowSpace] ยืนยันที่อยู่อีเมลสำหรับบัญชีของคุณ',
+      text: `สวัสดีคุณ ${newUser.username},\n\nขอบคุณที่สมัครใช้งาน FlowSpace กรุณาคลิกลิงก์ด้านล่างเพื่อยืนยันอีเมลและเปิดใช้งานบัญชีของคุณ (ลิงก์มีอายุใช้งาน 15 นาที):\n\n${verifyUrl}\n\nหากคุณไม่ได้เป็นผู้ดำเนินการสมัครสมาชิกนี้ คุณสามารถเพิกเฉยต่ออีเมลฉบับนี้ได้ทันที\n\nทีมงาน FlowSpace`,
+      html: `<!DOCTYPE html>
+<html lang="th">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:24px;background-color:#f7f0e4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1c1917;">
+  <div style="max-width:560px;margin:0 auto;padding:28px;border:1px solid #e7e5e4;border-radius:14px;background-color:#fdfaf5;">
+    <h2 style="color:#b45309;margin-top:0;text-align:center;">ยินดีต้อนรับสู่ FlowSpace</h2>
+    <p style="font-size:15px;line-height:1.6;">สวัสดีคุณ <strong>${newUser.username}</strong>,</p>
+    <p style="font-size:15px;line-height:1.6;">ขอบคุณที่ลงทะเบียนเข้าใช้งาน FlowSpace กรุณาคลิกปุ่มด้านล่างเพื่อยืนยันที่อยู่อีเมลและเปิดใช้งานบัญชีของคุณ (ลิงก์นี้มีอายุใช้งาน 15 นาที):</p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${verifyUrl}" style="background-color:#d97706;color:#ffffff;padding:12px 28px;text-decoration:none;border-radius:10px;font-weight:bold;display:inline-block;font-size:15px;">ยืนยันที่อยู่อีเมล</a>
+    </div>
+    <p style="color:#57534e;font-size:13px;line-height:1.5;">หากปุ่มด้านบนไม่สามารถคลิกได้ คุณสามารถคัดลอกลิงก์ด้านล่างไปวางในแถบที่อยู่ของเบราว์เซอร์ได้โดยตรง:<br><a href="${verifyUrl}" style="color:#b45309;word-break:break-all;">${verifyUrl}</a></p>
+    <hr style="border:none;border-top:1px solid #e7e5e4;margin:24px 0;" />
+    <p style="color:#78716c;font-size:12px;margin-bottom:0;">อีเมลฉบับนี้เป็นการแจ้งเตือนอัตโนมัติตามคำขอลงทะเบียนที่ ${newUser.email} บนระบบจัดการงาน FlowSpace หากคุณไม่ได้เป็นผู้ดำเนินการ คุณสามารถเพิกเฉยต่ออีเมลนี้ได้อย่างปลอดภัย</p>
+  </div>
+</body>
+</html>`
+    })
 
     return {
       success: true,
