@@ -502,7 +502,7 @@
             <div v-if="isEditMode" class="border-t border-stone-200/60 pt-4">
               <label class="block text-xs font-black text-stone-500 mb-2 uppercase tracking-wider">💬 บอร์ดความคิดเห็น (Comments)</label>
               
-              <div v-if="comments.length > 0" class="space-y-2 mb-3 max-h-48 overflow-y-auto pr-1">
+              <div v-if="comments.length > 0" class="space-y-2 mb-3 max-h-56 overflow-y-auto pr-1">
                 <div v-for="c in comments" :key="c.id" class="bg-white border border-stone-100 rounded-xl p-3 shadow-xs">
                   <div class="flex justify-between items-center gap-2 mb-1 text-[11px]">
                     <span class="font-black text-amber-900 flex items-center gap-1 flex-wrap">
@@ -511,10 +511,19 @@
                       </span>
                       <span>{{ c.user.username }}</span>
                     </span>
-                    <div class="flex items-center gap-2 shrink-0">
+                    <div class="flex items-center gap-1.5 shrink-0">
                       <span class="text-stone-400 font-mono">{{ new Date(c.createdAt).toLocaleString('th-TH') }}</span>
                       <button
-                        v-if="currentUser?.id === c.user?.id || hasPermission('DELETE_TASK')"
+                        v-if="editingCommentId !== c.id && (currentUser?.id === c.user?.id || (currentUser?.role === 'ADMIN' && isAdminEditUnlocked))"
+                        type="button"
+                        @click="startEditComment(c)"
+                        class="text-stone-400 hover:text-amber-700 font-bold text-[11px] px-1.5 py-0.5 rounded hover:bg-amber-50 transition-all"
+                        title="แก้ไขความคิดเห็นนี้"
+                      >
+                        ✏️ แก้ไข
+                      </button>
+                      <button
+                        v-if="editingCommentId !== c.id && (currentUser?.id === c.user?.id || hasPermission('DELETE_TASK'))"
                         type="button"
                         @click="deleteComment(c.id)"
                         class="text-stone-400 hover:text-rose-600 font-bold text-[11px] px-1.5 py-0.5 rounded hover:bg-rose-50 transition-all"
@@ -524,7 +533,34 @@
                       </button>
                     </div>
                   </div>
-                  <p class="text-stone-700 text-xs font-semibold break-words leading-relaxed">{{ c.content }}</p>
+
+                  <div v-if="editingCommentId === c.id" class="mt-2 space-y-2">
+                    <input
+                      v-model="editingCommentContent"
+                      type="text"
+                      maxlength="500"
+                      class="w-full min-h-[38px] bg-stone-50 border border-amber-400 rounded-lg px-3 py-1.5 text-stone-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                      @keyup.enter="saveEditComment(c.id)"
+                      @keyup.escape="cancelEditComment"
+                    />
+                    <div class="flex justify-end gap-1.5">
+                      <button
+                        type="button"
+                        @click="cancelEditComment"
+                        class="min-h-[32px] px-2.5 py-1 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg font-bold text-xs transition-all"
+                      >
+                        ยกเลิก
+                      </button>
+                      <button
+                        type="button"
+                        @click="saveEditComment(c.id)"
+                        class="min-h-[32px] px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs shadow-sm transition-all"
+                      >
+                        บันทึก
+                      </button>
+                    </div>
+                  </div>
+                  <p v-else class="text-stone-700 text-xs font-semibold break-words leading-relaxed">{{ c.content }}</p>
                 </div>
               </div>
 
@@ -1050,6 +1086,8 @@ const newSubtaskTitle = ref('')
 const attachments = ref([])
 const comments = ref([])
 const newCommentContent = ref('')
+const editingCommentId = ref(null)
+const editingCommentContent = ref('')
 const projectLabels = ref([])
 const isCreatingLabel = ref(false)
 const newLabelName = ref('')
@@ -1431,8 +1469,52 @@ const addComment = async () => {
   } catch (err) { showToast(getApiErrorMessage(err, 'ส่งความเห็นไม่สำเร็จ ❌'), 'error') }
 }
 
+const startEditComment = (comment) => {
+  editingCommentId.value = comment.id
+  editingCommentContent.value = comment.content
+}
+
+const cancelEditComment = () => {
+  editingCommentId.value = null
+  editingCommentContent.value = ''
+}
+
+const saveEditComment = async (commentId) => {
+  const trimmed = editingCommentContent.value.trim()
+  if (!trimmed || !commentId) return
+
+  const target = comments.value.find(c => c.id === commentId)
+  if (target && target.content === trimmed) {
+    cancelEditComment()
+    return
+  }
+
+  const previousContent = target ? target.content : ''
+  if (target) target.content = trimmed
+  cancelEditComment()
+
+  try {
+    const res = await $fetch('/api/tasks/comments', {
+      method: 'PUT',
+      body: { id: commentId, content: trimmed }
+    })
+    if (res.success && res.data && target) {
+      Object.assign(target, res.data)
+    }
+    if (editingTaskId.value) {
+      fetchTaskLogs(editingTaskId.value)
+    }
+  } catch (err) {
+    if (target) target.content = previousContent
+    showToast(getApiErrorMessage(err, 'แก้ไขความคิดเห็นไม่สำเร็จ ❌'), 'error')
+  }
+}
+
 const deleteComment = async (commentId) => {
   if (!commentId) return
+  if (editingCommentId.value === commentId) {
+    cancelEditComment()
+  }
   const backupComments = [...comments.value]
   comments.value = comments.value.filter(c => c.id !== commentId)
   try {
@@ -1971,6 +2053,8 @@ const openAddModal = (columnId) => {
   comments.value = []
   newSubtaskTitle.value = ''
   newCommentContent.value = ''
+  editingCommentId.value = null
+  editingCommentContent.value = ''
   taskLogs.value = []
   taskModalError.value = ''
   isSavingTask.value = false
@@ -1993,6 +2077,8 @@ const openEditModal = (task) => {
   comments.value = []
   newSubtaskTitle.value = ''
   newCommentContent.value = ''
+  editingCommentId.value = null
+  editingCommentContent.value = ''
   taskLogs.value = []
   taskModalError.value = ''
   isSavingTask.value = false
