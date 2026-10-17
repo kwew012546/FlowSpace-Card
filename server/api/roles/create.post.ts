@@ -12,18 +12,14 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // 🔍 ตรวจสอบสิทธิ์คนสร้างยศว่าเป็น Owner หรือมียศคุมระบบ
     const project = await prisma.project.findUnique({ where: { id: Number(projectId) } })
-    const requester = await prisma.projectMember.findFirst({
-      where: { projectId: Number(projectId), userId: userId },
-      include: { role: true }
-    })
+    if (!project) {
+      throw createError({ statusCode: 404, message: 'ไม่พบโปรเจกต์ที่ระบุ' })
+    }
 
-    const isOwner = project && project.ownerId === userId
-    const hasPermission = requester?.role?.permissions.includes('MANAGE_PROJECT')
-
-    if (!isOwner && !hasPermission) {
-      throw createError({ statusCode: 403, message: 'คุณไม่มีอำนาจในการสร้างยศใหม่ในโปรเจกต์นี้' })
+    const hasPerm = await checkPermission(userId, Number(projectId), 'MANAGE_PROJECT')
+    if (!hasPerm) {
+      throw createError({ statusCode: 403, message: 'คุณไม่มีอำนาจในการสร้างยศใหม่ในโปรเจกต์นี้ ❌' })
     }
 
     // ผ่านฉลุย... ทำการสร้างยศใหม่

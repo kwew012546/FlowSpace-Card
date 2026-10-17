@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 const createLabelSchema = z.object({
   projectId: z.union([z.number(), z.string()]).transform(Number),
-  name: z.string().min(1, 'กรุณาระบุชื่อป้ายป้ายป้ายกำกับ').max(30, 'ป้ายกำกับยาวเกินไป'),
+  name: z.string().min(1, 'กรุณาระบุชื่อป้ายกำกับ').max(30, 'ป้ายกำกับยาวเกินไป'),
   color: z.string().regex(/^#[0-9A-F]{6}$/i, 'รูปแบบรหัสสีไม่ถูกต้อง (ตัวอย่าง: #ef4444)')
 })
 
@@ -20,14 +20,9 @@ export default defineEventHandler(async (event) => {
   }
   const userId = event.context.auth.user.id
 
-  // ตรวจสอบสิทธิ์
-  const isMember = await prisma.projectMember.findFirst({
-    where: { projectId, userId }
-  })
-  const project = await prisma.project.findUnique({ where: { id: projectId } })
-  const isOwner = project && project.ownerId === userId
-
-  if (!isMember && !isOwner) {
+  // ตรวจสอบสิทธิ์ (ต้องมีสิทธิ์ CREATE_TASK, MANAGE_PROJECT, เป็นเจ้าของบอร์ด หรือเป็น Super Admin)
+  const hasPerm = await checkPermission(userId, projectId, 'CREATE_TASK')
+  if (!hasPerm) {
     throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์สร้างป้ายกำกับในโปรเจกต์นี้ ❌' })
   }
 

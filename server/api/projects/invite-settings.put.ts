@@ -23,20 +23,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'ไม่พบโปรเจกต์ที่ระบุ' })
   }
 
-  const isOwner = project.ownerId === userId
-
-  if (!isOwner) {
-    const requesterMember = await prisma.projectMember.findFirst({
-      where: { projectId: Number(projectId), userId },
-      include: { role: true }
+  const hasPerm = await checkPermission(userId, Number(projectId), 'MANAGE_PROJECT')
+  if (!hasPerm) {
+    throw createError({
+      statusCode: 403,
+      message: 'คุณไม่มีสิทธิ์ในการจัดการการตั้งค่ารหัสเชิญของโปรเจกต์นี้ ❌'
     })
-
-    if (!requesterMember?.role?.permissions.includes('MANAGE_PROJECT')) {
-      throw createError({
-        statusCode: 403,
-        message: 'คุณไม่มีสิทธิ์ในการจัดการการตั้งค่ารหัสเชิญของโปรเจกต์นี้ ❌'
-      })
-    }
   }
 
   // 2. ดำเนินการอัปเดตตามคำขอ

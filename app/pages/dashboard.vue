@@ -196,7 +196,7 @@
           <div class="flex justify-end gap-2.5 pt-2">
             <button type="button" @click="closeModal" class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all flex items-center justify-center">ยกเลิก</button>
             <button type="submit" :disabled="isSubmitting" class="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-amber-500/10 flex items-center justify-center">
-              {{ isEditProjectMode ? 'บันทึกสำเร็จ ✨' : 'สร้างสำเร็จ ✨' }}
+              {{ isSubmitting ? 'กำลังบันทึก...' : (isEditProjectMode ? 'บันทึกการแก้ไข ✨' : 'สร้างโปรเจกต์ ✨') }}
             </button>
           </div>
         </form>
@@ -303,7 +303,7 @@ const fetchProjects = async () => {
   if (!currentUser.value) return
   isLoading.value = true
   try {
-    const response = await $fetch(`/api/projects/list?userId=${currentUser.value.id}`)
+    const response = await $fetch('/api/projects/list')
     if (response.success) projects.value = response.projects
   } catch (error) { console.error(error) }
   finally { isLoading.value = false }
@@ -367,7 +367,7 @@ const handleCreateProject = async () => {
   try {
     const response = await $fetch('/api/projects/create', {
       method: 'POST',
-      body: { name: projectName.value.trim(), description: projectDescription.value.trim(), ownerId: currentUser.value.id }
+      body: { name: projectName.value.trim(), description: projectDescription.value.trim() }
     })
     if (response.success) { closeModal(); await fetchProjects() }
   } catch (error) { modalMessage.value = error.data?.message || 'เกิดข้อผิดพลาดในการสร้างเวิร์กสเปซ' }
@@ -389,7 +389,7 @@ const handleUpdateProject = async () => {
   try {
     const response = await $fetch('/api/projects/update', {
       method: 'PUT',
-      body: { id: editingProjectId.value, name: projectName.value.trim(), description: projectDescription.value.trim(), userId: currentUser.value.id }
+      body: { id: editingProjectId.value, name: projectName.value.trim(), description: projectDescription.value.trim() }
     })
     if (response.success) { closeModal(); await fetchProjects() }
   } catch (error) { modalMessage.value = error.data?.message || 'เกิดข้อผิดพลาดในการแก้ไขรายละเอียดเวิร์กสเปซ' }
@@ -427,7 +427,7 @@ const handleJoinProject = async () => {
   try {
     const response = await $fetch('/api/projects/join', {
       method: 'POST',
-      body: { inviteCode: codeToJoin.value.trim(), userId: currentUser.value.id }
+      body: { inviteCode: codeToJoin.value.trim() }
     })
     if (response.success) {
       isJoinModalOpen.value = false

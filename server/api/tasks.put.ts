@@ -37,7 +37,10 @@ export default defineEventHandler(async (event) => {
 
     // 3. ตรวจสอบว่ามีงาน ID นี้อยู่ในตารางจริงไหมก่อนจะสั่งอัปเดต
     const existingTask = await prisma.task.findUnique({
-      where: { id: Number(id) }
+      where: { id: Number(id) },
+      include: {
+        labels: { select: { id: true } }
+      }
     })
 
     if (!existingTask) {
@@ -55,8 +58,8 @@ export default defineEventHandler(async (event) => {
       dueDate !== undefined ||
       labelIds !== undefined
 
-    // ตรวจสอบสิทธิ์แก้ไขงาน/ย้ายงาน และตรวจสอบผู้รับผิดชอบพร้อมกันในรอบเดียว
-    const [canCreateOrEdit, canMoveTask, isAssigneeMember] = await Promise.all([
+    // ตรวจสอบสิทธิ์แก้ไขงาน/ย้ายงาน คอลัมน์ปลายทาง และผู้รับผิดชอบพร้อมกันในรอบเดียว
+    const [canCreateOrEdit, canMoveTask, isAssigneeMember, targetColumn, validLabels] = await Promise.all([
       checkPermission(userId, existingTask.projectId, 'CREATE_TASK'),
       checkPermission(userId, existingTask.projectId, 'MOVE_TASK'),
       assigneeId
@@ -64,7 +67,19 @@ export default defineEventHandler(async (event) => {
             where: { projectId: existingTask.projectId, userId: Number(assigneeId) },
             select: { id: true }
           })
-        : Promise.resolve(true)
+        : Promise.resolve(true),
+      columnId !== undefined
+        ? prisma.column.findFirst({
+            where: { id: Number(columnId), projectId: existingTask.projectId },
+            select: { id: true }
+          })
+        : Promise.resolve(true),
+      labelIds !== undefined
+        ? prisma.label.findMany({
+            where: { id: { in: labelIds }, projectId: existingTask.projectId },
+            select: { id: true }
+          })
+        : Promise.resolve([])
     ])
 
     if (isContentUpdate ? !canCreateOrEdit : (!canMoveTask && !canCreateOrEdit)) {
@@ -76,9 +91,18 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    if (columnId !== undefined && !targetColumn) {
+      throw createError({
+        statusCode: 400,
+        message: 'ไม่พบคอลัมน์ปลายทาง หรือคอลัมน์นี้อาจถูกลบไปแล้ว ❌'
+      })
+    }
+
     if (assigneeId && !isAssigneeMember) {
       throw createError({ statusCode: 400, message: 'ผู้รับผิดชอบที่เลือกไม่จัดอยู่ในสมาชิกของโปรเจกต์นี้ ❌' })
     }
+
+    const validLabelIds = validLabels.map((l) => l.id)
 
     // 4. สั่งอัปเดตข้อมูลจริง
     const updatedTask = await prisma.task.update({
@@ -93,7 +117,7 @@ export default defineEventHandler(async (event) => {
         ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
         ...(labelIds !== undefined && {
           labels: {
-            set: labelIds.map((lid) => ({ id: lid }))
+            set: validLabelIds.map((lid) => ({ id: lid }))
           }
         })
       }
@@ -134,12 +158,15 @@ export default defineEventHandler(async (event) => {
       )
     }
 
+    const prevLabelKey = existingTask.labels.map(l => l.id).sort((a, b) => a - b).join(',')
+    const nextLabelKey = [...validLabelIds].sort((a, b) => a - b).join(',')
+
     const hasTitleChanged = title !== undefined && title.trim() !== existingTask.title
     const hasDescChanged = description !== undefined && (description ? description.trim() : null) !== existingTask.description
     const hasAssigneeChanged = assigneeId !== undefined && (assigneeId ? Number(assigneeId) : null) !== existingTask.assigneeId
     const hasDueDateChanged = dueDate !== undefined && (dueDate ? new Date(dueDate).toISOString() : null) !== (existingTask.dueDate ? new Date(existingTask.dueDate).toISOString() : null)
     const hasPriorityChanged = priority !== undefined && priority !== existingTask.priority
-    const hasLabelsChanged = labelIds !== undefined
+    const hasLabelsChanged = labelIds !== undefined && prevLabelKey !== nextLabelKey
 
     if (hasTitleChanged || hasDescChanged || hasAssigneeChanged || hasDueDateChanged || hasPriorityChanged || hasLabelsChanged) {
       let logDetails = 'แก้ไขข้อมูล:'

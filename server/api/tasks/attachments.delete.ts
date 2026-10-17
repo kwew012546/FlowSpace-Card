@@ -1,7 +1,4 @@
 // server/api/tasks/attachments.delete.ts
-import fs from 'fs'
-import path from 'path'
-
 export default defineEventHandler(async (event) => {
   if (!event.context.auth?.user) {
     throw createError({ statusCode: 401, message: 'กรุณาเข้าสู่ระบบ' })
@@ -38,18 +35,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์ลบไฟล์แนบในโปรเจกต์นี้ ❌' })
   }
 
-  // ลบไฟล์จริงบนดิสก์หากเก็บไว้ในโฟลเดอร์ /uploads/
-  if (attachment.filePath && attachment.filePath.startsWith('/uploads/')) {
-    try {
-      const safeFileName = path.basename(attachment.filePath)
-      const fullPath = path.join(process.cwd(), 'public', 'uploads', safeFileName)
-      if (fs.existsSync(fullPath)) {
-        fs.unlinkSync(fullPath)
-      }
-    } catch {
-      // เพิกเฉยหากเป็น Read-only Serverless หรือไฟล์ถูกลบไปแล้ว
-    }
-  }
+  removePhysicalUploadFiles([attachment.filePath])
 
   await prisma.attachment.delete({
     where: { id }

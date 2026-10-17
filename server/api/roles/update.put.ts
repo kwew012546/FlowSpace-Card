@@ -12,21 +12,13 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // หาข้อมููลยศเดิมเพื่อหาไอดีโปรเจกต์
+    // หาข้อมูลยศเดิมเพื่อหาไอดีโปรเจกต์
     const targetRole = await prisma.role.findUnique({ where: { id: Number(roleId) } })
     if (!targetRole) throw createError({ statusCode: 404, message: 'ไม่พบข้อมูลยศที่ต้องการแก้ไข' })
 
-    const project = await prisma.project.findUnique({ where: { id: targetRole.projectId } })
-    const requester = await prisma.projectMember.findFirst({
-      where: { projectId: targetRole.projectId, userId: userId },
-      include: { role: true }
-    })
-
-    const isOwner = project && project.ownerId === userId
-    const hasPermission = requester?.role?.permissions.includes('MANAGE_PROJECT')
-
-    if (!isOwner && !hasPermission) {
-      throw createError({ statusCode: 403, message: 'คุณไม่มีอำนาจแก้ไขข้อมูลยศตำแหน่งนี้' })
+    const hasPerm = await checkPermission(userId, targetRole.projectId, 'MANAGE_PROJECT')
+    if (!hasPerm) {
+      throw createError({ statusCode: 403, message: 'คุณไม่มีอำนาจแก้ไขข้อมูลยศตำแหน่งนี้ ❌' })
     }
 
     // อัปเดตข้อมูลยศ

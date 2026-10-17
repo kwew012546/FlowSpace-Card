@@ -25,22 +25,9 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, message: 'ไม่พบสมาชิกที่ต้องการเปลี่ยนยศ' })
     }
 
-    // 1. ตรวจสอบสิทธิ์ผู้ดำเนินการ (ต้องเป็น Owner หรือมียศ MANAGE_PROJECT)
-    const isOwner = targetMember.project.ownerId === userId
-    let hasManagePermission = false
-
-    if (!isOwner) {
-      const requesterMember = await prisma.projectMember.findFirst({
-        where: { projectId: targetMember.projectId, userId },
-        include: { role: true }
-      })
-
-      if (requesterMember?.role && requesterMember.role.permissions.includes('MANAGE_PROJECT')) {
-        hasManagePermission = true
-      }
-    }
-
-    if (!isOwner && !hasManagePermission) {
+    // 1. ตรวจสอบสิทธิ์ผู้ดำเนินการ (ต้องเป็น Owner, มียศ MANAGE_PROJECT หรือเป็น Super Admin)
+    const hasPerm = await checkPermission(userId, targetMember.projectId, 'MANAGE_PROJECT')
+    if (!hasPerm) {
       throw createError({
         statusCode: 403,
         message: 'คุณไม่มีสิทธิ์ในการจัดการยศของสมาชิกในโปรเจกต์นี้ ❌'

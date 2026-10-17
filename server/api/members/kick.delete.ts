@@ -31,22 +31,8 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, message: 'ไม่พบสมาชิกนี้ในโปรเจกต์' })
     }
 
-    const isOwner = project && project.ownerId === userId
-    let hasManagePermission = false
-
-    if (!isOwner) {
-      // 🔍 สเต็ปที่ 2: ถ้าไม่ใช่ Owner ให้ไปเช็คยศ (Role) ของคนกดว่ามียศที่มีสิทธิ์คุมบอร์ดไหม
-      const requesterMember = await prisma.projectMember.findFirst({
-        where: { projectId: Number(projectId), userId: userId },
-        include: { role: true }
-      })
-
-      if (requesterMember?.role && requesterMember.role.permissions.includes('MANAGE_PROJECT')) {
-        hasManagePermission = true
-      }
-    }
-
-    if (!isOwner && !hasManagePermission) {
+    const hasPerm = await checkPermission(userId, Number(projectId), 'MANAGE_PROJECT')
+    if (!hasPerm) {
       throw createError({
         statusCode: 403,
         message: 'คุณไม่มีสิทธิ์ระดับยศในการจัดการสมาชิกในโปรเจกต์นี้! ❌'

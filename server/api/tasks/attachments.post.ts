@@ -33,15 +33,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'ไม่พบงานหลักที่ต้องการแนบไฟล์' })
   }
 
-  // ตรวจสอบสิทธิ์ (สมาชิกบอร์ด, เจ้าของบอร์ด, หรือ Super Admin)
-  const isMember = await prisma.projectMember.findFirst({
-    where: { projectId: task.projectId, userId }
-  })
-  const project = await prisma.project.findUnique({ where: { id: task.projectId } })
-  const isOwner = project && project.ownerId === userId
-  const isAdmin = event.context.auth.user.role === 'ADMIN'
-
-  if (!isMember && !isOwner && !isAdmin) {
+  // ตรวจสอบสิทธิ์ (ต้องมีสิทธิ์ CREATE_TASK, MANAGE_PROJECT, เป็นเจ้าของบอร์ด หรือเป็น Super Admin)
+  const canUpload = await checkPermission(userId, task.projectId, 'CREATE_TASK')
+  if (!canUpload) {
     throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์อัปโหลดไฟล์ในโปรเจกต์นี้ ❌' })
   }
 

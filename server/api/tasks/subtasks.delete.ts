@@ -19,10 +19,13 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'ไม่พบงานย่อยที่ระบุ' })
   }
 
-  // ตรวจสอบสิทธิ์การเข้าใช้โปรเจกต์ (รวมถึง Super Admin)
-  const canAccess = await isProjectMember(userId, subtask.task.projectId)
-  if (!canAccess) {
-    throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์จัดการข้อมูลบอร์ดนี้ ❌' })
+  // ตรวจสอบสิทธิ์ในการแก้ไขหรือลบงาน (รวมถึง Owner, MANAGE_PROJECT และ Super Admin)
+  const [canEdit, canDelete] = await Promise.all([
+    checkPermission(userId, subtask.task.projectId, 'CREATE_TASK'),
+    checkPermission(userId, subtask.task.projectId, 'DELETE_TASK')
+  ])
+  if (!canEdit && !canDelete) {
+    throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์ลบงานย่อยในโปรเจกต์นี้ ❌' })
   }
 
   await prisma.subtask.delete({

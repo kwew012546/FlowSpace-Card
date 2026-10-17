@@ -169,17 +169,30 @@
             </button>
             
             <div v-if="isNotificationsOpen" class="absolute right-0 sm:right-auto sm:left-0 lg:left-auto lg:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white border border-stone-200 rounded-xl shadow-2xl z-[150] p-4 text-left max-h-96 overflow-y-auto">
-              <div class="flex justify-between items-center mb-3 pb-2 border-b border-stone-100">
+              <div class="flex justify-between items-center gap-2 mb-3 pb-2 border-b border-stone-100">
                 <h3 class="font-black text-stone-800 text-sm">🔔 การแจ้งเตือนล่าสุด</h3>
-                <button v-if="notifications.filter(n => !n.isRead).length > 0" @click="markAllNotificationsRead" class="text-xs font-bold text-amber-600 hover:underline">อ่านทั้งหมด</button>
+                <div class="flex items-center gap-2.5">
+                  <button v-if="notifications.filter(n => !n.isRead).length > 0" @click="markAllNotificationsRead" class="text-xs font-bold text-amber-600 hover:underline">อ่านทั้งหมด</button>
+                  <button v-if="notifications.length > 0" @click="clearAllNotifications" class="text-xs font-bold text-stone-400 hover:text-rose-600 transition-colors">ล้างทั้งหมด</button>
+                </div>
               </div>
               <div v-if="notifications.length === 0" class="text-center py-6 text-stone-400 text-xs">ไม่มีการแจ้งเตือนใด ๆ</div>
               <div v-else class="space-y-2">
-                <div v-for="n in notifications" :key="n.id" @click="markNotificationRead(n.id)" :class="n.isRead ? 'bg-stone-50/50' : 'bg-amber-50/60 border-l-2 border-amber-500'" class="p-2.5 rounded-lg border border-stone-100/80 transition-all cursor-pointer">
-                  <h4 class="text-xs font-bold text-stone-800 flex items-center justify-between">
-                    {{ n.title }}
-                    <span v-if="!n.isRead" class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  </h4>
+                <div v-for="n in notifications" :key="n.id" @click="markNotificationRead(n.id)" :class="n.isRead ? 'bg-stone-50/50' : 'bg-amber-50/60 border-l-2 border-amber-500'" class="p-2.5 rounded-lg border border-stone-100/80 transition-all cursor-pointer group">
+                  <div class="flex items-start justify-between gap-2">
+                    <h4 class="text-xs font-bold text-stone-800 flex items-center gap-1.5 flex-1 min-w-0">
+                      <span class="truncate">{{ n.title }}</span>
+                      <span v-if="!n.isRead" class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                    </h4>
+                    <button
+                      type="button"
+                      @click.stop="deleteNotification(n.id)"
+                      class="text-stone-300 hover:text-rose-600 text-[11px] font-bold px-1 rounded transition-colors shrink-0"
+                      title="ลบการแจ้งเตือนนี้"
+                    >
+                      ✕
+                    </button>
+                  </div>
                   <p class="text-[11px] text-stone-500 mt-0.5">{{ n.message }}</p>
                   <p class="text-[9px] text-stone-400 mt-1">{{ new Date(n.createdAt).toLocaleDateString('th-TH', { hour: 'numeric', minute: 'numeric' }) }}</p>
                 </div>
@@ -491,14 +504,25 @@
               
               <div v-if="comments.length > 0" class="space-y-2 mb-3 max-h-48 overflow-y-auto pr-1">
                 <div v-for="c in comments" :key="c.id" class="bg-white border border-stone-100 rounded-xl p-3 shadow-xs">
-                  <div class="flex justify-between items-center mb-1 text-[11px]">
+                  <div class="flex justify-between items-center gap-2 mb-1 text-[11px]">
                     <span class="font-black text-amber-900 flex items-center gap-1 flex-wrap">
                       <span v-if="isAdminOverrideActor(c.user)" class="inline-flex items-center gap-0.5 bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded text-[9px] font-black">
                         🛡️ [ผู้ดูแลระบบ]
                       </span>
                       <span>{{ c.user.username }}</span>
                     </span>
-                    <span class="text-stone-400 font-mono">{{ new Date(c.createdAt).toLocaleString('th-TH') }}</span>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <span class="text-stone-400 font-mono">{{ new Date(c.createdAt).toLocaleString('th-TH') }}</span>
+                      <button
+                        v-if="currentUser?.id === c.user?.id || hasPermission('DELETE_TASK')"
+                        type="button"
+                        @click="deleteComment(c.id)"
+                        class="text-stone-400 hover:text-rose-600 font-bold text-[11px] px-1.5 py-0.5 rounded hover:bg-rose-50 transition-all"
+                        title="ลบความคิดเห็นนี้"
+                      >
+                        🗑️ ลบ
+                      </button>
+                    </div>
                   </div>
                   <p class="text-stone-700 text-xs font-semibold break-words leading-relaxed">{{ c.content }}</p>
                 </div>
@@ -1293,6 +1317,28 @@ const markAllNotificationsRead = async () => {
   } catch (err) { console.error(err) }
 }
 
+const deleteNotification = async (id) => {
+  const backup = [...notifications.value]
+  notifications.value = notifications.value.filter(n => n.id !== id)
+  try {
+    await $fetch(`/api/notifications?id=${id}`, { method: 'DELETE' })
+  } catch (err) {
+    notifications.value = backup
+    showToast(getApiErrorMessage(err, 'ลบการแจ้งเตือนไม่สำเร็จ ❌'), 'error')
+  }
+}
+
+const clearAllNotifications = async () => {
+  const backup = [...notifications.value]
+  notifications.value = []
+  try {
+    await $fetch('/api/notifications?all=true', { method: 'DELETE' })
+  } catch (err) {
+    notifications.value = backup
+    showToast(getApiErrorMessage(err, 'ล้างการแจ้งเตือนไม่สำเร็จ ❌'), 'error')
+  }
+}
+
 // --- ฟังก์ชันออกจากบอร์ด / ลบบอร์ดโครงการ ---
 const leaveProject = async () => {
   if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการออกจากโปรเจกต์นี้? 🚪')) return
@@ -1383,6 +1429,22 @@ const addComment = async () => {
       fetchTaskLogs(editingTaskId.value)
     }
   } catch (err) { showToast(getApiErrorMessage(err, 'ส่งความเห็นไม่สำเร็จ ❌'), 'error') }
+}
+
+const deleteComment = async (commentId) => {
+  if (!commentId) return
+  const backupComments = [...comments.value]
+  comments.value = comments.value.filter(c => c.id !== commentId)
+  try {
+    await $fetch(`/api/tasks/comments?id=${commentId}`, { method: 'DELETE' })
+    fetchTasks()
+    if (editingTaskId.value) {
+      fetchTaskLogs(editingTaskId.value)
+    }
+  } catch (err) {
+    comments.value = backupComments
+    showToast(getApiErrorMessage(err, 'ลบความคิดเห็นไม่สำเร็จ ❌'), 'error')
+  }
 }
 
 const handleFileUpload = async (event) => {
@@ -1551,7 +1613,12 @@ const initSse = () => {
         if (Date.now() - lastLocalMutationAt < 1500) return
 
         if (data.type === 'TASKS_UPDATED') {
-          Promise.all([fetchTasks(), fetchColumns(), fetchNotifications()])
+          Promise.all([fetchTasks(), fetchColumns(), fetchNotifications(), fetchLabels()]).then(() => {
+            if (isModalOpen.value && isEditMode.value && editingTaskId.value) {
+              fetchTaskDetails(editingTaskId.value)
+              fetchTaskLogs(editingTaskId.value)
+            }
+          })
         } else if (data.type === 'TEAM_UPDATED') {
           Promise.all([fetchTeamAndRoles(), fetchNotifications(), fetchTasks()])
         }

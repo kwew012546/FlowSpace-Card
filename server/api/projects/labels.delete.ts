@@ -18,16 +18,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'ไม่พบป้ายกำกับที่ต้องการลบ' })
   }
 
-  // ตรวจสอบสิทธิ์
-  const isMember = await prisma.projectMember.findFirst({
-    where: { projectId: label.projectId, userId }
-  })
-  const project = await prisma.project.findUnique({ where: { id: label.projectId } })
-  const isOwner = project && project.ownerId === userId
-  const isAdmin = event.context.auth.user.role === 'ADMIN'
+  // ตรวจสอบสิทธิ์ (ต้องมีสิทธิ์ CREATE_TASK หรือ DELETE_TASK)
+  const [canCreate, canDelete] = await Promise.all([
+    checkPermission(userId, label.projectId, 'CREATE_TASK'),
+    checkPermission(userId, label.projectId, 'DELETE_TASK')
+  ])
 
-  if (!isMember && !isOwner && !isAdmin) {
-    throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์จัดการข้อมูลป้ายกำกับนี้ ❌' })
+  if (!canCreate && !canDelete) {
+    throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์ลบป้ายกำกับในโปรเจกต์นี้ ❌' })
   }
 
   await prisma.label.delete({

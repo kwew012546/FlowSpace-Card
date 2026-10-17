@@ -31,21 +31,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const isOwner = project.ownerId === currentUserId
-    let hasInvitePermission = false
-
-    if (!isOwner) {
-      const callerMember = await prisma.projectMember.findFirst({
-        where: { projectId: Number(projectId), userId: currentUserId },
-        include: { role: true }
-      })
-
-      if (callerMember?.role?.permissions.some((p: string) => p === 'INVITE_MEMBERS' || p === 'MANAGE_PROJECT')) {
-        hasInvitePermission = true
-      }
-    }
-
-    if (!isOwner && !hasInvitePermission) {
+    const hasInvitePermission = await checkPermission(currentUserId, Number(projectId), 'INVITE_MEMBERS')
+    if (!hasInvitePermission) {
       throw createError({
         statusCode: 403,
         message: 'คุณไม่มีสิทธิ์ในการเชิญสมาชิกเข้าโปรเจกต์นี้ ❌'

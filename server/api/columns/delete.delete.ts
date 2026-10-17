@@ -61,6 +61,12 @@ export default defineEventHandler(async (event) => {
       broadcastProjectUpdate(column.projectId, 'TASKS_UPDATED')
       return { success: true, message: 'ย้ายงานและลบคอลัมน์เรียบร้อยแล้ว!' }
     } else if (forceDeleteTasks) {
+      const colAttachments = await prisma.attachment.findMany({
+        where: { task: { columnId: id } },
+        select: { filePath: true }
+      })
+      removePhysicalUploadFiles(colAttachments.map(a => a.filePath))
+
       await prisma.column.delete({
         where: { id }
       })

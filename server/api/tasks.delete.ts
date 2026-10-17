@@ -18,9 +18,14 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // 1. ค้นหางานเพื่อตรวจสอบว่าอยู่ในโปรเจกต์ไหน
+    // 1. ค้นหางานและไฟล์แนบเพื่อตรวจสอบสิทธิ์และลบไฟล์แนบออกจากดิสก์
     const task = await prisma.task.findUnique({
-      where: { id: Number(id) }
+      where: { id: Number(id) },
+      include: {
+        attachments: {
+          select: { filePath: true }
+        }
+      }
     })
 
     if (!task) {
@@ -32,6 +37,8 @@ export default defineEventHandler(async (event) => {
     if (!hasPerm) {
       throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์ลบงานในโปรเจกต์นี้ ❌' })
     }
+
+    removePhysicalUploadFiles(task.attachments.map(a => a.filePath))
 
     // 3. สั่ง Prisma ลบงานชิ้นนั้นออกจากตาราง PostgreSQL
     await prisma.task.delete({

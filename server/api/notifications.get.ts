@@ -6,7 +6,8 @@ export default defineEventHandler(async (event) => {
 
   const notifications = await prisma.notification.findMany({
     where: { userId },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    take: 50
   })
 
   return { success: true, data: notifications }

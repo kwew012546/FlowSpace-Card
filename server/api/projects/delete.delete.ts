@@ -27,6 +27,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const projectAttachments = await prisma.attachment.findMany({
+    where: { task: { projectId } },
+    select: { filePath: true }
+  })
+  removePhysicalUploadFiles(projectAttachments.map(a => a.filePath))
+
   await prisma.project.delete({
     where: { id: projectId }
   })

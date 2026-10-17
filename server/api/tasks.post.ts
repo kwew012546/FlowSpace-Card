@@ -59,9 +59,17 @@ export default defineEventHandler(async (event) => {
 
   try {
     await ensureDbSchema()
-    const existingTaskCount = await prisma.task.count({
-      where: { columnId: Number(columnId) }
-    })
+    const [existingTaskCount, validLabels] = await Promise.all([
+      prisma.task.count({
+        where: { columnId: Number(columnId) }
+      }),
+      labelIds && labelIds.length > 0
+        ? prisma.label.findMany({
+            where: { id: { in: labelIds }, projectId: Number(projectId) },
+            select: { id: true }
+          })
+        : Promise.resolve([])
+    ])
 
     const newTask = await prisma.task.create({
       data: {
@@ -73,9 +81,9 @@ export default defineEventHandler(async (event) => {
         projectId: Number(projectId),
         assigneeId: assigneeId ? Number(assigneeId) : null,
         dueDate: dueDate ? new Date(dueDate) : null,
-        ...(labelIds && labelIds.length > 0 && {
+        ...(validLabels.length > 0 && {
           labels: {
-            connect: labelIds.map((lid) => ({ id: lid }))
+            connect: validLabels.map((l) => ({ id: l.id }))
           }
         })
       }

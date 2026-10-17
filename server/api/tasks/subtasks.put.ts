@@ -28,9 +28,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'ไม่พบงานย่อยที่ระบุ' })
   }
 
-  // ตรวจสอบสิทธิ์การเข้าใช้โปรเจกต์ (รวมถึง Super Admin)
-  const canAccess = await isProjectMember(userId, subtask.task.projectId)
-  if (!canAccess) {
+  // ตรวจสอบสิทธิ์ในการแก้ไขการ์ดงาน (รวมถึง Owner, MANAGE_PROJECT และ Super Admin)
+  const canEdit = await checkPermission(userId, subtask.task.projectId, 'CREATE_TASK')
+  if (!canEdit) {
     throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์แก้ไขงานย่อยในโปรเจกต์นี้ ❌' })
   }
 
