@@ -1,10 +1,12 @@
 <!-- app/pages/reset-password.vue -->
 <template>
-  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] dark:from-[#070b14] dark:via-[#0b1120] dark:to-[#0f172a] flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative overflow-x-hidden bg-grid text-stone-800 dark:text-slate-100 transition-colors duration-300">
+  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] dark:from-[#070b14] dark:via-[#0b1120] dark:to-[#0f172a] flex flex-col justify-between p-3 sm:p-5 lg:p-6 relative overflow-x-hidden bg-grid text-stone-800 dark:text-slate-100 transition-colors duration-300">
     
     <!-- Ambient Lighting -->
-    <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[460px] h-[460px] bg-amber-400/20 dark:bg-amber-500/12 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-    <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[460px] h-[460px] bg-indigo-400/15 dark:bg-indigo-500/12 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[460px] h-[460px] bg-amber-400/20 dark:bg-amber-500/12 rounded-full blur-3xl"></div>
+      <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[460px] h-[460px] bg-indigo-400/15 dark:bg-indigo-500/12 rounded-full blur-3xl"></div>
+    </div>
 
     <!-- Top Utility Header (Brand + Theme Toggle on every page) -->
     <header class="w-full max-w-5xl mx-auto flex items-center justify-between relative z-20 mb-4">

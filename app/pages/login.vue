@@ -1,13 +1,15 @@
 <!-- app/pages/login.vue -->
 <template>
-  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] dark:from-[#070b14] dark:via-[#0b1120] dark:to-[#0f172a] flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative overflow-x-hidden bg-grid text-stone-800 dark:text-slate-100 transition-colors duration-300">
+  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] dark:from-[#070b14] dark:via-[#0b1120] dark:to-[#0f172a] flex flex-col justify-between p-3 sm:p-5 lg:p-6 relative overflow-x-hidden bg-grid text-stone-800 dark:text-slate-100 transition-colors duration-300">
     
     <!-- Ambient Aurora Mesh Glow (ui-ux-pro-max Style #10 Aurora UI) -->
-    <div class="hidden sm:block absolute top-[-12%] left-[-8%] w-[500px] h-[500px] bg-amber-400/20 dark:bg-amber-500/12 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-    <div class="hidden sm:block absolute bottom-[-12%] right-[-8%] w-[500px] h-[500px] bg-indigo-400/15 dark:bg-indigo-500/12 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div class="hidden sm:block absolute top-[-12%] left-[-8%] w-[500px] h-[500px] bg-amber-400/20 dark:bg-amber-500/12 rounded-full blur-3xl"></div>
+      <div class="hidden sm:block absolute bottom-[-12%] right-[-8%] w-[500px] h-[500px] bg-indigo-400/15 dark:bg-indigo-500/12 rounded-full blur-3xl"></div>
+    </div>
 
     <!-- Top Utility Header (Brand + Theme Toggle on every page) -->
-    <header class="w-full max-w-6xl mx-auto flex items-center justify-between relative z-20 mb-4 sm:mb-6">
+    <header class="w-full max-w-6xl mx-auto flex items-center justify-between relative z-20 mb-3 sm:mb-4">
       <NuxtLink to="/login" class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-white/85 dark:bg-slate-900/80 backdrop-blur-md border border-amber-200/80 dark:border-slate-700/80 shadow-xs hover:border-amber-400 transition-all">
         <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-sm shadow-amber-500/30">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
@@ -306,7 +308,7 @@
     </div>
 
     <!-- Subtle Footer -->
-    <footer class="w-full max-w-6xl mx-auto text-center text-[11px] text-stone-400 dark:text-slate-500 font-medium mt-6 relative z-10">
+    <footer class="w-full max-w-6xl mx-auto text-center text-[11px] text-stone-400 dark:text-slate-500 font-medium mt-3 sm:mt-4 relative z-10">
       FlowSpace Modern Workflow Platform — ออกแบบตามมาตรฐาน UI/UX & Accessibility
     </footer>
   </div>

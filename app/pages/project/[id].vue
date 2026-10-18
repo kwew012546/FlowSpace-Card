@@ -1,8 +1,10 @@
 <template>
-  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] text-stone-800 flex flex-col relative overflow-x-hidden bg-grid">
+  <div class="h-screen h-[100dvh] max-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] text-stone-800 flex flex-col relative overflow-hidden bg-grid">
     
-    <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-amber-200/40 rounded-full blur-3xl"></div>
+      <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[320px] sm:w-[400px] h-[320px] sm:h-[400px] bg-orange-200/30 rounded-full blur-3xl"></div>
+    </div>
 
     <!-- Top Admin Bar (Exclusive when Super Admin inspects OTHER users' boards) -->
     <aside 
@@ -347,7 +349,7 @@
       </div>
     </div>
 
-    <main class="flex-1 p-3 sm:p-6 overflow-x-auto relative z-10">
+    <main class="flex-1 min-h-0 p-3 sm:p-5 overflow-x-auto relative z-10 flex flex-col">
       <!-- Skeleton Shimmer while initial board data loads -->
       <div v-if="isLoadingBoard" class="flex gap-4 sm:gap-6 h-full items-start pb-4 min-w-max" aria-busy="true" aria-label="กำลังโหลดข้อมูลบอร์ดงาน">
         <div
@@ -409,7 +411,7 @@
         </div>
       </div>
 
-      <div v-else class="flex gap-4 sm:gap-6 h-full items-start pb-4 min-w-max">
+      <div v-else class="flex gap-4 sm:gap-6 h-full items-start pb-2 min-w-max flex-1 min-h-0">
         
         <div
           v-for="col in columns"
@@ -419,7 +421,7 @@
           @dragstart="onColumnDragStart(col.id)"
           @dragover.prevent
           @drop="onDrop(col.id)"
-          class="bg-[#fdfaf5]/95 border border-amber-200/80 rounded-2xl p-3.5 sm:p-4 shadow-md w-[85vw] sm:w-80 shrink-0 relative flex flex-col max-h-[calc(100dvh-16rem)] sm:max-h-[73dvh] transition-all overflow-hidden"
+          class="bg-[#fdfaf5]/95 border border-amber-200/80 rounded-2xl p-3.5 sm:p-4 shadow-md w-[85vw] sm:w-80 shrink-0 relative flex flex-col max-h-full transition-all overflow-hidden"
         >
           <!-- Column Top Gradient Accent -->
           <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 opacity-80" aria-hidden="true"></div>

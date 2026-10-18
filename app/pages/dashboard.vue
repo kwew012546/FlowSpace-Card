@@ -3,8 +3,10 @@
   <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] dark:from-[#070b14] dark:via-[#0b1120] dark:to-[#0f172a] text-stone-800 dark:text-slate-100 flex flex-col relative overflow-x-hidden bg-grid transition-colors duration-300">
     
     <!-- Ambient Aurora Mesh Glow -->
-    <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[480px] h-[480px] bg-amber-400/20 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-    <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[480px] h-[480px] bg-indigo-400/15 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[480px] h-[480px] bg-amber-400/20 dark:bg-amber-500/10 rounded-full blur-3xl"></div>
+      <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[480px] h-[480px] bg-indigo-400/15 dark:bg-indigo-500/10 rounded-full blur-3xl"></div>
+    </div>
 
     <!-- Top Navigation Bar -->
     <header class="sticky top-0 z-30 bg-[#fdfaf5]/90 dark:bg-slate-900/85 backdrop-blur-xl border-b border-amber-200/80 dark:border-slate-800 px-4 py-3 shadow-xs">
@@ -145,22 +147,22 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-3.5 sm:py-5 relative z-10">
       
       <!-- Hero Banner & Action Toolbar -->
-      <div class="rounded-3xl bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border border-amber-200/80 dark:border-slate-800 p-5 sm:p-7 mb-6 shadow-lg shadow-amber-950/5 dark:shadow-black/30 relative overflow-hidden">
+      <div class="rounded-3xl bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border border-amber-200/80 dark:border-slate-800 p-4 sm:p-5 mb-3.5 sm:mb-4.5 shadow-lg shadow-amber-950/5 dark:shadow-black/30 relative overflow-hidden">
         <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-indigo-500" aria-hidden="true"></div>
         
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100/90 text-amber-800 text-[11px] font-extrabold mb-2">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100/90 text-amber-800 text-[11px] font-extrabold mb-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>Workspace Command Center</span>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white tracking-tight">
+            <h2 class="text-xl sm:text-2xl font-black text-stone-900 dark:text-white tracking-tight">
               สวัสดี, {{ currentUser?.username || 'สมาชิก' }}
             </h2>
-            <p class="text-stone-500 dark:text-slate-400 font-medium text-xs sm:text-sm mt-1">
+            <p class="text-stone-500 dark:text-slate-400 font-medium text-xs sm:text-sm mt-0.5">
               เลือกบอร์ดเวิร์กสเปซของคุณ หรือนำรหัสเชิญ 6 หลักมาเข้าร่วมทีมเพื่อลุยงานต่อทันที
             </p>
           </div>
@@ -194,15 +196,15 @@
         </div>
 
         <!-- 3-Card Bento KPI Overview Strip (Shown when user has projects) -->
-        <div v-if="!isLoading && projects.length > 0" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-6 pt-5 border-t border-stone-200/70 dark:border-slate-800">
+        <div v-if="!isLoading && projects.length > 0" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 mt-3.5 pt-3.5 border-t border-stone-200/70 dark:border-slate-800">
           <!-- KPI 1: Total Workspaces -->
-          <div class="rounded-2xl bg-stone-50/90 border border-stone-200/80 p-4 flex items-center justify-between gap-3">
+          <div class="rounded-2xl bg-stone-50/90 border border-stone-200/80 p-3 sm:p-3.5 flex items-center justify-between gap-3">
             <div>
               <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">เวิร์กสเปซทั้งหมด</p>
-              <p class="text-2xl sm:text-3xl font-black text-stone-800 tabular-nums mt-0.5">{{ projects.length }}</p>
+              <p class="text-xl sm:text-2xl font-black text-stone-800 tabular-nums mt-0.5">{{ projects.length }}</p>
               <p class="text-[11px] font-semibold text-stone-500 mt-0.5">โปรเจกต์ที่คุณเข้าถึงได้</p>
             </div>
-            <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-400/30 text-amber-600 flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-400/30 text-amber-600 flex items-center justify-center shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
               </svg>
@@ -210,13 +212,13 @@
           </div>
 
           <!-- KPI 2: Owned Workspaces -->
-          <div class="rounded-2xl bg-stone-50/90 border border-stone-200/80 p-4 flex items-center justify-between gap-3">
+          <div class="rounded-2xl bg-stone-50/90 border border-stone-200/80 p-3 sm:p-3.5 flex items-center justify-between gap-3">
             <div>
               <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">คุณเป็นเจ้าของ (Owner)</p>
-              <p class="text-2xl sm:text-3xl font-black text-amber-700 tabular-nums mt-0.5">{{ ownedCount }}</p>
+              <p class="text-xl sm:text-2xl font-black text-amber-700 tabular-nums mt-0.5">{{ ownedCount }}</p>
               <p class="text-[11px] font-semibold text-stone-500 mt-0.5">สิทธิ์จัดการบอร์ดเต็มรูปแบบ</p>
             </div>
-            <div class="w-11 h-11 rounded-2xl bg-orange-500/15 border border-orange-400/30 text-orange-500 flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-400/30 text-orange-500 flex items-center justify-center shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
               </svg>
@@ -224,13 +226,13 @@
           </div>
 
           <!-- KPI 3: Team Collaborations -->
-          <div class="rounded-2xl bg-stone-50/90 border border-stone-200/80 p-4 flex items-center justify-between gap-3">
+          <div class="rounded-2xl bg-stone-50/90 border border-stone-200/80 p-3 sm:p-3.5 flex items-center justify-between gap-3">
             <div>
               <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">ร่วมทีม (Member)</p>
-              <p class="text-2xl sm:text-3xl font-black text-emerald-600 tabular-nums mt-0.5">{{ memberCount }}</p>
+              <p class="text-xl sm:text-2xl font-black text-emerald-600 tabular-nums mt-0.5">{{ memberCount }}</p>
               <p class="text-[11px] font-semibold text-stone-500 mt-0.5">โปรเจกต์ที่เข้าร่วมกับทีม</p>
             </div>
-            <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-500 flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-500 flex items-center justify-center shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
               </svg>
@@ -240,7 +242,7 @@
       </div>
 
       <!-- Search & Filter Bar (Shown when user has projects) -->
-      <div v-if="!isLoading && projects.length > 0" class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border border-amber-200/80 dark:border-slate-800 rounded-2xl p-3 sm:p-4 mb-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div v-if="!isLoading && projects.length > 0" class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border border-amber-200/80 dark:border-slate-800 rounded-2xl p-2.5 sm:p-3 mb-3.5 sm:mb-4.5 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <!-- Search Input -->
         <div class="relative flex-1">
           <label for="workspace-search" class="sr-only">ค้นหาโปรเจกต์</label>
@@ -429,7 +431,7 @@
       </div>
 
       <!-- Workspace Bento Grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4.5">
         <article 
           v-for="project in filteredProjects" 
           :key="project.id" 
@@ -437,7 +439,7 @@
           tabindex="0"
           @click="goToProject(project)"
           @keydown.enter="goToProject(project)"
-          class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl hover:bg-white border border-stone-200/90 dark:border-slate-800 hover:border-amber-400/90 rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500"
+          class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl hover:bg-white border border-stone-200/90 dark:border-slate-800 hover:border-amber-400/90 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500"
         >
           <!-- Permanent Color-Coded Top Accent Strip -->
           <div
@@ -448,10 +450,10 @@
 
           <div>
             <!-- Card Header: Icon + Name + Role Badge -->
-            <div class="flex justify-between items-start gap-3 mb-3.5 mt-1">
-              <div class="flex items-start gap-3 min-w-0 flex-1">
+            <div class="flex justify-between items-start gap-3 mb-2.5 mt-0.5">
+              <div class="flex items-start gap-2.5 min-w-0 flex-1">
                 <div
-                  class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all shadow-xs"
+                  class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all shadow-xs"
                   :class="project.isOwner
                     ? 'bg-amber-500/15 text-amber-700 group-hover:bg-amber-500 group-hover:text-white'
                     : 'bg-emerald-500/15 text-emerald-700 group-hover:bg-emerald-500 group-hover:text-white'"
@@ -483,13 +485,13 @@
             </div>
 
             <!-- Description -->
-            <p class="text-stone-500 dark:text-slate-400 text-xs sm:text-sm font-medium line-clamp-2 mb-5 break-words leading-relaxed">
+            <p class="text-stone-500 dark:text-slate-400 text-xs sm:text-sm font-medium line-clamp-2 mb-3.5 break-words leading-relaxed">
               {{ project.description || 'ไม่มีคำอธิบายรายละเอียดโปรเจกต์...' }}
             </p>
           </div>
 
           <!-- Card Footer: Owner Info & Actions (44x44px touch targets) -->
-          <div class="pt-3.5 border-t border-stone-100 dark:border-slate-800 flex justify-between items-center gap-2">
+          <div class="pt-2.5 border-t border-stone-100 dark:border-slate-800 flex justify-between items-center gap-2">
             <div class="flex items-center gap-2 min-w-0">
               <div class="w-7 h-7 rounded-full bg-stone-200 text-stone-700 text-xs font-black flex items-center justify-center uppercase shrink-0" aria-hidden="true">
                 {{ (project.ownerName || 'O').charAt(0) }}

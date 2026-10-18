@@ -1,13 +1,15 @@
 <!-- app/pages/register.vue -->
 <template>
-  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] dark:from-[#070b14] dark:via-[#0b1120] dark:to-[#0f172a] flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative overflow-x-hidden bg-grid text-stone-800 dark:text-slate-100 transition-colors duration-300">
+  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] dark:from-[#070b14] dark:via-[#0b1120] dark:to-[#0f172a] flex flex-col justify-between p-3 sm:p-5 lg:p-6 relative overflow-x-hidden bg-grid text-stone-800 dark:text-slate-100 transition-colors duration-300">
     
     <!-- Ambient Aurora Mesh Glow -->
-    <div class="hidden sm:block absolute top-[-12%] left-[-8%] w-[500px] h-[500px] bg-amber-400/20 dark:bg-amber-500/12 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-    <div class="hidden sm:block absolute bottom-[-12%] right-[-8%] w-[500px] h-[500px] bg-indigo-400/15 dark:bg-indigo-500/12 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div class="hidden sm:block absolute top-[-12%] left-[-8%] w-[500px] h-[500px] bg-amber-400/20 dark:bg-amber-500/12 rounded-full blur-3xl"></div>
+      <div class="hidden sm:block absolute bottom-[-12%] right-[-8%] w-[500px] h-[500px] bg-indigo-400/15 dark:bg-indigo-500/12 rounded-full blur-3xl"></div>
+    </div>
 
     <!-- Top Utility Header (Brand + Theme Toggle on every page) -->
-    <header class="w-full max-w-6xl mx-auto flex items-center justify-between relative z-20 mb-4 sm:mb-6">
+    <header class="w-full max-w-6xl mx-auto flex items-center justify-between relative z-20 mb-3 sm:mb-4">
       <NuxtLink to="/login" class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-white/85 dark:bg-slate-900/80 backdrop-blur-md border border-amber-200/80 dark:border-slate-700/80 shadow-xs hover:border-amber-400 transition-all">
         <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-sm shadow-amber-500/30">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
@@ -99,21 +101,21 @@
       </aside>
 
       <!-- Right Column on Desktop / Top Registration Card on Mobile & Tablet -->
-      <main class="order-1 lg:order-2 lg:col-span-5 bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-amber-200/80 dark:border-slate-700/80 p-6 sm:p-8 lg:p-9 rounded-3xl w-full max-w-md mx-auto lg:max-w-none shadow-2xl shadow-amber-950/5 dark:shadow-black/40 relative overflow-hidden flex flex-col justify-center">
+      <main class="order-1 lg:order-2 lg:col-span-5 bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-amber-200/80 dark:border-slate-700/80 p-5 sm:p-6 lg:p-7 rounded-3xl w-full max-w-md mx-auto lg:max-w-none shadow-2xl shadow-amber-950/5 dark:shadow-black/40 relative overflow-hidden flex flex-col justify-center">
         <!-- Top Accent Line -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500" aria-hidden="true"></div>
 
-        <div v-if="!isSuccess || verifyLink" class="mb-6">
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100/80 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 text-[11px] font-extrabold mb-3">
+        <div v-if="!isSuccess || verifyLink" class="mb-4">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100/80 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 text-[11px] font-extrabold mb-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
             </svg>
             <span>Create Free Account</span>
           </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">
+          <h1 class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-stone-900 dark:text-white tracking-tight">
             สมัครสมาชิก
           </h1>
-          <p class="text-stone-500 dark:text-slate-400 text-xs sm:text-sm mt-1.5 font-medium leading-relaxed">
+          <p class="text-stone-500 dark:text-slate-400 text-xs sm:text-sm mt-1 font-medium leading-relaxed">
             สร้างบัญชีใหม่เพื่อเริ่มต้นบริหารจัดการเวิร์กสเปซและทีมของคุณ
           </p>
         </div>
@@ -350,7 +352,7 @@
       </main>
     </div>
 
-    <footer class="w-full max-w-6xl mx-auto text-center text-[11px] text-stone-400 dark:text-slate-500 font-medium mt-6 relative z-10">
+    <footer class="w-full max-w-6xl mx-auto text-center text-[11px] text-stone-400 dark:text-slate-500 font-medium mt-3 sm:mt-4 relative z-10">
       FlowSpace Modern Workflow Platform — ออกแบบตามมาตรฐาน UI/UX & Accessibility
     </footer>
   </div>
