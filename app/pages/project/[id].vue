@@ -72,7 +72,7 @@
               type="text"
               maxlength="50"
               aria-label="ชื่อโปรเจกต์"
-              class="bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-base sm:text-lg font-extrabold text-stone-800 focus:outline-none min-h-[42px] flex-1 min-w-0 w-full"
+              class="bg-white border border-amber-400 rounded-lg px-2.5 py-1.5 text-base sm:text-lg font-extrabold text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 min-h-[42px] flex-1 min-w-0 w-full"
               @keyup.enter="saveProjectName"
               @keyup.esc="isEditingProjectName = false"
             />
@@ -80,10 +80,19 @@
             <button @click="isEditingProjectName = false" class="min-h-[42px] bg-stone-300 hover:bg-stone-400 text-stone-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center shrink-0 cursor-pointer">ยกเลิก</button>
           </div>
 
-          <h1 v-else class="text-lg sm:text-2xl font-extrabold text-stone-800 flex items-center gap-1.5 group min-w-0" :title="projectName">
-            <span class="shrink-0">📁 โปรเจกต์:</span>
-            <span class="truncate block min-w-0" :title="projectName">{{ projectName || 'กำลังโหลดชื่อบอร์ด...' }}</span>
-            <button v-if="hasPermission('MANAGE_PROJECT')" @click="startEditProjectName" class="min-h-[38px] min-w-[38px] flex items-center justify-center text-sm opacity-60 hover:opacity-100 hover:text-amber-600 transition-all shrink-0 ml-0.5 cursor-pointer" title="แก้ไขชื่อโปรเจกต์">✏️</button>
+          <h1 v-else class="text-lg sm:text-xl font-extrabold text-stone-800 flex items-center gap-2 group min-w-0" :title="projectName">
+            <span class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-300/60 text-amber-700 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+              </svg>
+            </span>
+            <span v-if="!projectName && isLoadingBoard" class="h-5 w-36 bg-stone-200/80 rounded-md animate-pulse inline-block"></span>
+            <span v-else class="truncate block min-w-0" :title="projectName">{{ projectName || 'กำลังโหลดชื่อบอร์ด...' }}</span>
+            <button v-if="hasPermission('MANAGE_PROJECT')" @click="startEditProjectName" class="min-h-[38px] min-w-[38px] flex items-center justify-center text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all shrink-0 cursor-pointer" title="แก้ไขชื่อโปรเจกต์" aria-label="แก้ไขชื่อโปรเจกต์">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+              </svg>
+            </button>
           </h1>
         </div>
 
@@ -91,15 +100,17 @@
           <div class="px-2 shrink-0">
             <div class="flex items-center gap-1.5 whitespace-nowrap">
               <p class="text-[10px] text-stone-400 font-bold uppercase tracking-wider whitespace-nowrap">รหัสเชิญเข้าตี้</p>
-              <span v-if="!isInviteActive" class="text-[9px] font-black bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full shrink-0 whitespace-nowrap">
-                🔒 ปิดรับชั่วคราว
+              <span v-if="!isInviteActive" class="text-[9px] font-black bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full shrink-0 whitespace-nowrap inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                ปิดรับชั่วคราว
               </span>
-              <span v-else class="text-[9px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full shrink-0 whitespace-nowrap">
-                🟢 เปิดรับ
+              <span v-else class="text-[9px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full shrink-0 whitespace-nowrap inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                เปิดรับ
               </span>
             </div>
             <div class="flex items-center gap-1.5 whitespace-nowrap">
-              <p class="text-sm font-mono font-black tracking-wider shrink-0" :class="isInviteActive ? 'text-amber-900' : 'text-stone-400 line-through'">
+              <p class="text-sm font-mono font-black tracking-wider shrink-0 tabular-nums" :class="isInviteActive ? 'text-amber-900' : 'text-stone-400 line-through'">
                 {{ !currentInviteCode ? 'กำลังโหลด...' : (isInviteCodeVisible ? currentInviteCode : '••••••') }}
               </p>
               <button 
@@ -107,12 +118,13 @@
                 @click="isInviteCodeVisible = !isInviteCodeVisible" 
                 class="min-h-[36px] min-w-[36px] flex items-center justify-center text-stone-400 hover:text-stone-600 transition-colors focus:outline-none shrink-0 cursor-pointer"
                 title="เปิด/ปิดการแสดงรหัส"
+                aria-label="เปิดหรือปิดการแสดงรหัสเชิญ"
               >
-                <svg v-if="isInviteCodeVisible" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                <svg v-if="isInviteCodeVisible" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
                 </svg>
               </button>
@@ -123,9 +135,15 @@
               @click="copyInviteCode" 
               :disabled="!isInviteActive"
               :class="isInviteActive ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 cursor-pointer' : 'bg-stone-100 text-stone-400 cursor-not-allowed'"
-              class="min-h-[38px] text-xs font-bold px-3 py-2 rounded-lg transition-all self-center flex items-center justify-center shrink-0 whitespace-nowrap"
+              class="min-h-[38px] text-xs font-bold px-3 py-2 rounded-lg transition-all self-center flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap"
             >
-              {{ isCopied ? '✅ คัดลอกแล้ว' : '📋 คัดลอกรหัส' }}
+              <svg v-if="isCopied" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+              </svg>
+              <span>{{ isCopied ? 'คัดลอกแล้ว' : 'คัดลอกรหัส' }}</span>
             </button>
 
             <!-- ตัวเลือกจัดการสำหรับผู้มีสิทธิ์จัดการบอร์ด (Owner หรือ MANAGE_PROJECT) -->
@@ -134,18 +152,27 @@
                 @click="toggleInviteActive" 
                 :disabled="isUpdatingInviteSettings"
                 :title="isInviteActive ? 'คลิกเพื่อปิดรับสมาชิกผ่านรหัส' : 'คลิกเพื่อเปิดรับสมาชิกผ่านรหัส'" 
-                class="min-h-[38px] min-w-[38px] p-2 rounded-lg text-xs font-bold transition-all border shrink-0 flex items-center justify-center whitespace-nowrap cursor-pointer"
+                class="min-h-[38px] min-w-[38px] px-2.5 py-2 rounded-lg text-xs font-bold transition-all border shrink-0 flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer"
                 :class="isInviteActive ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border-emerald-200'"
               >
-                {{ isInviteActive ? '🔒 ปิดรับ' : '🔓 เปิดรับ' }}
+                <svg v-if="isInviteActive" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                </svg>
+                <span>{{ isInviteActive ? 'ปิดรับ' : 'เปิดรับ' }}</span>
               </button>
               <button 
                 @click="isRegenerateInviteModalOpen = true" 
                 :disabled="isUpdatingInviteSettings"
                 title="สุ่มรหัสเชิญใหม่ (รหัสเดิมจะใช้ไม่ได้)" 
-                class="min-h-[38px] min-w-[38px] bg-stone-100 hover:bg-stone-200 text-stone-700 p-2 rounded-lg text-xs font-bold transition-all border border-stone-250 flex items-center justify-center gap-0.5 shrink-0 whitespace-nowrap cursor-pointer"
+                class="min-h-[38px] min-w-[38px] bg-stone-100 hover:bg-stone-200 text-stone-700 px-2.5 py-2 rounded-lg text-xs font-bold transition-all border border-stone-200 flex items-center justify-center gap-1 shrink-0 whitespace-nowrap cursor-pointer"
               >
-                <span :class="{ 'animate-spin': isUpdatingInviteSettings }">🔄</span> <span class="hidden sm:inline text-xs">สุ่มใหม่</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" :class="{ 'animate-spin': isUpdatingInviteSettings }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                <span class="hidden sm:inline text-xs">สุ่มใหม่</span>
               </button>
             </div>
           </div>
@@ -155,17 +182,21 @@
           <a 
             href="/manual.html" 
             target="_blank" 
-            class="min-h-[42px] bg-white border border-amber-200 text-stone-600 hover:text-amber-800 px-3 py-2 rounded-xl transition-all shadow-sm flex items-center justify-center focus:outline-none text-xs font-bold gap-1.5"
+            class="min-h-[42px] bg-white border border-amber-200 text-stone-600 hover:text-amber-800 hover:bg-amber-50/50 px-3 py-2 rounded-xl transition-all shadow-sm flex items-center justify-center focus:outline-none text-xs font-bold gap-1.5"
             title="เปิดอ่านคู่มือการใช้งานระบบ FlowSpace"
           >
-            <span>📖</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+            </svg>
             <span class="inline">คู่มือ</span>
           </a>
 
           <div class="relative">
-            <button @click="isNotificationsOpen = !isNotificationsOpen" class="min-h-[42px] min-w-[42px] bg-white border border-amber-200 text-stone-600 hover:text-stone-850 p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center relative focus:outline-none cursor-pointer" aria-label="การแจ้งเตือน">
-              🔔
-              <span v-if="notifications.filter(n => !n.isRead).length > 0" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">
+            <button @click="isNotificationsOpen = !isNotificationsOpen" class="min-h-[42px] min-w-[42px] bg-white border border-amber-200 text-stone-600 hover:text-amber-800 hover:bg-amber-50/50 p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center relative focus:outline-none cursor-pointer" aria-label="การแจ้งเตือน">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+              </svg>
+              <span v-if="notifications.filter(n => !n.isRead).length > 0" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border border-white tabular-nums">
                 {{ notifications.filter(n => !n.isRead).length }}
               </span>
             </button>
@@ -175,7 +206,12 @@
 
             <div v-if="isNotificationsOpen" class="absolute right-0 sm:right-auto sm:left-0 lg:left-auto lg:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white border border-stone-200 rounded-xl shadow-2xl z-[150] p-4 text-left max-h-96 overflow-y-auto">
               <div class="flex justify-between items-center gap-2 mb-3 pb-2 border-b border-stone-100">
-                <h3 class="font-black text-stone-800 text-sm">🔔 การแจ้งเตือนล่าสุด</h3>
+                <h3 class="font-black text-stone-800 text-sm flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                  </svg>
+                  <span>การแจ้งเตือนล่าสุด</span>
+                </h3>
                 <div class="flex items-center gap-2.5">
                   <button v-if="notifications.filter(n => !n.isRead).length > 0" @click="markAllNotificationsRead" class="text-xs font-bold text-amber-600 hover:underline cursor-pointer">อ่านทั้งหมด</button>
                   <button v-if="notifications.length > 0" @click="clearAllNotifications" class="text-xs font-bold text-stone-400 hover:text-rose-600 transition-colors cursor-pointer">ล้างทั้งหมด</button>
@@ -198,29 +234,44 @@
                       ✕
                     </button>
                   </div>
-                  <p class="text-[11px] text-stone-500 mt-0.5">{{ n.message }}</p>
-                  <p class="text-[9px] text-stone-400 mt-1">{{ new Date(n.createdAt).toLocaleDateString('th-TH', { hour: 'numeric', minute: 'numeric' }) }}</p>
+                  <p class="text-[11px] text-stone-500 mt-0.5 break-words">{{ n.message }}</p>
+                  <p class="text-[9px] text-stone-400 mt-1 tabular-nums">{{ new Date(n.createdAt).toLocaleDateString('th-TH', { hour: 'numeric', minute: 'numeric' }) }}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <button v-if="hasPermission('MANAGE_PROJECT')" @click="openManageTeamModal" class="min-h-[42px] bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-800 hover:to-stone-900 text-white font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all shadow-md text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer">
-            👥 จัดการสมาชิกและยศ
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+            </svg>
+            <span>จัดการสมาชิกและยศ</span>
           </button>
           
-          <button v-if="currentUser && projectOwnerId !== currentUser.id && currentUser.role !== 'ADMIN'" @click="isLeaveProjectModalOpen = true" class="min-h-[42px] bg-stone-100 hover:bg-stone-200 text-rose-600 font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all border border-stone-200 text-xs sm:text-sm flex items-center cursor-pointer">
-            🚪 ออกจากโครงการ
+          <button v-if="currentUser && projectOwnerId !== currentUser.id && currentUser.role !== 'ADMIN'" @click="isLeaveProjectModalOpen = true" class="min-h-[42px] bg-stone-100 hover:bg-stone-200 text-rose-600 font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all border border-stone-200 text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+            </svg>
+            <span>ออกจากโครงการ</span>
           </button>
-          <button v-if="currentUser && projectOwnerId === currentUser.id" @click="isDeleteProjectModalOpen = true" class="min-h-[42px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all border border-rose-250 text-xs sm:text-sm flex items-center cursor-pointer">
-            🗑️ ลบโครงการ
+          <button v-if="currentUser && projectOwnerId === currentUser.id" @click="isDeleteProjectModalOpen = true" class="min-h-[42px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all border border-rose-200 text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+            </svg>
+            <span>ลบโครงการ</span>
           </button>
 
-          <button @click="navigateTo('/dashboard')" class="min-h-[42px] bg-[#f3e9d7] hover:bg-[#ebdcc5] text-stone-700 font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all border border-amber-200 text-xs sm:text-sm flex items-center cursor-pointer">
-            ⬅️ แดชบอร์ด
+          <button @click="navigateTo('/dashboard')" class="min-h-[42px] bg-[#f3e9d7] hover:bg-[#ebdcc5] text-stone-700 font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all border border-amber-200 text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
+            <span>แดชบอร์ด</span>
           </button>
-          <button v-if="hasPermission('CREATE_TASK') && columns.length > 0" @click="openAddModal(columns[0]?.id)" class="min-h-[42px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-md text-xs sm:text-sm flex items-center cursor-pointer">
-            + เพิ่มงานใหม่
+          <button v-if="hasPermission('CREATE_TASK') && columns.length > 0" @click="openAddModal(columns[0]?.id)" class="min-h-[42px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-md text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span>เพิ่มงานใหม่</span>
           </button>
         </div>
 
@@ -230,23 +281,26 @@
     <div class="bg-white/85 backdrop-blur-md border border-amber-200/60 rounded-xl p-3 sm:p-4 mt-3 sm:mt-5 mx-3 sm:mx-6 shadow-sm flex flex-wrap items-center justify-between gap-3 sm:gap-4 relative z-10">
       <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full lg:w-auto">
         <div class="relative w-full sm:w-auto">
-          <input v-model="searchQuery" type="text" placeholder="🔍 ค้นหาการ์ดงาน..." aria-label="ค้นหาการ์ดงาน" class="pl-3 pr-8 py-2 w-full sm:w-60 min-h-[40px] bg-stone-50 border border-stone-200 rounded-xl text-xs focus:outline-none focus:border-amber-400 focus:bg-white transition-all font-semibold" />
-          <button v-if="searchQuery" @click="searchQuery = ''" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs p-1 cursor-pointer" title="ล้างคำค้นหา">✕</button>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          <input v-model="searchQuery" type="text" placeholder="ค้นหาการ์ดงาน..." aria-label="ค้นหาการ์ดงาน" class="pl-9 pr-8 py-2 w-full sm:w-60 min-h-[40px] bg-stone-50 border border-stone-200 rounded-xl text-xs focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all font-semibold" />
+          <button v-if="searchQuery" @click="searchQuery = ''" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs p-1 cursor-pointer" title="ล้างคำค้นหา" aria-label="ล้างคำค้นหา">✕</button>
         </div>
         <select v-model="filterAssigneeId" aria-label="กรองตามผู้รับผิดชอบ" class="py-2 px-3 min-h-[40px] flex-1 sm:flex-initial min-w-[130px] bg-stone-50 border border-stone-200 rounded-xl text-xs focus:outline-none focus:border-amber-400 font-bold text-stone-600 cursor-pointer">
-          <option value="">👤 สมาชิกทั้งหมด</option>
+          <option value="">สมาชิกทั้งหมด</option>
           <option v-for="m in projectMembers" :key="m.id" :value="m.user.id">{{ m.user.username }}</option>
         </select>
         <select v-model="filterPriority" aria-label="กรองตามความเร่งด่วน" class="py-2 px-3 min-h-[40px] flex-1 sm:flex-initial min-w-[130px] bg-stone-50 border border-stone-200 rounded-xl text-xs focus:outline-none focus:border-amber-400 font-bold text-stone-600 cursor-pointer">
-          <option value="">🎯 ความเร่งด่วนทั้งหมด</option>
-          <option value="URGENT">🚨 Urgent</option>
-          <option value="HIGH">🟠 High</option>
-          <option value="MEDIUM">🟡 Medium</option>
-          <option value="LOW">⚪ Low</option>
+          <option value="">ความเร่งด่วนทั้งหมด</option>
+          <option value="URGENT">Urgent (เร่งด่วนที่สุด)</option>
+          <option value="HIGH">High (สูง)</option>
+          <option value="MEDIUM">Medium (ปานกลาง)</option>
+          <option value="LOW">Low (ทั่วไป)</option>
         </select>
         <select v-model="filterLabelId" aria-label="กรองตามป้ายกำกับ" class="py-2 px-3 min-h-[40px] flex-1 sm:flex-initial min-w-[130px] bg-stone-50 border border-stone-200 rounded-xl text-xs focus:outline-none focus:border-amber-400 font-bold text-stone-600 cursor-pointer">
-          <option value="">🏷️ ป้ายกำกับทั้งหมด</option>
-          <option v-for="lbl in projectLabels" :key="lbl.id" :value="lbl.id">🏷️ {{ lbl.name }}</option>
+          <option value="">ป้ายกำกับทั้งหมด</option>
+          <option v-for="lbl in projectLabels" :key="lbl.id" :value="lbl.id">{{ lbl.name }}</option>
         </select>
         <button
           v-if="hasActiveFilters"
@@ -262,32 +316,76 @@
       <div class="flex flex-wrap items-center justify-between sm:justify-end gap-3 w-full lg:w-auto">
         <div class="flex items-center gap-1.5 text-xs font-bold text-stone-500">
           <span>เรียงโดย:</span>
-          <select v-model="sortBy" aria-label="เรียงลำดับการ์ด" class="py-2 px-3 min-h-[40px] bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-stone-700 focus:outline-none cursor-pointer">
-            <option value="position">⠿ ลำดับในคอลัมน์ (ลากเรียงเอง)</option>
-            <option value="createdAt">⏰ วันที่สร้าง</option>
-            <option value="dueDate">📅 วันกำหนดส่ง</option>
-            <option value="priority">🎯 ระดับความเร่งด่วน</option>
+          <select v-model="sortBy" aria-label="เรียงลำดับการ์ด" class="py-2 px-3 min-h-[40px] bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-stone-700 focus:outline-none focus:border-amber-400 cursor-pointer">
+            <option value="position">ลำดับในคอลัมน์ (ลากเรียงเอง)</option>
+            <option value="createdAt">วันที่สร้าง</option>
+            <option value="dueDate">วันกำหนดส่ง</option>
+            <option value="priority">ระดับความเร่งด่วน</option>
           </select>
         </div>
 
         <div v-if="hasPermission('MANAGE_PROJECT') && columns.length > 0" class="relative">
-          <button v-if="!isAddingColumn" @click="isAddingColumn = true" class="min-h-[40px] bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs shadow-sm flex items-center gap-1 cursor-pointer">
-            ➕ เพิ่มคอลัมน์
+          <button v-if="!isAddingColumn" @click="isAddingColumn = true" class="min-h-[40px] bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs shadow-sm flex items-center gap-1.5 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span>เพิ่มคอลัมน์</span>
           </button>
           <div v-else class="flex items-center gap-1.5 bg-stone-50 p-1 rounded-xl border border-amber-300 min-h-[40px]">
             <input v-model="newColumnTitle" type="text" placeholder="ชื่อช่อง..." class="px-2.5 py-1 text-xs w-32 bg-white border border-stone-200 rounded-lg focus:outline-none font-bold" @keyup.enter="addColumn" @keyup.esc="isAddingColumn = false" />
-            <button @click="addColumn" class="min-h-[32px] min-w-[32px] flex items-center justify-center bg-emerald-500 text-white text-[10px] font-bold p-1 rounded-lg cursor-pointer">✅</button>
-            <button @click="isAddingColumn = false" class="min-h-[32px] min-w-[32px] flex items-center justify-center bg-stone-300 text-stone-700 text-[10px] font-bold p-1 rounded-lg cursor-pointer">❌</button>
+            <button @click="addColumn" class="min-h-[32px] min-w-[32px] flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold p-1 rounded-lg cursor-pointer" title="บันทึก" aria-label="บันทึกคอลัมน์">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </button>
+            <button @click="isAddingColumn = false" class="min-h-[32px] min-w-[32px] flex items-center justify-center bg-stone-300 hover:bg-stone-400 text-stone-700 text-xs font-bold p-1 rounded-lg cursor-pointer" title="ยกเลิก" aria-label="ยกเลิก">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
     </div>
 
     <main class="flex-1 p-3 sm:p-6 overflow-x-auto relative z-10">
+      <!-- Skeleton Shimmer while initial board data loads -->
+      <div v-if="isLoadingBoard" class="flex gap-4 sm:gap-6 h-full items-start pb-4 min-w-max" aria-busy="true" aria-label="กำลังโหลดข้อมูลบอร์ดงาน">
+        <div
+          v-for="n in 3"
+          :key="`col-skeleton-${n}`"
+          class="bg-[#fdfaf5]/95 border border-amber-200/70 rounded-2xl p-3.5 sm:p-4 shadow-sm w-[85vw] sm:w-80 shrink-0 flex flex-col gap-3 animate-pulse"
+        >
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <div class="h-4 w-28 bg-stone-200/90 rounded-md"></div>
+              <div class="h-4 w-6 bg-amber-200/70 rounded-full"></div>
+            </div>
+            <div class="h-6 w-12 bg-stone-200/70 rounded-lg"></div>
+          </div>
+          <div v-for="c in (n === 1 ? 3 : 2)" :key="`card-skeleton-${n}-${c}`" class="bg-white p-4 rounded-xl border border-amber-100/80 shadow-sm space-y-2.5">
+            <div class="flex gap-1.5">
+              <div class="h-3.5 w-14 bg-amber-200/60 rounded"></div>
+              <div class="h-3.5 w-10 bg-stone-200/70 rounded"></div>
+            </div>
+            <div class="h-4 w-3/4 bg-stone-200/90 rounded-md"></div>
+            <div class="h-3 w-full bg-stone-100 rounded-md"></div>
+            <div class="flex items-center justify-between pt-2 border-t border-stone-100">
+              <div class="h-4 w-20 bg-stone-200/70 rounded"></div>
+              <div class="w-5 h-5 rounded-full bg-amber-200/80"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Empty State if columns.length === 0 -->
-      <div v-if="columns.length === 0" class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
+      <div v-else-if="columns.length === 0" class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
         <div class="bg-white/80 backdrop-blur-md border border-amber-200/80 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-sm">
-          <span class="text-4xl mb-3 block">📌</span>
+          <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-100/80 border border-amber-200 text-amber-700 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z" />
+            </svg>
+          </div>
           <h3 class="text-base font-extrabold text-stone-800 mb-1">ยังไม่มีคอลัมน์ในโปรเจกต์นี้</h3>
           <p class="text-xs text-stone-500 mb-4">
             เริ่มต้นจัดการงานด้วยการเพิ่มคอลัมน์แรกสำหรับติดตามความคืบหน้า (เช่น To Do, Doing, Done)
@@ -303,7 +401,10 @@
               @click="isAddingColumn = true" 
               class="min-h-[44px] px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center gap-1.5 cursor-pointer"
             >
-              ➕ เพิ่มคอลัมน์แรกเลย
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              <span>เพิ่มคอลัมน์แรกเลย</span>
             </button>
           </template>
         </div>
@@ -326,21 +427,38 @@
             <div class="flex-1 min-w-0">
               <div v-if="editingColumnId === col.id" class="flex items-center gap-1.5">
                 <input v-model="editingColumnTitle" type="text" class="bg-white border border-amber-400 rounded-lg px-2 py-1 text-xs font-bold text-stone-800 focus:outline-none w-full min-h-[34px]" @keyup.enter="saveColumnName(col.id)" @keyup.esc="editingColumnId = null" />
-                <button @click="saveColumnName(col.id)" class="min-h-[34px] min-w-[34px] flex items-center justify-center text-emerald-500 text-xs cursor-pointer">💾</button>
-                <button @click="editingColumnId = null" class="min-h-[34px] min-w-[34px] flex items-center justify-center text-stone-400 text-xs cursor-pointer">❌</button>
+                <button @click="saveColumnName(col.id)" class="min-h-[34px] min-w-[34px] flex items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-xs cursor-pointer" title="บันทึกชื่อช่อง" aria-label="บันทึกชื่อช่อง">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                </button>
+                <button @click="editingColumnId = null" class="min-h-[34px] min-w-[34px] flex items-center justify-center bg-stone-100 text-stone-500 hover:bg-stone-200 rounded-lg text-xs cursor-pointer" title="ยกเลิก" aria-label="ยกเลิก">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
               <h2 v-else class="font-extrabold text-sm text-amber-900 flex items-center gap-1.5 truncate" :title="hasPermission('MANAGE_PROJECT') ? 'ลากหัวคอลัมน์เพื่อสลับตำแหน่ง' : col.title">
                 <span v-if="hasPermission('MANAGE_PROJECT')" class="text-stone-400 text-xs select-none" title="ลากเพื่อย้ายตำแหน่งคอลัมน์">⠿</span>
-                <span>📌 {{ col.title }}</span>
-                <span class="bg-[#f3e9d7] text-amber-950 text-[10px] px-1.5 py-0.5 rounded-full font-black">
+                <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                <span class="truncate">{{ col.title }}</span>
+                <span class="bg-[#f3e9d7] text-amber-950 text-[10px] px-2 py-0.5 rounded-full font-black tabular-nums shrink-0">
                   {{ getFilteredTasks(col.id).length }}
                 </span>
               </h2>
             </div>
             
-            <div v-if="hasPermission('MANAGE_PROJECT') && editingColumnId !== col.id" class="flex items-center gap-1">
-              <button @click="editingColumnId = col.id; editingColumnTitle = col.title" class="min-h-[34px] min-w-[34px] flex items-center justify-center text-stone-400 hover:text-amber-600 text-xs p-1 cursor-pointer" title="เปลี่ยนชื่อช่อง">✏️</button>
-              <button @click="triggerDeleteColumn(col.id, col.title)" class="min-h-[34px] min-w-[34px] flex items-center justify-center text-stone-400 hover:text-rose-600 text-xs p-1 transition-all cursor-pointer" title="ลบช่อง">🗑️</button>
+            <div v-if="hasPermission('MANAGE_PROJECT') && editingColumnId !== col.id" class="flex items-center gap-0.5 shrink-0">
+              <button @click="editingColumnId = col.id; editingColumnTitle = col.title" class="min-h-[34px] min-w-[34px] flex items-center justify-center text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg p-1 transition-all cursor-pointer" title="เปลี่ยนชื่อช่อง" aria-label="เปลี่ยนชื่อช่อง">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+              </button>
+              <button @click="triggerDeleteColumn(col.id, col.title)" class="min-h-[34px] min-w-[34px] flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg p-1 transition-all cursor-pointer" title="ลบช่อง" aria-label="ลบช่อง">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -371,15 +489,21 @@
                     <span v-if="task.priority === 'URGENT'" class="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-black border border-rose-200 shrink-0">URGENT</span>
                     <span v-else-if="task.priority === 'HIGH'" class="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-black shrink-0">HIGH</span>
                   </h3>
-                  <p class="text-stone-400 text-xs truncate break-all">{{ task.description || 'ไม่มีรายละเอียด...' }}</p>
+                  <p class="text-stone-400 text-xs line-clamp-2 break-words">{{ task.description || 'ไม่มีรายละเอียด...' }}</p>
                   
                   <div v-if="(task.subtasks && task.subtasks.length > 0) || (task.attachments && task.attachments.length > 0)" class="flex flex-col gap-1.5 mt-2.5">
-                    <div class="flex items-center gap-2.5 text-[10px] font-extrabold text-stone-400">
-                      <span v-if="task.subtasks && task.subtasks.length > 0" :class="task.subtasks.filter(s => s.isCompleted).length === task.subtasks.length ? 'text-emerald-600' : ''" class="flex items-center gap-0.5">
-                        ☑️ {{ task.subtasks.filter(s => s.isCompleted).length }}/{{ task.subtasks.length }}
+                    <div class="flex items-center gap-3 text-[10px] font-extrabold text-stone-400 tabular-nums">
+                      <span v-if="task.subtasks && task.subtasks.length > 0" :class="task.subtasks.filter(s => s.isCompleted).length === task.subtasks.length ? 'text-emerald-600' : ''" class="flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        <span>{{ task.subtasks.filter(s => s.isCompleted).length }}/{{ task.subtasks.length }}</span>
                       </span>
-                      <span v-if="task.attachments && task.attachments.length > 0" class="flex items-center gap-0.5">
-                        📎 {{ task.attachments.length }}
+                      <span v-if="task.attachments && task.attachments.length > 0" class="flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                        </svg>
+                        <span>{{ task.attachments.length }}</span>
                       </span>
                     </div>
                     
@@ -393,8 +517,11 @@
                   </div>
 
                   <div v-if="task.dueDate || task.assignee" class="flex flex-wrap items-center justify-between gap-2 mt-3 pt-2.5 border-t border-stone-100 text-[10px]">
-                    <div v-if="task.dueDate" :class="isOverdue(task.dueDate) ? 'bg-rose-50 text-rose-700 border-rose-250 font-black' : 'bg-amber-50 text-amber-700 border-amber-250'" class="px-2 py-0.5 rounded border flex items-center gap-1 shrink-0">
-                      📅 {{ formatDate(task.dueDate) }}
+                    <div v-if="task.dueDate" :class="isOverdue(task.dueDate) ? 'bg-rose-50 text-rose-700 border-rose-200 font-black' : 'bg-amber-50 text-amber-700 border-amber-200'" class="px-2 py-0.5 rounded border flex items-center gap-1 shrink-0 tabular-nums">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                      </svg>
+                      <span>{{ formatDate(task.dueDate) }}</span>
                     </div>
                     <div v-if="task.assignee" class="flex items-center gap-1.5 text-stone-600 ml-auto shrink-0">
                       <div class="w-5 h-5 rounded-full bg-amber-600 text-white text-[9px] font-black flex items-center justify-center uppercase shadow-sm" :title="task.assignee.username">
@@ -405,9 +532,25 @@
                   </div>
                   
                   <div class="flex items-center gap-2 mt-3 pt-2.5 border-t border-stone-100">
-                    <button v-if="hasPermission('CREATE_TASK')" @click.stop="openEditModal(task)" class="min-h-[36px] px-2 py-1 text-amber-600 hover:bg-amber-50 rounded-lg text-xs font-black flex items-center transition-colors cursor-pointer">✏️ แก้ไข</button>
-                    <button v-else @click.stop="openEditModal(task)" class="min-h-[36px] px-2 py-1 text-stone-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg text-xs font-black flex items-center transition-colors cursor-pointer">🔍 ดูรายละเอียด</button>
-                    <button v-if="hasPermission('DELETE_TASK')" @click.stop="deleteTask(task.id)" class="min-h-[36px] px-2 py-1 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-black flex items-center ml-auto transition-colors cursor-pointer">🗑️ ลบ</button>
+                    <button v-if="hasPermission('CREATE_TASK')" @click.stop="openEditModal(task)" class="min-h-[36px] px-2.5 py-1 text-amber-700 hover:bg-amber-50 rounded-lg text-xs font-black flex items-center gap-1 transition-colors cursor-pointer">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                      </svg>
+                      <span>แก้ไข</span>
+                    </button>
+                    <button v-else @click.stop="openEditModal(task)" class="min-h-[36px] px-2.5 py-1 text-stone-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg text-xs font-black flex items-center gap-1 transition-colors cursor-pointer">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      </svg>
+                      <span>ดูรายละเอียด</span>
+                    </button>
+                    <button v-if="hasPermission('DELETE_TASK')" @click.stop="deleteTask(task.id)" class="min-h-[36px] px-2.5 py-1 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-black flex items-center gap-1 ml-auto transition-colors cursor-pointer">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                      </svg>
+                      <span>ลบ</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -416,8 +559,11 @@
             <div v-if="getFilteredTasks(col.id).length === 0" class="border-2 border-dashed border-amber-100 rounded-xl p-6 text-center text-stone-400 text-xs font-semibold">ไม่มีงานค้างอยู่ในช่องนี้</div>
           </div>
           
-          <button v-if="hasPermission('CREATE_TASK')" @click="openAddModal(col.id)" class="mt-3 sm:mt-4 min-h-[44px] border border-dashed border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 text-amber-800 font-extrabold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer">
-            ➕ เพิ่มการ์ดงานใหม่
+          <button v-if="hasPermission('CREATE_TASK')" @click="openAddModal(col.id)" class="mt-3 sm:mt-4 min-h-[44px] border border-dashed border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 text-amber-800 font-extrabold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span>เพิ่มการ์ดงานใหม่</span>
           </button>
         </div>
 
@@ -1143,6 +1289,7 @@ const taskLogs = ref([])
 const isLoadingLogs = ref(false)
 
 // [STATE คอลัมน์ยืดหยุ่น]
+const isLoadingBoard = ref(true)
 const columns = ref([])
 const isAddingColumn = ref(false)
 const newColumnTitle = ref('')
@@ -1867,6 +2014,7 @@ onMounted(async () => {
     fetchNotifications(),
     fetchTeamAndRoles()
   ])
+  isLoadingBoard.value = false
 
   initSse()
 
