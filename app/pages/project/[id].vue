@@ -1255,7 +1255,15 @@ import { useRoute } from 'vue-router'
 definePageMeta({ middleware: 'auth' })
 
 const route = useRoute()
-const projectId = Number(route.params.id)
+const projectId = parseProjectId(route.params.id)
+
+const syncProjectUrlSlug = (name) => {
+  if (typeof window === 'undefined' || !name) return
+  const canonicalPath = buildProjectUrl(projectId, name)
+  if (decodeURIComponent(window.location.pathname) !== canonicalPath) {
+    window.history.replaceState(window.history.state, '', canonicalPath + window.location.search + window.location.hash)
+  }
+}
 
 const currentUser = ref(null)
 const projectOwnerId = ref(null)
@@ -1496,6 +1504,7 @@ const fetchTasks = async () => {
         isInviteActive.value = response.isInviteActive
       }
       projectName.value = response.projectName
+      syncProjectUrlSlug(response.projectName)
       projectOwnerId.value = response.ownerId
       projectOwnerUsername.value = response.ownerUsername || ''
     }
@@ -2118,6 +2127,7 @@ const saveProjectName = async () => {
     })
     if (response.success) {
       projectName.value = response.project.name
+      syncProjectUrlSlug(response.project.name)
       isEditingProjectName.value = false
     }
   } catch (error) { 
@@ -2546,7 +2556,7 @@ const reorderColumn = async (sourceColId, targetColId) => {
     await $fetch('/api/columns/update', {
       method: 'PUT',
       body: {
-        projectId: Number(route.params.id),
+        projectId,
         orderedColumnIds: columns.value.map(c => c.id)
       }
     })

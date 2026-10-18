@@ -384,8 +384,8 @@
           :key="project.id" 
           role="button"
           tabindex="0"
-          @click="goToProject(project.id)"
-          @keydown.enter="goToProject(project.id)"
+          @click="goToProject(project)"
+          @keydown.enter="goToProject(project)"
           class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl hover:bg-white border border-stone-200/90 dark:border-slate-800 hover:border-amber-400/90 rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500"
         >
           <!-- Permanent Color-Coded Top Accent Strip -->
@@ -415,7 +415,7 @@
                     {{ project.name }}
                   </h3>
                   <p class="text-[11px] font-semibold text-stone-400 mt-0.5">
-                    Workspace #{{ project.id }}
+                    {{ project.isOwner ? 'เวิร์กสเปซของคุณ' : 'เวิร์กสเปซทีมร่วมงาน' }}
                   </p>
                 </div>
               </div>
@@ -903,7 +903,13 @@ const closeModal = () => {
   editingProjectId.value = null
 }
 
-const goToProject = (projectId) => { navigateTo(`/project/${projectId}`) }
+const goToProject = (projectOrId) => {
+  if (projectOrId && typeof projectOrId === 'object') {
+    navigateTo(buildProjectUrl(projectOrId.id, projectOrId.name))
+  } else {
+    navigateTo(`/project/${projectOrId}`)
+  }
+}
 
 const handleLogout = () => {
   isLogoutModalOpen.value = true

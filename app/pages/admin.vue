@@ -748,7 +748,7 @@
                   <td class="py-3 px-4 text-right whitespace-nowrap">
                     <div class="inline-flex items-center gap-1.5 justify-end">
                       <NuxtLink 
-                        :to="`/project/${p.id}`"
+                        :to="buildProjectUrl(p.id, p.name)"
                         class="min-h-[34px] px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-lg transition-all inline-flex items-center gap-1 shadow-sm"
                       >
                         เปิดดูบอร์ด ↗
