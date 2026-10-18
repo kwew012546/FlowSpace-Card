@@ -8,14 +8,16 @@ export default defineEventHandler(async (event) => {
   }
   const currentUserId = event.context.auth.user.id
 
-  if (!projectId || !email || !email.trim()) {
+  const rawInput = (body.usernameOrEmail || body.email || '').trim()
+
+  if (!projectId || !rawInput) {
     throw createError({
       statusCode: 400,
-      message: 'กรุณาระบุไอดีโปรเจกต์และอีเมลผู้รับเชิญ'
+      message: 'กรุณาระบุไอดีโปรเจกต์และชื่อผู้ใช้หรืออีเมลที่ต้องการเชิญ'
     })
   }
 
-  const cleanEmail = email.trim().toLowerCase()
+  const cleanInput = rawInput.toLowerCase()
 
   try {
     // 1. ตรวจสอบโปรเจกต์และสิทธิ์ของผู้กดเชิญ
@@ -39,15 +41,20 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // 2. ค้นหาผู้ใช้จากอีเมลในระบบ (รองรับ Case-Insensitive)
-    const targetUser = await prisma.user.findUnique({
-      where: { email: cleanEmail }
+    // 2. ค้นหาผู้ใช้จากอีเมลหรือชื่อผู้ใช้ (Case-Insensitive)
+    const targetUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: cleanInput },
+          { username: { equals: rawInput, mode: 'insensitive' } }
+        ]
+      }
     })
 
     if (!targetUser) {
       throw createError({
         statusCode: 404,
-        message: `ไม่พบบัญชีผู้ใช้ที่ใช้อีเมล "${cleanEmail}" ในระบบ ❌ (กรุณาให้ผู้รับสมัครสมาชิกก่อน หรือแชร์รหัสเชิญให้เข้าด้วยตนเอง)`
+        message: `ไม่พบบัญชีผู้ใช้ "${rawInput}" ในระบบ ❌ (กรุณาให้ผู้รับสมัครสมาชิกก่อน หรือแชร์รหัสเชิญให้เข้าด้วยตนเอง)`
       })
     }
 
@@ -62,7 +69,7 @@ export default defineEventHandler(async (event) => {
     if (isAlreadyMember || project.ownerId === targetUser.id) {
       throw createError({
         statusCode: 400,
-        message: `ผู้ใช้ ${targetUser.username} (${cleanEmail}) เป็นสมาชิกของโปรเจกต์นี้อยู่แล้ว`
+        message: `ผู้ใช้ ${targetUser.username} เป็นสมาชิกของโปรเจกต์นี้อยู่แล้ว`
       })
     }
 

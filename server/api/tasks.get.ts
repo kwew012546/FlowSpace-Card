@@ -51,8 +51,7 @@ export default defineEventHandler(async (event) => {
           assignee: {
             select: {
               id: true,
-              username: true,
-              email: true
+              username: true
             }
           },
           labels: true,

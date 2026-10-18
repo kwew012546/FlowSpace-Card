@@ -730,7 +730,7 @@
                 </div>
               </div>
 
-              <div v-if="hasPermission('CREATE_TASK')" class="flex gap-2">
+              <div v-if="canComment" class="flex gap-2">
                 <input v-model="newCommentContent" type="text" placeholder="พิมพ์ความคิดเห็นของคุณ..." class="flex-1 min-h-[40px] bg-white border border-stone-200 rounded-xl px-3 py-2 text-stone-850 text-base sm:text-xs focus:outline-none focus:border-amber-500" @keyup.enter="addComment" />
                 <button @click="addComment" class="min-h-[40px] bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm flex items-center justify-center">
                   ส่ง
@@ -804,11 +804,13 @@
                   <button
                     v-if="hasPermission('CREATE_TASK') || hasPermission('DELETE_TASK')"
                     type="button"
-                    @click.stop="deleteProjectLabel(lbl.id)"
-                    class="min-h-[28px] min-w-[28px] flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-md text-xs transition-all shrink-0"
-                    title="ลบป้ายกำกับนี้ออกจากบอร์ด"
+                    @click.stop="handleLabelDeleteClick(lbl.id)"
+                    class="min-h-[28px] px-1.5 flex items-center justify-center rounded-md text-xs font-bold transition-all shrink-0 cursor-pointer"
+                    :class="labelToDeleteId === lbl.id ? 'bg-rose-500 text-white text-[10px] px-2 shadow-xs' : 'text-stone-400 hover:text-rose-600 hover:bg-rose-50 min-w-[28px]'"
+                    :title="labelToDeleteId === lbl.id ? 'คลิกอีกครั้งเพื่อยืนยันการลบป้ายนี้' : 'ลบป้ายกำกับนี้ออกจากบอร์ด'"
                   >
-                    🗑️
+                    <span v-if="labelToDeleteId === lbl.id">ยืนยันลบ?</span>
+                    <span v-else>🗑️</span>
                   </button>
                 </div>
               </div>
@@ -884,6 +886,35 @@
         <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#fdfaf5]">
           
           <div v-if="activeTab === 'members'" class="space-y-4">
+            <!-- Direct Invite Form -->
+            <div v-if="hasPermission('INVITE_MEMBERS')" class="bg-white border border-amber-200/70 p-3.5 sm:p-4 rounded-xl shadow-xs">
+              <label class="block text-xs font-black text-stone-600 mb-1.5 uppercase tracking-wider">
+                ✉️ เชิญสมาชิกใหม่เข้าบอร์ด (ระบุชื่อผู้ใช้ หรือ อีเมล)
+              </label>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input
+                  v-model="directInviteInput"
+                  type="text"
+                  placeholder="เช่น somchai หรือ somchai@example.com"
+                  class="flex-1 min-h-[42px] bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                  @keyup.enter="handleDirectInvite"
+                  :disabled="isInvitingMember"
+                />
+                <button
+                  type="button"
+                  @click="handleDirectInvite"
+                  :disabled="isInvitingMember || !directInviteInput.trim()"
+                  class="min-h-[42px] bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <span v-if="isInvitingMember" class="animate-spin text-xs">⏳</span>
+                  <span>{{ isInvitingMember ? 'กำลังเชิญ...' : '➕ เชิญเข้าบอร์ด' }}</span>
+                </button>
+              </div>
+              <p v-if="directInviteMsg" :class="directInviteSuccess ? 'text-emerald-600' : 'text-rose-600'" class="text-xs font-bold mt-2">
+                {{ directInviteMsg }}
+              </p>
+            </div>
+
             <div class="border border-amber-100 rounded-xl overflow-x-auto bg-white shadow-sm">
               <table class="w-full text-left border-collapse min-w-[500px]">
                 <thead>
@@ -902,7 +933,7 @@
                           👑 เจ้าของบอร์ด
                         </span>
                       </p>
-                      <p class="text-xs text-stone-400 font-mono">{{ member.user.email }}</p>
+                      <p v-if="member.user.email" class="text-xs text-stone-400 font-mono">{{ member.user.email }}</p>
                     </td>
                     <td class="p-3">
                       <select 
@@ -1320,6 +1351,8 @@ const projectLabels = ref([])
 const isCreatingLabel = ref(false)
 const newLabelName = ref('')
 const newLabelColor = ref('#D4AF37')
+const labelToDeleteId = ref(null)
+let labelDeleteTimeout = null
 
 // [STATE ค้นหา & ฟิลเตอร์]
 const searchQuery = ref('')
@@ -1359,6 +1392,10 @@ const activeTab = ref('members')
 const projectMembers = ref([])
 const projectRoles = ref([])
 const newRoleName = ref('')
+const directInviteInput = ref('')
+const isInvitingMember = ref(false)
+const directInviteMsg = ref('')
+const directInviteSuccess = ref(false)
 
 const isOverdue = (dueDateStr) => {
   if (!dueDateStr) return false
@@ -1566,6 +1603,22 @@ const deleteProjectLabel = async (labelId) => {
     selectedLabelIds.value = backupSelected
     await fetchTasks()
     showToast(getApiErrorMessage(err, 'ลบป้ายกำกับไม่สำเร็จ ❌'), 'error')
+  }
+}
+
+const handleLabelDeleteClick = (labelId) => {
+  if (labelToDeleteId.value === labelId) {
+    if (labelDeleteTimeout) clearTimeout(labelDeleteTimeout)
+    labelToDeleteId.value = null
+    deleteProjectLabel(labelId)
+  } else {
+    labelToDeleteId.value = labelId
+    if (labelDeleteTimeout) clearTimeout(labelDeleteTimeout)
+    labelDeleteTimeout = setTimeout(() => {
+      if (labelToDeleteId.value === labelId) {
+        labelToDeleteId.value = null
+      }
+    }, 3000)
   }
 }
 
@@ -2101,6 +2154,17 @@ const hasPermission = (permission) => {
   return false
 }
 
+const canComment = computed(() => {
+  if (!currentUser.value) return false
+  if (projectOwnerId.value && currentUser.value.id === projectOwnerId.value) return true
+  const isMember = projectMembers.value.some(m => m.user?.id === currentUser.value.id)
+  if (isMember) return true
+  if (currentUser.value.role === 'ADMIN') {
+    return isAdminEditUnlocked.value
+  }
+  return false
+})
+
 const openManageTeamModal = async () => {
   await fetchTeamAndRoles()
   isManageTeamModalOpen.value = true
@@ -2227,6 +2291,33 @@ const confirmKickMember = async () => {
       memberToKickUsername.value = ''
     }
   } catch (error) { showToast(getApiErrorMessage(error, 'เตะสมาชิกออกไม่สำเร็จ ❌'), 'error') }
+}
+
+const handleDirectInvite = async () => {
+  if (!directInviteInput.value.trim() || isInvitingMember.value) return
+  isInvitingMember.value = true
+  directInviteMsg.value = ''
+  try {
+    const res = await $fetch('/api/projects/invite', {
+      method: 'POST',
+      body: {
+        projectId,
+        usernameOrEmail: directInviteInput.value.trim()
+      }
+    })
+    directInviteSuccess.value = true
+    directInviteMsg.value = res.message || 'เชิญสมาชิกสำเร็จ 🎉'
+    directInviteInput.value = ''
+    await fetchTeamAndRoles()
+    setTimeout(() => {
+      directInviteMsg.value = ''
+    }, 4000)
+  } catch (err) {
+    directInviteSuccess.value = false
+    directInviteMsg.value = getApiErrorMessage(err, 'เชิญสมาชิกไม่สำเร็จ ❌')
+  } finally {
+    isInvitingMember.value = false
+  }
 }
 
 const copyInviteCode = () => {

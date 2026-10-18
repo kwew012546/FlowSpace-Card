@@ -39,6 +39,57 @@
           <!-- Dark / Light Mode Toggle -->
           <ThemeToggle :showLabel="true" />
 
+          <!-- Notification Bell Dropdown -->
+          <div class="relative">
+            <button @click="isNotificationsOpen = !isNotificationsOpen" class="min-h-[42px] min-w-[42px] bg-white border border-amber-200 text-stone-600 hover:text-amber-800 hover:bg-amber-50/50 p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center relative focus:outline-none cursor-pointer" aria-label="การแจ้งเตือน">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+              </svg>
+              <span v-if="notifications.filter(n => !n.isRead).length > 0" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border border-white tabular-nums">
+                {{ notifications.filter(n => !n.isRead).length }}
+              </span>
+            </button>
+            
+            <!-- Click-outside backdrop for notification dropdown -->
+            <div v-if="isNotificationsOpen" @click="isNotificationsOpen = false" class="fixed inset-0 z-[140]"></div>
+
+            <div v-if="isNotificationsOpen" class="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white border border-stone-200 rounded-xl shadow-2xl z-[150] p-4 text-left max-h-96 overflow-y-auto">
+              <div class="flex justify-between items-center gap-2 mb-3 pb-2 border-b border-stone-100">
+                <h3 class="font-black text-stone-800 text-sm flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                  </svg>
+                  <span>การแจ้งเตือนล่าสุด</span>
+                </h3>
+                <div class="flex items-center gap-2.5">
+                  <button v-if="notifications.filter(n => !n.isRead).length > 0" @click="markAllNotificationsRead" class="text-xs font-bold text-amber-600 hover:underline cursor-pointer">อ่านทั้งหมด</button>
+                  <button v-if="notifications.length > 0" @click="clearAllNotifications" class="text-xs font-bold text-stone-400 hover:text-rose-600 transition-colors cursor-pointer">ล้างทั้งหมด</button>
+                </div>
+              </div>
+              <div v-if="notifications.length === 0" class="text-center py-6 text-stone-400 text-xs">ไม่มีการแจ้งเตือนใด ๆ</div>
+              <div v-else class="space-y-2">
+                <div v-for="n in notifications" :key="n.id" @click="markNotificationRead(n.id)" :class="n.isRead ? 'bg-stone-50/50' : 'bg-amber-50/60 border-l-2 border-amber-500'" class="p-2.5 rounded-lg border border-stone-100/80 transition-all cursor-pointer group">
+                  <div class="flex items-start justify-between gap-2">
+                    <h4 class="text-xs font-bold text-stone-800 flex items-center gap-1.5 flex-1 min-w-0">
+                      <span class="truncate">{{ n.title }}</span>
+                      <span v-if="!n.isRead" class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                    </h4>
+                    <button
+                      type="button"
+                      @click.stop="deleteNotification(n.id)"
+                      class="text-stone-300 hover:text-rose-600 text-[11px] font-bold px-1 rounded transition-colors shrink-0 cursor-pointer"
+                      title="ลบการแจ้งเตือนนี้"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <p class="text-[11px] text-stone-500 mt-0.5 break-words">{{ n.message }}</p>
+                  <p class="text-[9px] text-stone-400 mt-1 tabular-nums">{{ new Date(n.createdAt).toLocaleDateString('th-TH', { hour: 'numeric', minute: 'numeric' }) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <a 
             href="/manual.html" 
             target="_blank" 
@@ -736,6 +787,56 @@ const isLogoutModalOpen = ref(false)
 
 const { showToast } = useToast()
 
+const notifications = ref([])
+const isNotificationsOpen = ref(false)
+
+const fetchNotifications = async () => {
+  try {
+    const res = await $fetch('/api/notifications')
+    if (res.success) notifications.value = res.data
+  } catch (err) { console.error(err) }
+}
+
+const markNotificationRead = async (id) => {
+  try {
+    const res = await $fetch('/api/notifications', { method: 'PUT', body: { id } })
+    if (res.success) {
+      notifications.value = notifications.value.map(n => n.id === id ? { ...n, isRead: true } : n)
+    }
+  } catch (err) { console.error(err) }
+}
+
+const markAllNotificationsRead = async () => {
+  try {
+    const res = await $fetch('/api/notifications', { method: 'PUT', body: { all: true } })
+    if (res.success) {
+      notifications.value = notifications.value.map(n => ({ ...n, isRead: true }))
+    }
+  } catch (err) { console.error(err) }
+}
+
+const deleteNotification = async (id) => {
+  const backup = [...notifications.value]
+  notifications.value = notifications.value.filter(n => n.id !== id)
+  try {
+    await $fetch(`/api/notifications?id=${id}`, { method: 'DELETE' })
+  } catch (err) {
+    notifications.value = backup
+    showToast(err?.data?.message || 'ลบการแจ้งเตือนไม่สำเร็จ ❌', 'error')
+  }
+}
+
+const clearAllNotifications = async () => {
+  const backup = [...notifications.value]
+  notifications.value = []
+  try {
+    await $fetch('/api/notifications?all=true', { method: 'DELETE' })
+  } catch (err) {
+    notifications.value = backup
+    showToast(err?.data?.message || 'ล้างการแจ้งเตือนไม่สำเร็จ ❌', 'error')
+  }
+}
+
 const fetchProjects = async () => {
   if (!currentUser.value) return
   isLoading.value = true
@@ -749,11 +850,13 @@ const fetchProjects = async () => {
 const handleVisibilityChange = () => {
   if (document.visibilityState === 'visible' && currentUser.value) {
     fetchProjects()
+    fetchNotifications()
   }
 }
 
 const handleGlobalKeydown = (e) => {
   if (e.key === 'Escape') {
+    if (isNotificationsOpen.value) { isNotificationsOpen.value = false; return }
     if (isModalOpen.value) closeModal()
     if (isJoinModalOpen.value) closeJoinModal()
     if (isLogoutModalOpen.value) isLogoutModalOpen.value = false
@@ -772,6 +875,7 @@ onMounted(async () => {
     try {
       currentUser.value = JSON.parse(cachedUser)
       fetchProjects()
+      fetchNotifications()
     } catch (e) {}
   }
 
@@ -784,6 +888,7 @@ onMounted(async () => {
       if (!prevId || prevId !== meRes.user.id) {
         fetchProjects()
       }
+      fetchNotifications()
     }
   } catch (error) {
     localStorage.removeItem('user')
@@ -816,7 +921,11 @@ const handleCreateProject = async () => {
       method: 'POST',
       body: { name: projectName.value.trim(), description: projectDescription.value.trim() }
     })
-    if (response.success) { closeModal(); await fetchProjects() }
+    if (response.success && response.project) {
+      closeModal()
+      await fetchProjects()
+      navigateTo(buildProjectUrl(response.project.id, response.project.name))
+    }
   } catch (error) { modalMessage.value = error.data?.message || 'เกิดข้อผิดพลาดในการสร้างเวิร์กสเปซ' }
   finally { isSubmitting.value = false }
 }

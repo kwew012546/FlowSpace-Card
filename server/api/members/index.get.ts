@@ -47,9 +47,25 @@ export default defineEventHandler(async (event) => {
       }
     })
 
+    const isAdmin = event.context.auth?.user?.role === 'ADMIN'
+    const maskEmail = (email: string) => {
+      if (!email || !email.includes('@')) return '***'
+      const [name, domain] = email.split('@')
+      if (name.length <= 2) return `${name[0]}***@${domain}`
+      return `${name.slice(0, 2)}***${name.slice(-1)}@${domain}`
+    }
+
+    const sanitizedMembers = members.map(m => ({
+      ...m,
+      user: {
+        ...m.user,
+        email: (isAdmin || m.user.id === userId) ? m.user.email : maskEmail(m.user.email)
+      }
+    }))
+
     return {
       success: true,
-      data: members
+      data: sanitizedMembers
     }
   } catch (error) {
     console.error(error)
