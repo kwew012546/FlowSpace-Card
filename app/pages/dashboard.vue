@@ -885,7 +885,7 @@ const handleJoinProject = async () => {
     if (response.success) {
       closeJoinModal()
       showToast(response.message, 'success')
-      navigateTo(`/project/${response.projectId}`)
+      navigateTo(buildProjectUrl(response.projectId))
     }
   } catch (error) { 
     joinError.value = error.data?.message || 'รหัสเชิญไม่ถูกต้องหรือหมดอายุ' 
@@ -907,7 +907,7 @@ const goToProject = (projectOrId) => {
   if (projectOrId && typeof projectOrId === 'object') {
     navigateTo(buildProjectUrl(projectOrId.id, projectOrId.name))
   } else {
-    navigateTo(`/project/${projectOrId}`)
+    navigateTo(buildProjectUrl(projectOrId))
   }
 }
 
