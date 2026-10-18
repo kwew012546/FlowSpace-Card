@@ -1,6 +1,6 @@
 <!-- app/pages/index.vue -->
 <template>
-  <div class="min-h-screen min-h-[100dvh] bg-[#fcf8f2]" />
+  <div class="min-h-screen min-h-[100dvh] bg-[#fcf8f2] dark:bg-[#070b14]" />
 </template>
 
 <script setup>

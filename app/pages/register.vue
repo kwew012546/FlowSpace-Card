@@ -43,31 +43,31 @@
     <!-- Main Split-Screen SaaS Bento Container -->
     <div class="w-full max-w-6xl mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch relative z-10">
       
-      <!-- Left Column: Onboarding Bento Showcase (Visible on Desktop) -->
-      <aside class="hidden lg:flex lg:col-span-7 rounded-3xl bg-gradient-to-br from-slate-900 via-[#111827] to-[#1e1b4b] text-white p-8 xl:p-10 flex-col justify-between relative overflow-hidden shadow-2xl border border-slate-800/90">
-        <div class="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-        <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-indigo-500/25 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+      <!-- Left Column on Desktop / Bottom Onboarding Showcase on Mobile & Tablet -->
+      <aside class="order-2 lg:order-1 flex lg:col-span-7 rounded-3xl bg-gradient-to-br from-slate-900 via-[#111827] to-[#1e1b4b] text-white p-5 sm:p-8 xl:p-10 flex-col justify-between relative overflow-hidden shadow-2xl border border-slate-800/90 max-w-md lg:max-w-none mx-auto w-full">
+        <div class="hidden sm:block absolute -top-24 -right-24 w-80 h-80 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+        <div class="hidden sm:block absolute -bottom-24 -left-24 w-80 h-80 bg-indigo-500/25 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
 
         <div class="relative z-10">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-amber-300 text-xs font-bold mb-6">
-            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-amber-300 text-[11px] sm:text-xs font-bold mb-4 sm:mb-6">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping shrink-0"></span>
             <span>เริ่มต้นใช้งานฟรีใน 30 วินาที</span>
           </div>
 
-          <h2 class="text-3xl xl:text-4xl font-black tracking-tight leading-tight text-white mb-3">
+          <h2 class="text-2xl sm:text-3xl xl:text-4xl font-black tracking-tight leading-tight text-white mb-2.5 sm:mb-3">
             สร้างพื้นที่ทำงานร่วมกัน <br />
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400">
               สำหรับคุณและทีมของคุณ
             </span>
           </h2>
-          <p class="text-slate-300 text-sm leading-relaxed max-w-lg font-medium">
+          <p class="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-lg font-medium">
             ตั้งแต่การวางแผนโปรเจกต์ส่วนตัวไปจนถึงการทำงานร่วมกันทั้งทีม FlowSpace ช่วยให้ทุกการ์ดงานชัดเจน มีผู้รับผิดชอบ และตรวจสอบประวัติย้อนหลังได้ครบถ้วน
           </p>
         </div>
 
         <!-- 3-Step Visual Onboarding Bento Cards -->
-        <div class="relative z-10 my-6 space-y-3">
-          <div class="rounded-2xl bg-white/8 backdrop-blur-md border border-white/12 p-4 flex items-center gap-4">
+        <div class="relative z-10 my-5 sm:my-6 space-y-3">
+          <div class="rounded-2xl bg-white/8 backdrop-blur-md border border-white/12 p-3.5 sm:p-4 flex items-center gap-3.5 sm:gap-4">
             <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 text-amber-300 flex items-center justify-center font-black text-sm shrink-0">01</div>
             <div>
               <h3 class="text-xs sm:text-sm font-extrabold text-white">สร้างบัญชีและยืนยันตัวตนอัตโนมัติ</h3>
@@ -75,7 +75,7 @@
             </div>
           </div>
 
-          <div class="rounded-2xl bg-white/8 backdrop-blur-md border border-white/12 p-4 flex items-center gap-4">
+          <div class="rounded-2xl bg-white/8 backdrop-blur-md border border-white/12 p-3.5 sm:p-4 flex items-center gap-3.5 sm:gap-4">
             <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 flex items-center justify-center font-black text-sm shrink-0">02</div>
             <div>
               <h3 class="text-xs sm:text-sm font-extrabold text-white">สร้างบอร์ดใหม่ หรือใช้รหัสเชิญ 6 หลัก</h3>
@@ -83,7 +83,7 @@
             </div>
           </div>
 
-          <div class="rounded-2xl bg-white/8 backdrop-blur-md border border-white/12 p-4 flex items-center gap-4">
+          <div class="rounded-2xl bg-white/8 backdrop-blur-md border border-white/12 p-3.5 sm:p-4 flex items-center gap-3.5 sm:gap-4">
             <div class="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/30 text-sky-300 flex items-center justify-center font-black text-sm shrink-0">03</div>
             <div>
               <h3 class="text-xs sm:text-sm font-extrabold text-white">ลากวางการ์ดงาน แนบไฟล์ และพูดคุยแบบเรียลไทม์</h3>
@@ -92,14 +92,14 @@
           </div>
         </div>
 
-        <div class="relative z-10 flex items-center justify-between pt-4 border-t border-white/10 text-xs text-slate-400">
+        <div class="relative z-10 flex flex-wrap items-center justify-between gap-2 pt-4 border-t border-white/10 text-xs text-slate-400">
           <span>🔒 ป้องกันข้อมูลด้วย JWT HttpOnly & RBAC</span>
           <span class="text-amber-300 font-bold">FlowSpace v2.0</span>
         </div>
       </aside>
 
-      <!-- Right Column: Registration Card -->
-      <main class="lg:col-span-5 bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-amber-200/80 dark:border-slate-700/80 p-6 sm:p-8 lg:p-9 rounded-3xl w-full max-w-md mx-auto lg:max-w-none shadow-2xl shadow-amber-950/5 dark:shadow-black/40 relative overflow-hidden flex flex-col justify-center">
+      <!-- Right Column on Desktop / Top Registration Card on Mobile & Tablet -->
+      <main class="order-1 lg:order-2 lg:col-span-5 bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-amber-200/80 dark:border-slate-700/80 p-6 sm:p-8 lg:p-9 rounded-3xl w-full max-w-md mx-auto lg:max-w-none shadow-2xl shadow-amber-950/5 dark:shadow-black/40 relative overflow-hidden flex flex-col justify-center">
         <!-- Top Accent Line -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500" aria-hidden="true"></div>
 

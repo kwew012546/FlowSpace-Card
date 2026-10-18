@@ -43,31 +43,31 @@
     <!-- Main Split-Screen SaaS Bento Container -->
     <div class="w-full max-w-6xl mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch relative z-10">
       
-      <!-- Left Column: Interactive Product Showcase Bento Panel (Visible on Desktop) -->
-      <aside class="hidden lg:flex lg:col-span-7 rounded-3xl bg-gradient-to-br from-slate-900 via-[#111827] to-[#1e1b4b] text-white p-8 xl:p-10 flex-col justify-between relative overflow-hidden shadow-2xl border border-slate-800/90">
+      <!-- Left Column on Desktop / Bottom Showcase on Mobile & Tablet -->
+      <aside class="order-2 lg:order-1 flex lg:col-span-7 rounded-3xl bg-gradient-to-br from-slate-900 via-[#111827] to-[#1e1b4b] text-white p-5 sm:p-8 xl:p-10 flex-col justify-between relative overflow-hidden shadow-2xl border border-slate-800/90 max-w-md lg:max-w-none mx-auto w-full">
         <!-- Decorative Mesh & Grid inside Showcase -->
-        <div class="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-        <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-indigo-500/25 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+        <div class="hidden sm:block absolute -top-24 -right-24 w-80 h-80 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+        <div class="hidden sm:block absolute -bottom-24 -left-24 w-80 h-80 bg-indigo-500/25 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
 
         <div class="relative z-10">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-amber-300 text-xs font-bold mb-6">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Real-Time Kanban & Role-Based Access Control</span>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-amber-300 text-[11px] sm:text-xs font-bold mb-4 sm:mb-6">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+            <span class="truncate">Real-Time Kanban & Role-Based Access Control</span>
           </div>
 
-          <h2 class="text-3xl xl:text-4xl font-black tracking-tight leading-tight text-white mb-3">
+          <h2 class="text-2xl sm:text-3xl xl:text-4xl font-black tracking-tight leading-tight text-white mb-2.5 sm:mb-3">
             บริหารจัดการเวิร์กโฟลว์ <br />
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400">
               ยืดหยุ่น รวดเร็ว และชัดเจน
             </span>
           </h2>
-          <p class="text-slate-300 text-sm leading-relaxed max-w-lg font-medium">
+          <p class="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-lg font-medium">
             ออกแบบคอลัมน์ได้อิสระ กำหนดสิทธิ์สมาชิกตามยศ (RBAC) ติดตามงานย่อยพร้อมไฟล์แนบ และซิงก์สถานะการ์ดแบบเรียลไทม์ไม่ต้องกดรีเฟรช
           </p>
         </div>
 
-        <!-- Live Mini Kanban Board Visual Mockup -->
-        <div class="relative z-10 my-6 grid grid-cols-2 gap-3.5">
+        <!-- Live Mini Kanban Board Visual Mockup (1 col on mobile, 2 cols on sm+) -->
+        <div class="relative z-10 my-5 sm:my-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <!-- Mock Column 1 -->
           <div class="rounded-2xl bg-white/8 backdrop-blur-md border border-white/12 p-3.5 space-y-2.5">
             <div class="flex items-center justify-between">
@@ -135,25 +135,25 @@
           </div>
         </div>
 
-        <!-- Bottom 3 Feature Pills -->
-        <div class="relative z-10 grid grid-cols-3 gap-3 pt-4 border-t border-white/10 text-xs">
+        <!-- Bottom 3 Feature Pills (1 col on mobile, 3 cols on sm+) -->
+        <div class="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-4 border-t border-white/10 text-xs">
           <div class="flex items-center gap-2 text-slate-300 font-semibold">
-            <span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-amber-400 font-black">1</span>
+            <span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-amber-400 font-black shrink-0">1</span>
             <span>คอลัมน์ยืดหยุ่น</span>
           </div>
           <div class="flex items-center gap-2 text-slate-300 font-semibold">
-            <span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-emerald-400 font-black">2</span>
+            <span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-emerald-400 font-black shrink-0">2</span>
             <span>แนบไฟล์สูงสุด 30MB</span>
           </div>
           <div class="flex items-center gap-2 text-slate-300 font-semibold">
-            <span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sky-400 font-black">3</span>
+            <span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sky-400 font-black shrink-0">3</span>
             <span>อัปเดตเรียลไทม์ (SSE)</span>
           </div>
         </div>
       </aside>
 
-      <!-- Right Column: Elevated Auth Card -->
-      <main class="lg:col-span-5 bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-amber-200/80 dark:border-slate-700/80 p-6 sm:p-8 lg:p-9 rounded-3xl w-full max-w-md mx-auto lg:max-w-none shadow-2xl shadow-amber-950/5 dark:shadow-black/40 relative overflow-hidden flex flex-col justify-center">
+      <!-- Right Column on Desktop / Top Auth Card on Mobile & Tablet -->
+      <main class="order-1 lg:order-2 lg:col-span-5 bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-amber-200/80 dark:border-slate-700/80 p-6 sm:p-8 lg:p-9 rounded-3xl w-full max-w-md mx-auto lg:max-w-none shadow-2xl shadow-amber-950/5 dark:shadow-black/40 relative overflow-hidden flex flex-col justify-center">
         <!-- Top Accent Line -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500" aria-hidden="true"></div>
 
