@@ -2,64 +2,93 @@
 <template>
   <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] text-stone-800 flex flex-col relative overflow-x-hidden bg-grid">
     
-    <!-- Background ambient lighting -->
-    <div class="absolute top-[-10%] left-[-10%] w-[360px] sm:w-[480px] h-[360px] sm:h-[480px] bg-amber-200/40 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[360px] sm:w-[480px] h-[360px] sm:h-[480px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Background ambient lighting (Reduced GPU load on mobile) -->
+    <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[420px] h-[420px] bg-amber-200/35 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[420px] h-[420px] bg-orange-200/25 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
 
     <!-- Header -->
-    <header class="bg-[#fdfaf5] border-b border-amber-200/80 p-3 sm:p-4 shadow-sm relative z-10">
-      <div class="container mx-auto flex flex-wrap justify-between items-center gap-3">
+    <header class="sticky top-0 z-30 bg-[#fdfaf5]/90 backdrop-blur-md border-b border-amber-200/80 px-4 py-3 shadow-xs">
+      <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
           <NuxtLink 
             to="/dashboard"
-            class="min-h-[40px] px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs sm:text-sm transition-all border border-stone-250 flex items-center gap-1.5"
+            class="min-h-[44px] px-3.5 py-2 bg-white hover:bg-stone-50 text-stone-700 hover:text-amber-900 font-bold rounded-xl text-xs sm:text-sm transition-all border border-amber-200/90 shadow-2xs inline-flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
             title="กลับสู่หน้าแดชบอร์ด"
           >
-            <span>⬅️</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
             <span class="hidden sm:inline">แดชบอร์ด</span>
           </NuxtLink>
-          <h1 class="text-lg sm:text-xl font-black text-stone-800 flex items-center gap-2">
-            <span>🛡️</span> FlowSpace Admin Portal
-          </h1>
+
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white shadow-sm shadow-amber-600/20 shrink-0" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-base sm:text-xl font-black text-stone-800 tracking-tight leading-none">
+                FlowSpace Admin
+              </h1>
+              <p class="text-[11px] text-stone-400 font-semibold mt-0.5 hidden sm:block">
+                ศูนย์ควบคุมระบบและจัดการผู้ใช้งาน
+              </p>
+            </div>
+          </div>
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3">
-          <span class="min-h-[40px] text-xs sm:text-sm font-semibold text-stone-700 bg-amber-100 px-3 py-2 rounded-xl border border-amber-300 flex items-center gap-1.5 shadow-sm">
-            <span>👑</span>
-            <span class="font-bold">{{ currentAdmin?.username || 'Admin' }}</span>
-            <span class="text-[10px] bg-amber-600 text-white font-extrabold px-1.5 py-0.5 rounded-full">SUPER ADMIN</span>
-          </span>
+          <div class="min-h-[44px] text-xs sm:text-sm font-bold text-stone-700 bg-[#f5ecdc] px-3 py-1.5 rounded-xl border border-amber-300/90 flex items-center gap-2 shadow-2xs">
+            <div class="w-6 h-6 rounded-full bg-amber-600 text-white text-xs font-black flex items-center justify-center uppercase shrink-0" aria-hidden="true">
+              {{ (currentAdmin?.username || 'A').charAt(0) }}
+            </div>
+            <span class="max-w-[120px] sm:max-w-[160px] truncate">{{ currentAdmin?.username || 'Admin' }}</span>
+            <span class="text-[10px] bg-amber-700 text-white font-extrabold px-1.5 py-0.5 rounded-md tracking-wide">SUPER ADMIN</span>
+          </div>
         </div>
       </div>
     </header>
 
     <!-- Main Container -->
-    <main class="flex-1 container mx-auto p-4 sm:p-6 relative z-10">
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 relative z-10">
       
       <!-- Tabs Navigation -->
-      <div class="flex flex-wrap gap-2 border-b border-amber-200/80 pb-3 mb-6">
+      <div class="flex flex-wrap gap-2 border-b border-amber-200/80 pb-3 mb-6" role="tablist" aria-label="หมวดหมู่การจัดการระบบ">
         <button 
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === 'overview'"
           @click="activeTab = 'overview'; fetchStats()" 
-          :class="activeTab === 'overview' ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20' : 'bg-white hover:bg-amber-50 text-stone-700 border border-amber-200'"
-          class="min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5"
+          :class="activeTab === 'overview' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/20 border-transparent' : 'bg-[#fdfaf5] hover:bg-white text-stone-700 border-amber-200/90'"
+          class="min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all inline-flex items-center gap-2 cursor-pointer"
         >
-          <span>📊</span> ภาพรวมระบบ
+          <span>📊</span>
+          <span>ภาพรวมระบบ</span>
         </button>
         <button 
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === 'users'"
           @click="activeTab = 'users'; fetchUsers(userPagination.page); fetchStats()" 
-          :class="activeTab === 'users' ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20' : 'bg-white hover:bg-amber-50 text-stone-700 border border-amber-200'"
-          class="min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5"
+          :class="activeTab === 'users' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/20 border-transparent' : 'bg-[#fdfaf5] hover:bg-white text-stone-700 border-amber-200/90'"
+          class="min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all inline-flex items-center gap-2 cursor-pointer"
         >
-          <span>👥</span> จัดการผู้ใช้
-          <span v-if="stats?.totalUsers" class="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">{{ stats.totalUsers }}</span>
+          <span>👥</span>
+          <span>จัดการผู้ใช้</span>
+          <span v-if="stats?.totalUsers" :class="activeTab === 'users' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-900'" class="text-[11px] font-extrabold px-2 py-0.5 rounded-full tabular-nums">{{ stats.totalUsers }}</span>
         </button>
         <button 
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === 'workspaces'"
           @click="activeTab = 'workspaces'; fetchProjects(projectPagination.page); fetchStats()" 
-          :class="activeTab === 'workspaces' ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20' : 'bg-white hover:bg-amber-50 text-stone-700 border border-amber-200'"
-          class="min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5"
+          :class="activeTab === 'workspaces' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/20 border-transparent' : 'bg-[#fdfaf5] hover:bg-white text-stone-700 border-amber-200/90'"
+          class="min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all inline-flex items-center gap-2 cursor-pointer"
         >
-          <span>🗂️</span> เวิร์กสเปซทั้งหมด
-          <span v-if="stats?.totalProjects" class="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">{{ stats.totalProjects }}</span>
+          <span>🗂️</span>
+          <span>เวิร์กสเปซทั้งหมด</span>
+          <span v-if="stats?.totalProjects" :class="activeTab === 'workspaces' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-900'" class="text-[11px] font-extrabold px-2 py-0.5 rounded-full tabular-nums">{{ stats.totalProjects }}</span>
         </button>
       </div>
 
@@ -650,7 +679,7 @@
     <!-- ========================================== -->
     <!-- MODAL: RESET PASSWORD -->
     <!-- ========================================== -->
-    <div v-if="isResetModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div v-if="isResetModalOpen" @click.self="closeResetModal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-amber-500"></div>
 
@@ -665,16 +694,27 @@
         <div v-if="tempPasswordResult" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center my-4">
           <p class="text-xs text-emerald-800 font-bold mb-1">🎉 รีเซ็ตรหัสผ่านสำเร็จ!</p>
           <p class="text-xs text-stone-600 mb-2">รหัสผ่านชั่วคราวใหม่ของผู้ใช้คือ:</p>
-          <div class="font-mono text-lg font-black text-amber-950 bg-white border border-amber-300 py-2 px-4 rounded-lg inline-block tracking-widest select-all">
-            {{ tempPasswordResult }}
+          <div class="flex items-center justify-center gap-2 flex-wrap">
+            <div class="font-mono text-lg font-black text-amber-950 bg-white border border-amber-300 py-2 px-4 rounded-xl inline-block tracking-widest select-all">
+              {{ tempPasswordResult }}
+            </div>
+            <button
+              type="button"
+              @click="copyTempPassword"
+              class="min-h-[42px] px-3.5 py-2 rounded-xl font-bold text-xs transition-all border shadow-sm cursor-pointer"
+              :class="isCopiedTempPass ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white hover:bg-amber-50 text-amber-900 border-amber-300'"
+            >
+              {{ isCopiedTempPass ? '✅ คัดลอกแล้ว' : '📋 คัดลอกรหัส' }}
+            </button>
           </div>
-          <p class="text-[11px] text-stone-400 mt-2">กรุณาคัดลอกรหัสนี้ส่งให้ผู้ใช้เพื่อล็อกอิน</p>
+          <p class="text-[11px] text-stone-500 mt-2.5">กรุณาคัดลอกรหัสนี้ส่งให้ผู้ใช้เพื่อเข้าสู่ระบบ</p>
         </div>
 
         <form v-else @submit.prevent="handleConfirmResetPassword" class="space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-stone-600 mb-1">กำหนดรหัสผ่านใหม่ (หากเว้นว่าง ระบบจะสุ่มรหัสให้อัตโนมัติ):</label>
+            <label for="admin-custom-password" class="block text-xs font-semibold text-stone-600 mb-1">กำหนดรหัสผ่านใหม่ (หากเว้นว่าง ระบบจะสุ่มรหัสให้อัตโนมัติ):</label>
             <input 
+              id="admin-custom-password"
               v-model="customNewPassword" 
               type="text" 
               placeholder="เว้นว่างไว้เพื่อสุ่ม เช่น FS-8x7a2b"
@@ -686,14 +726,14 @@
             <button 
               type="button" 
               @click="closeResetModal" 
-              class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all"
+              class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all cursor-pointer"
             >
               ยกเลิก
             </button>
             <button 
               type="submit" 
               :disabled="isSubmittingAction"
-              class="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-1.5"
+              class="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <span v-if="isSubmittingAction" class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
               {{ isSubmittingAction ? 'กำลังดำเนินการ...' : 'ยืนยันรีเซ็ตรหัสผ่าน ⚡' }}
@@ -704,7 +744,7 @@
         <div v-if="tempPasswordResult" class="flex justify-end pt-3">
           <button 
             @click="closeResetModal" 
-            class="min-h-[44px] px-5 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl font-bold text-sm transition-all"
+            class="min-h-[44px] px-5 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl font-bold text-sm transition-all cursor-pointer"
           >
             ปิดหน้าต่าง
           </button>
@@ -715,7 +755,7 @@
     <!-- ========================================== -->
     <!-- MODAL: BAN / UNBAN -->
     <!-- ========================================== -->
-    <div v-if="isBanModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div v-if="isBanModalOpen" @click.self="isBanModalOpen = false; selectedUser = null" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-500"></div>
 
@@ -728,8 +768,9 @@
 
         <form @submit.prevent="handleConfirmBan" class="space-y-4">
           <div v-if="!selectedUser?.isBanned">
-            <label class="block text-xs font-semibold text-stone-600 mb-1">ระบุเหตุผลในการระงับการใช้งาน:</label>
+            <label for="admin-ban-reason" class="block text-xs font-semibold text-stone-600 mb-1">ระบุเหตุผลในการระงับการใช้งาน:</label>
             <textarea 
+              id="admin-ban-reason"
               v-model="banReasonInput" 
               rows="3" 
               placeholder="เช่น ละเมิดกฎชุมชน, สแปมเนื้อหาในบอร์ด..."
@@ -746,7 +787,7 @@
             <button 
               type="button" 
               @click="isBanModalOpen = false; selectedUser = null" 
-              class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all"
+              class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all cursor-pointer"
             >
               ยกเลิก
             </button>
@@ -754,7 +795,7 @@
               type="submit" 
               :disabled="isSubmittingAction"
               :class="selectedUser?.isBanned ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'"
-              class="min-h-[44px] px-5 py-2 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-1.5"
+              class="min-h-[44px] px-5 py-2 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <span v-if="isSubmittingAction" class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
               {{ isSubmittingAction ? 'กำลังดำเนินการ...' : (selectedUser?.isBanned ? 'ยืนยันปลดแบน 🔓' : 'ยืนยันระงับบัญชี 🔒') }}
@@ -767,7 +808,7 @@
     <!-- ========================================== -->
     <!-- MODAL: DELETE PROJECT -->
     <!-- ========================================== -->
-    <div v-if="isDeleteProjectModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div v-if="isDeleteProjectModalOpen" @click.self="isDeleteProjectModalOpen = false; selectedProject = null" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-500"></div>
 
@@ -787,7 +828,7 @@
           <button 
             type="button" 
             @click="isDeleteProjectModalOpen = false; selectedProject = null" 
-            class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all"
+            class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all cursor-pointer"
           >
             ยกเลิก
           </button>
@@ -795,7 +836,7 @@
             type="button"
             @click="handleConfirmDeleteProject"
             :disabled="isSubmittingAction"
-            class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-1.5"
+            class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <span v-if="isSubmittingAction" class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
             {{ isSubmittingAction ? 'กำลังลบ...' : 'ยืนยันลบถาวร 🗑️' }}
@@ -807,7 +848,7 @@
     <!-- ========================================== -->
     <!-- MODAL: DELETE USER (SINGLE OR BULK) -->
     <!-- ========================================== -->
-    <div v-if="isDeleteUserModalOpen" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div v-if="isDeleteUserModalOpen" @click.self="isDeleteUserModalOpen = false; userToDelete = null" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-[#fdfaf5] border border-rose-200 rounded-2xl w-full max-w-lg p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90dvh] overflow-y-auto">
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-500"></div>
 
@@ -909,7 +950,7 @@
           <button 
             type="button" 
             @click="isDeleteUserModalOpen = false; userToDelete = null" 
-            class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all"
+            class="min-h-[44px] px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl font-bold text-sm transition-all cursor-pointer"
           >
             ยกเลิก
           </button>
@@ -917,7 +958,7 @@
             type="button"
             @click="handleConfirmDeleteUser"
             :disabled="isSubmittingAction"
-            class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-1.5"
+            class="min-h-[44px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <span v-if="isSubmittingAction" class="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
             {{ isSubmittingAction ? 'กำลังลบบัญชี...' : (usersToDeleteList.length > 1 ? `ยืนยันลบผู้ใช้ทั้ง ${usersToDeleteList.length} คน 🗑️` : 'ยืนยันลบบัญชีถาวร 🗑️') }}
@@ -947,6 +988,10 @@ definePageMeta({
 })
 
 const { showToast } = useToast()
+
+const getApiErrorMessage = (error, fallback = 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง') => {
+  return error?.data?.statusMessage || error?.data?.message || error?.statusMessage || fallback
+}
 
 const activeTab = ref('overview') // 'overview' | 'users' | 'workspaces'
 const currentAdmin = ref(null)
@@ -982,6 +1027,7 @@ const projectHandlingChoice = ref('transfer')
 const selectedProject = ref(null)
 const customNewPassword = ref('')
 const tempPasswordResult = ref('')
+const isCopiedTempPass = ref(false)
 const banReasonInput = ref('')
 const isSubmittingAction = ref(false)
 
@@ -995,7 +1041,7 @@ const fetchStats = async () => {
       stats.value = res.stats
     }
   } catch (err) {
-    showToast(err.data?.message || 'ไม่สามารถโหลดสถิติระบบได้', 'error')
+    showToast(getApiErrorMessage(err, 'ไม่สามารถโหลดสถิติระบบได้'), 'error')
   } finally {
     isLoadingStats.value = false
   }
@@ -1019,7 +1065,7 @@ const fetchUsers = async (page = 1) => {
       userPagination.value = res.pagination
     }
   } catch (err) {
-    showToast(err.data?.message || 'ไม่สามารถโหลดรายชื่อผู้ใช้ได้', 'error')
+    showToast(getApiErrorMessage(err, 'ไม่สามารถโหลดรายชื่อผู้ใช้ได้'), 'error')
   } finally {
     isLoadingUsers.value = false
   }
@@ -1040,7 +1086,7 @@ const fetchProjects = async (page = 1) => {
       projectPagination.value = res.pagination
     }
   } catch (err) {
-    showToast(err.data?.message || 'ไม่สามารถโหลดรายชื่อโปรเจกต์ได้', 'error')
+    showToast(getApiErrorMessage(err, 'ไม่สามารถโหลดรายชื่อโปรเจกต์ได้'), 'error')
   } finally {
     isLoadingProjects.value = false
   }
@@ -1138,7 +1184,7 @@ const handleManualVerify = async (user) => {
     user.isVerified = true
     fetchStats()
   } catch (err) {
-    showToast(err.data?.message || 'ยืนยันอีเมลไม่สำเร็จ', 'error')
+    showToast(getApiErrorMessage(err, 'ยืนยันอีเมลไม่สำเร็จ'), 'error')
   }
 }
 
@@ -1146,6 +1192,7 @@ const openResetPasswordModal = (user) => {
   selectedUser.value = user
   customNewPassword.value = ''
   tempPasswordResult.value = ''
+  isCopiedTempPass.value = false
   isResetModalOpen.value = true
 }
 
@@ -1154,6 +1201,18 @@ const closeResetModal = () => {
   selectedUser.value = null
   customNewPassword.value = ''
   tempPasswordResult.value = ''
+  isCopiedTempPass.value = false
+}
+
+const copyTempPassword = async () => {
+  if (!tempPasswordResult.value) return
+  try {
+    await navigator.clipboard.writeText(tempPasswordResult.value)
+    isCopiedTempPass.value = true
+    setTimeout(() => {
+      isCopiedTempPass.value = false
+    }, 2000)
+  } catch {}
 }
 
 const handleConfirmResetPassword = async () => {
@@ -1168,9 +1227,9 @@ const handleConfirmResetPassword = async () => {
       }
     })
     tempPasswordResult.value = res.temporaryPassword
-    showToast('รีเซ็ตรหัสผ่านสำเร็จ ✅', 'success')
+    isCopiedTempPass.value = false
   } catch (err) {
-    showToast(err.data?.message || 'เกิดข้อผิดพลาดในการรีเซ็ตรหัสผ่าน', 'error')
+    showToast(getApiErrorMessage(err, 'เกิดข้อผิดพลาดในการรีเซ็ตรหัสผ่าน'), 'error')
   } finally {
     isSubmittingAction.value = false
   }
@@ -1203,7 +1262,7 @@ const handleConfirmBan = async () => {
     selectedUser.value = null
     fetchStats()
   } catch (err) {
-    showToast(err.data?.message || 'เกิดข้อผิดพลาดในการเปลี่ยนสถานะการระงับบัญชี', 'error')
+    showToast(getApiErrorMessage(err, 'เกิดข้อผิดพลาดในการเปลี่ยนสถานะการระงับบัญชี'), 'error')
   } finally {
     isSubmittingAction.value = false
   }
@@ -1223,7 +1282,7 @@ const handleToggleRole = async (user) => {
     user.role = targetRole
     fetchStats()
   } catch (err) {
-    showToast(err.data?.message || 'เปลี่ยนระดับสิทธิ์ไม่สำเร็จ', 'error')
+    showToast(getApiErrorMessage(err, 'เปลี่ยนระดับสิทธิ์ไม่สำเร็จ'), 'error')
   }
 }
 
@@ -1289,7 +1348,7 @@ const handleConfirmDeleteUser = async () => {
       fetchUsers(userPagination.value.page)
     }
   } catch (err) {
-    showToast(err.data?.message || 'เกิดข้อผิดพลาดในการลบผู้ใช้งาน', 'error')
+    showToast(getApiErrorMessage(err, 'เกิดข้อผิดพลาดในการลบผู้ใช้งาน'), 'error')
   } finally {
     isSubmittingAction.value = false
   }
@@ -1314,9 +1373,18 @@ const handleConfirmDeleteProject = async () => {
     await fetchProjects(projectPagination.value.page)
     fetchStats()
   } catch (err) {
-    showToast(err.data?.message || 'เกิดข้อผิดพลาดในการลบโปรเจกต์', 'error')
+    showToast(getApiErrorMessage(err, 'เกิดข้อผิดพลาดในการลบโปรเจกต์'), 'error')
   } finally {
     isSubmittingAction.value = false
+  }
+}
+
+const handleGlobalKeydown = (e) => {
+  if (e.key === 'Escape') {
+    if (isResetModalOpen.value) closeResetModal()
+    if (isBanModalOpen.value) { isBanModalOpen.value = false; selectedUser.value = null }
+    if (isDeleteProjectModalOpen.value) { isDeleteProjectModalOpen.value = false; selectedProject.value = null }
+    if (isDeleteUserModalOpen.value) { isDeleteUserModalOpen.value = false; userToDelete.value = null }
   }
 }
 
@@ -1354,13 +1422,16 @@ onMounted(async () => {
   if (typeof window !== 'undefined') {
     document.addEventListener('visibilitychange', handleVisibilityOrFocus)
     window.addEventListener('focus', handleVisibilityOrFocus)
+    window.addEventListener('keydown', handleGlobalKeydown)
   }
 })
 
 onUnmounted(() => {
+  clearTimeout(searchDebounceTimer)
   if (typeof window !== 'undefined') {
     document.removeEventListener('visibilitychange', handleVisibilityOrFocus)
     window.removeEventListener('focus', handleVisibilityOrFocus)
+    window.removeEventListener('keydown', handleGlobalKeydown)
   }
 })
 </script>
