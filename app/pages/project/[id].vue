@@ -179,6 +179,8 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-start xl:justify-end gap-2 sm:gap-2.5 relative w-full xl:w-auto shrink-0">
+          <ThemeToggle />
+
           <a 
             href="/manual.html" 
             target="_blank" 
@@ -268,10 +270,7 @@
             <span>แดชบอร์ด</span>
           </button>
           <button v-if="hasPermission('CREATE_TASK') && columns.length > 0" @click="openAddModal(columns[0]?.id)" class="min-h-[42px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-md text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            <span>เพิ่มงานใหม่</span>
+            <span>+ เพิ่มงานใหม่</span>
           </button>
         </div>
 
@@ -420,10 +419,12 @@
           @dragstart="onColumnDragStart(col.id)"
           @dragover.prevent
           @drop="onDrop(col.id)"
-          class="bg-[#fdfaf5]/95 border border-amber-200/80 rounded-2xl p-3.5 sm:p-4 shadow-sm w-[85vw] sm:w-80 shrink-0 relative flex flex-col max-h-[calc(100dvh-16rem)] sm:max-h-[73dvh] transition-all"
+          class="bg-[#fdfaf5]/95 border border-amber-200/80 rounded-2xl p-3.5 sm:p-4 shadow-md w-[85vw] sm:w-80 shrink-0 relative flex flex-col max-h-[calc(100dvh-16rem)] sm:max-h-[73dvh] transition-all overflow-hidden"
         >
+          <!-- Column Top Gradient Accent -->
+          <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 opacity-80" aria-hidden="true"></div>
           
-          <div class="flex justify-between items-center mb-3 sm:mb-4" :class="hasPermission('MANAGE_PROJECT') && editingColumnId !== col.id ? 'cursor-grab active:cursor-grabbing' : ''">
+          <div class="flex justify-between items-center mb-3 sm:mb-4 pt-1" :class="hasPermission('MANAGE_PROJECT') && editingColumnId !== col.id ? 'cursor-grab active:cursor-grabbing' : ''">
             <div class="flex-1 min-w-0">
               <div v-if="editingColumnId === col.id" class="flex items-center gap-1.5">
                 <input v-model="editingColumnTitle" type="text" class="bg-white border border-amber-400 rounded-lg px-2 py-1 text-xs font-bold text-stone-800 focus:outline-none w-full min-h-[34px]" @keyup.enter="saveColumnName(col.id)" @keyup.esc="editingColumnId = null" />
@@ -472,8 +473,11 @@
               @dragover.prevent
               @drop.stop="onDropOnTask(task.id, col.id)"
               @click="openEditModal(task)"
-              :class="!hasPermission('MOVE_TASK') ? 'cursor-pointer hover:border-amber-300' : 'cursor-grab active:cursor-grabbing hover:border-amber-400'"
-              class="bg-white p-3.5 sm:p-4 rounded-xl border border-amber-100 shadow-sm hover:shadow-md transition-all group relative"
+              :class="[
+                !hasPermission('MOVE_TASK') ? 'cursor-pointer hover:border-amber-300' : 'cursor-grab active:cursor-grabbing hover:border-amber-400',
+                task.priority === 'URGENT' ? 'border-l-4 border-l-rose-500' : task.priority === 'HIGH' ? 'border-l-4 border-l-orange-400' : ''
+              ]"
+              class="bg-white p-3.5 sm:p-4 rounded-xl border border-amber-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group relative"
             >
               
               <div v-if="task.labels && task.labels.length > 0" class="flex flex-wrap gap-1 mb-2">

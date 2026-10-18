@@ -39,6 +39,7 @@
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle :showLabel="true" />
           <div class="min-h-[44px] text-xs sm:text-sm font-bold text-stone-700 bg-[#f5ecdc] px-3 py-1.5 rounded-xl border border-amber-300/90 flex items-center gap-2 shadow-2xs">
             <div class="w-6 h-6 rounded-full bg-amber-600 text-white text-xs font-black flex items-center justify-center uppercase shrink-0" aria-hidden="true">
               {{ (currentAdmin?.username || 'A').charAt(0) }}

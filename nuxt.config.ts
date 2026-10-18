@@ -40,15 +40,31 @@ export default defineNuxtConfig({
         { name: 'twitter:image', content: 'https://flow-space-card.vercel.app/og-image.jpg' }
       ],
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'
+        }
+      ],
+      script: [
+        {
+          innerHTML: `(function(){try{var t=localStorage.getItem('flowspace_theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light';}}catch(e){}})();`
+        }
       ]
     }
   },
 
-  // 1. เพิ่มโมดูล Tailwind เข้าไปตรงนี้
   modules: [
     '@nuxtjs/tailwindcss'
   ],
+
+  tailwindcss: {
+    config: {
+      darkMode: 'class'
+    }
+  },
 
   future: {
     compatibilityVersion: 4,

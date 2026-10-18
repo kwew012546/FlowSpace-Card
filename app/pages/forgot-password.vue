@@ -1,15 +1,15 @@
 <!-- app/pages/forgot-password.vue -->
 <template>
-  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-x-hidden bg-grid text-stone-800">
+  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] dark:from-[#070b14] dark:via-[#0b1120] dark:to-[#0f172a] flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative overflow-x-hidden bg-grid text-stone-800 dark:text-slate-100 transition-colors duration-300">
     
-    <!-- Ambient Lighting (Reduced GPU load on mobile, rich glow on desktop) -->
-    <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[420px] h-[420px] bg-amber-200/35 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-    <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[420px] h-[420px] bg-orange-200/25 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <!-- Ambient Lighting -->
+    <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[460px] h-[460px] bg-amber-400/20 dark:bg-amber-500/12 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[460px] h-[460px] bg-indigo-400/15 dark:bg-indigo-500/12 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
 
-    <!-- Brand Identity Header -->
-    <div class="mb-6 text-center relative z-10">
-      <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-[#fdfaf5]/90 border border-amber-200/80 shadow-sm mb-3">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white shadow-sm shadow-amber-600/20">
+    <!-- Top Utility Header (Brand + Theme Toggle on every page) -->
+    <header class="w-full max-w-5xl mx-auto flex items-center justify-between relative z-20 mb-4">
+      <NuxtLink to="/login" class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-white/85 dark:bg-slate-900/80 backdrop-blur-md border border-amber-200/80 dark:border-slate-700/80 shadow-xs hover:border-amber-400 transition-all">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-sm shadow-amber-500/30">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
             <rect width="7" height="9" x="3" y="3" rx="1" />
             <rect width="7" height="5" x="14" y="3" rx="1" />
@@ -17,14 +17,18 @@
             <rect width="7" height="5" x="3" y="16" rx="1" />
           </svg>
         </div>
-        <span class="text-base font-black tracking-tight text-stone-800">FlowSpace</span>
-      </div>
-    </div>
+        <div class="text-left">
+          <span class="text-base font-black tracking-tight text-stone-900 dark:text-white block leading-none">FlowSpace</span>
+          <span class="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Account Recovery</span>
+        </div>
+      </NuxtLink>
+      <ThemeToggle :showLabel="true" />
+    </header>
 
     <!-- Auth Card -->
-    <main class="bg-[#fdfaf5] border border-amber-200/80 p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-xl shadow-amber-950/5 relative z-10 overflow-hidden">
+    <main class="my-auto mx-auto bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-amber-200/80 dark:border-slate-700/80 p-6 sm:p-8 rounded-3xl w-full max-w-md shadow-2xl shadow-amber-950/5 dark:shadow-black/40 relative z-10 overflow-hidden">
       <!-- Top Accent Line -->
-      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500" aria-hidden="true"></div>
+      <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500" aria-hidden="true"></div>
 
       <div class="text-center mb-6">
         <div class="inline-flex items-center justify-center w-13 h-13 rounded-2xl bg-amber-100 text-amber-800 mb-3 shadow-inner">

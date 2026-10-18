@@ -1,17 +1,17 @@
 <!-- app/pages/dashboard.vue -->
 <template>
-  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] text-stone-800 flex flex-col relative overflow-x-hidden bg-grid">
+  <div class="min-h-screen min-h-[100dvh] bg-gradient-to-br from-[#fcf8f2] via-[#f7f0e4] to-[#f3e9d7] dark:from-[#070b14] dark:via-[#0b1120] dark:to-[#0f172a] text-stone-800 dark:text-slate-100 flex flex-col relative overflow-x-hidden bg-grid transition-colors duration-300">
     
-    <!-- Ambient Lighting (Reduced GPU load on mobile, rich glow on desktop) -->
-    <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[420px] h-[420px] bg-amber-200/35 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-    <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[420px] h-[420px] bg-orange-200/25 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <!-- Ambient Aurora Mesh Glow -->
+    <div class="hidden sm:block absolute top-[-10%] left-[-10%] w-[480px] h-[480px] bg-amber-400/20 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+    <div class="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[480px] h-[480px] bg-indigo-400/15 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
 
     <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-30 bg-[#fdfaf5]/90 backdrop-blur-md border-b border-amber-200/80 px-4 py-3 shadow-xs">
+    <header class="sticky top-0 z-30 bg-[#fdfaf5]/90 dark:bg-slate-900/85 backdrop-blur-xl border-b border-amber-200/80 dark:border-slate-800 px-4 py-3 shadow-xs">
       <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
         <!-- Brand Logo & Title -->
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white shadow-sm shadow-amber-600/20 shrink-0">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-md shadow-amber-500/25 shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true">
               <rect width="7" height="9" x="3" y="3" rx="1" />
               <rect width="7" height="5" x="14" y="3" rx="1" />
@@ -21,7 +21,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-lg sm:text-xl font-black tracking-tight text-stone-800 leading-none">
+              <h1 class="text-lg sm:text-xl font-black tracking-tight text-stone-900 dark:text-white leading-none">
                 FlowSpace
               </h1>
               <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-amber-100/90 text-amber-900 border border-amber-200/80">
@@ -36,13 +36,16 @@
 
         <!-- Navigation & User Controls -->
         <div class="flex items-center flex-wrap gap-2 sm:gap-2.5">
+          <!-- Dark / Light Mode Toggle -->
+          <ThemeToggle :showLabel="true" />
+
           <a 
             href="/manual.html" 
             target="_blank" 
-            class="min-h-[44px] bg-white hover:bg-stone-50 text-stone-700 hover:text-amber-900 font-bold px-3.5 py-2 rounded-xl border border-amber-200/90 transition-all text-xs sm:text-sm inline-flex items-center gap-2 shadow-2xs focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+            class="min-h-[42px] bg-white hover:bg-stone-50 text-stone-700 hover:text-amber-900 font-bold px-3.5 py-2 rounded-xl border border-amber-200/90 transition-all text-xs sm:text-sm inline-flex items-center gap-2 shadow-2xs focus:outline-none focus:ring-2 focus:ring-amber-500/30"
             title="เปิดอ่านคู่มือการใช้งานระบบ FlowSpace"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-amber-700 shrink-0" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true">
               <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
               <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
             </svg>
@@ -52,31 +55,31 @@
           <NuxtLink 
             v-if="currentUser?.role === 'ADMIN'"
             to="/admin" 
-            class="min-h-[44px] bg-amber-100/90 hover:bg-amber-200/90 text-amber-950 font-bold px-3.5 py-2 rounded-xl border border-amber-300 transition-all text-xs sm:text-sm inline-flex items-center gap-2 shadow-2xs focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+            class="min-h-[42px] bg-amber-100/90 hover:bg-amber-200/90 text-amber-950 font-bold px-3.5 py-2 rounded-xl border border-amber-300 transition-all text-xs sm:text-sm inline-flex items-center gap-2 shadow-2xs focus:outline-none focus:ring-2 focus:ring-amber-500/30"
             title="เปิดแผงควบคุมระบบ (Admin Portal)"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-amber-800 shrink-0" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-amber-700 shrink-0" aria-hidden="true">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
             </svg>
             <span class="hidden sm:inline">แผงควบคุม Admin</span>
           </NuxtLink>
 
           <!-- User Profile Chip -->
-          <div class="min-h-[44px] text-xs sm:text-sm font-bold text-stone-700 bg-[#f5ecdc] px-3 py-1.5 rounded-xl border border-amber-200/90 flex items-center gap-2">
-            <div class="w-6 h-6 rounded-full bg-amber-600 text-white text-xs font-black flex items-center justify-center uppercase shrink-0" aria-hidden="true">
+          <div class="min-h-[42px] text-xs sm:text-sm font-bold text-stone-700 bg-[#f5ecdc] px-3 py-1.5 rounded-xl border border-amber-200/90 flex items-center gap-2">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white text-xs font-black flex items-center justify-center uppercase shrink-0 shadow-xs" aria-hidden="true">
               {{ (currentUser?.username || 'U').charAt(0) }}
             </div>
-            <span class="max-w-[120px] sm:max-w-[160px] truncate">{{ currentUser?.username || 'User' }}</span>
-            <span v-if="currentUser?.role === 'ADMIN'" class="text-[10px] bg-amber-700 text-white font-extrabold px-1.5 py-0.5 rounded-md tracking-wide">
+            <span class="max-w-[110px] sm:max-w-[150px] truncate">{{ currentUser?.username || 'User' }}</span>
+            <span v-if="currentUser?.role === 'ADMIN'" class="text-[10px] bg-amber-600 text-white font-extrabold px-1.5 py-0.5 rounded-md tracking-wide">
               ADMIN
             </span>
           </div>
 
-          <!-- Logout Button (Spatially & visually distinct per ui-ux-pro-max destructive-nav-separation) -->
+          <!-- Logout Button -->
           <button 
             type="button"
             @click="handleLogout" 
-            class="min-h-[44px] bg-white hover:bg-rose-50 text-stone-600 hover:text-rose-700 font-bold px-3.5 py-2 rounded-xl transition-all border border-stone-200/90 hover:border-rose-200 text-xs sm:text-sm inline-flex items-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-500/30"
+            class="min-h-[42px] bg-white hover:bg-rose-50 text-stone-600 hover:text-rose-600 font-bold px-3.5 py-2 rounded-xl transition-all border border-stone-200/90 hover:border-rose-200 text-xs sm:text-sm inline-flex items-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-500/30"
             title="ออกจากระบบ"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shrink-0" aria-hidden="true">
@@ -94,46 +97,99 @@
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
       
       <!-- Hero Banner & Action Toolbar -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-stone-800 tracking-tight">
-            สวัสดี, {{ currentUser?.username || 'สมาชิก' }}
-          </h2>
-          <p class="text-stone-500 font-medium text-xs sm:text-sm mt-1">
-            เลือกบอร์ดเวิร์กสเปซของคุณ หรือนำรหัสเชิญ 6 หลักมาเข้าร่วมทีมเพื่อลุยงานต่อทันที
-          </p>
-        </div>
+      <div class="rounded-3xl bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border border-amber-200/80 dark:border-slate-800 p-5 sm:p-7 mb-6 shadow-lg shadow-amber-950/5 dark:shadow-black/30 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-indigo-500" aria-hidden="true"></div>
         
-        <!-- Law 2: Single Primary Action — Only render toolbar CTAs when projects exist -->
-        <div v-if="!isLoading && projects.length > 0" class="flex flex-col sm:flex-row gap-2.5 w-full md:w-auto shrink-0">
-          <button 
-            type="button"
-            @click="openJoinModal"
-            class="w-full sm:w-auto min-h-[44px] bg-[#fdfaf5] hover:bg-white text-amber-950 font-bold px-4 py-2.5 rounded-xl transition-all border border-amber-300/90 shadow-2xs text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-amber-700" aria-hidden="true">
-              <circle cx="7.5" cy="15.5" r="5.5" />
-              <path d="m21 2-9.6 9.6" />
-              <path d="m15.5 7.5 3 3L22 7l-3-3" />
-            </svg>
-            <span>กรอกรหัสเข้าร่วม</span>
-          </button>
-          <button 
-            type="button"
-            @click="openCreateProjectModal"
-            class="w-full sm:w-auto min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-amber-600/20 active:scale-[0.99] text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
-              <line x1="12" x2="12" y1="5" y2="19" />
-              <line x1="5" x2="19" y1="12" y2="12" />
-            </svg>
-            <span>สร้างโปรเจกต์ใหม่</span>
-          </button>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100/90 text-amber-800 text-[11px] font-extrabold mb-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Workspace Command Center</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white tracking-tight">
+              สวัสดี, {{ currentUser?.username || 'สมาชิก' }}
+            </h2>
+            <p class="text-stone-500 dark:text-slate-400 font-medium text-xs sm:text-sm mt-1">
+              เลือกบอร์ดเวิร์กสเปซของคุณ หรือนำรหัสเชิญ 6 หลักมาเข้าร่วมทีมเพื่อลุยงานต่อทันที
+            </p>
+          </div>
+          
+          <!-- Law 2: Single Primary Action — Only render toolbar CTAs when projects exist -->
+          <div v-if="!isLoading && projects.length > 0" class="flex flex-col sm:flex-row gap-2.5 w-full md:w-auto shrink-0">
+            <button 
+              type="button"
+              @click="openJoinModal"
+              class="w-full sm:w-auto min-h-[44px] bg-stone-50 hover:bg-stone-100 text-amber-950 font-bold px-4 py-2.5 rounded-xl transition-all border border-amber-300/90 shadow-2xs text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-amber-600" aria-hidden="true">
+                <circle cx="7.5" cy="15.5" r="5.5" />
+                <path d="m21 2-9.6 9.6" />
+                <path d="m15.5 7.5 3 3L22 7l-3-3" />
+              </svg>
+              <span>กรอกรหัสเข้าร่วม</span>
+            </button>
+            <button 
+              type="button"
+              @click="openCreateProjectModal"
+              class="w-full sm:w-auto min-h-[44px] bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-amber-500/25 active:scale-[0.99] text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+                <line x1="12" x2="12" y1="5" y2="19" />
+                <line x1="5" x2="19" y1="12" y2="12" />
+              </svg>
+              <span>สร้างโปรเจกต์ใหม่</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3-Card Bento KPI Overview Strip (Shown when user has projects) -->
+        <div v-if="!isLoading && projects.length > 0" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-6 pt-5 border-t border-stone-200/70 dark:border-slate-800">
+          <!-- KPI 1: Total Workspaces -->
+          <div class="rounded-2xl bg-stone-50/90 border border-stone-200/80 p-4 flex items-center justify-between gap-3">
+            <div>
+              <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">เวิร์กสเปซทั้งหมด</p>
+              <p class="text-2xl sm:text-3xl font-black text-stone-800 tabular-nums mt-0.5">{{ projects.length }}</p>
+              <p class="text-[11px] font-semibold text-stone-500 mt-0.5">โปรเจกต์ที่คุณเข้าถึงได้</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-400/30 text-amber-600 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- KPI 2: Owned Workspaces -->
+          <div class="rounded-2xl bg-stone-50/90 border border-stone-200/80 p-4 flex items-center justify-between gap-3">
+            <div>
+              <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">คุณเป็นเจ้าของ (Owner)</p>
+              <p class="text-2xl sm:text-3xl font-black text-amber-700 tabular-nums mt-0.5">{{ ownedCount }}</p>
+              <p class="text-[11px] font-semibold text-stone-500 mt-0.5">สิทธิ์จัดการบอร์ดเต็มรูปแบบ</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-orange-500/15 border border-orange-400/30 text-orange-500 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- KPI 3: Team Collaborations -->
+          <div class="rounded-2xl bg-stone-50/90 border border-stone-200/80 p-4 flex items-center justify-between gap-3">
+            <div>
+              <p class="text-[11px] font-bold text-stone-400 uppercase tracking-wider">ร่วมทีม (Member)</p>
+              <p class="text-2xl sm:text-3xl font-black text-emerald-600 tabular-nums mt-0.5">{{ memberCount }}</p>
+              <p class="text-[11px] font-semibold text-stone-500 mt-0.5">โปรเจกต์ที่เข้าร่วมกับทีม</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-500 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Search & Filter Bar (Shown when user has projects) -->
-      <div v-if="!isLoading && projects.length > 0" class="bg-[#fdfaf5]/90 border border-amber-200/80 rounded-2xl p-3 sm:p-4 mb-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div v-if="!isLoading && projects.length > 0" class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border border-amber-200/80 dark:border-slate-800 rounded-2xl p-3 sm:p-4 mb-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <!-- Search Input -->
         <div class="relative flex-1">
           <label for="workspace-search" class="sr-only">ค้นหาโปรเจกต์</label>
@@ -148,7 +204,7 @@
             v-model="searchQuery"
             type="search"
             placeholder="ค้นหาชื่อโปรเจกต์ รายละเอียด หรือชื่อเจ้าของ..."
-            class="w-full min-h-[44px] bg-white border border-amber-200/90 rounded-xl pl-10 pr-9 py-2 text-base sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
+            class="w-full min-h-[44px] bg-stone-50/80 border border-stone-200/90 rounded-xl pl-10 pr-9 py-2 text-base sm:text-sm text-stone-800 placeholder-stone-400 focus:bg-white focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
           />
           <button
             v-if="searchQuery"
@@ -204,9 +260,9 @@
         </div>
       </div>
 
-      <!-- Progressive Skeleton Loading State (ui-ux-pro-max: progressive-loading) -->
+      <!-- Progressive Skeleton Loading State -->
       <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" role="status" aria-label="กำลังโหลดเวิร์กสเปซ">
-        <div v-for="n in 3" :key="n" class="bg-[#fdfaf5] border border-amber-200/60 rounded-2xl p-5 shadow-xs animate-pulse flex flex-col justify-between h-48">
+        <div v-for="n in 3" :key="n" class="bg-white/90 border border-amber-200/60 rounded-2xl p-5 shadow-xs animate-pulse flex flex-col justify-between h-52">
           <div>
             <div class="flex justify-between items-center gap-3 mb-3">
               <div class="h-5 bg-amber-200/60 rounded-lg w-2/3"></div>
@@ -223,8 +279,8 @@
       </div>
 
       <!-- Empty State Hero Card (Law 2: Single Primary CTA when no projects exist) -->
-      <div v-else-if="projects.length === 0" class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl p-6 sm:p-10 text-center max-w-xl mx-auto shadow-xl shadow-amber-950/5 mt-4 sm:mt-6 relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500" aria-hidden="true"></div>
+      <div v-else-if="projects.length === 0" class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-amber-200/80 rounded-3xl p-6 sm:p-10 text-center max-w-xl mx-auto shadow-2xl shadow-amber-950/5 mt-4 sm:mt-6 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500" aria-hidden="true"></div>
 
         <div class="w-16 h-16 rounded-2xl bg-amber-100/90 text-amber-800 flex items-center justify-center mx-auto mb-4 shadow-inner">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8" aria-hidden="true">
@@ -268,7 +324,7 @@
         </div>
 
         <!-- Banner แนะนำคู่มือการใช้งานสำหรับสมาชิกใหม่ -->
-        <div class="mt-8 pt-6 border-t border-amber-200/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-left bg-gradient-to-r from-amber-50/90 to-orange-50/60 p-4 rounded-xl border border-amber-200/80">
+        <div class="mt-8 pt-6 border-t border-amber-200/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-left bg-amber-50/70 p-4 rounded-2xl border border-amber-200/80">
           <div class="flex items-center gap-3 w-full sm:w-auto">
             <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
@@ -300,8 +356,8 @@
         </div>
       </div>
 
-      <!-- Empty Filter Result Recovery (Law 8: Humane Recovery when search/filter matches nothing) -->
-      <div v-else-if="filteredProjects.length === 0" class="bg-[#fdfaf5] border border-amber-200/80 rounded-2xl p-8 text-center max-w-lg mx-auto shadow-sm my-4">
+      <!-- Empty Filter Result Recovery -->
+      <div v-else-if="filteredProjects.length === 0" class="bg-white/90 border border-amber-200/80 rounded-2xl p-8 text-center max-w-lg mx-auto shadow-sm my-4">
         <div class="w-12 h-12 rounded-2xl bg-stone-100 text-stone-500 flex items-center justify-center mx-auto mb-3">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true">
             <circle cx="11" cy="11" r="8" />
@@ -330,29 +386,42 @@
           tabindex="0"
           @click="goToProject(project.id)"
           @keydown.enter="goToProject(project.id)"
-          class="bg-[#fdfaf5] hover:bg-white border border-amber-200/80 hover:border-amber-400/90 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:shadow-amber-950/5 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500"
+          class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl hover:bg-white border border-stone-200/90 dark:border-slate-800 hover:border-amber-400/90 rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500"
         >
-          <!-- Subtle Top Accent Strip on Hover -->
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true"></div>
+          <!-- Permanent Color-Coded Top Accent Strip -->
+          <div
+            class="absolute top-0 left-0 right-0 h-1.5 transition-all"
+            :class="project.isOwner ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500' : 'bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500'"
+            aria-hidden="true"
+          ></div>
 
           <div>
             <!-- Card Header: Icon + Name + Role Badge -->
-            <div class="flex justify-between items-start gap-3 mb-3">
+            <div class="flex justify-between items-start gap-3 mb-3.5 mt-1">
               <div class="flex items-start gap-3 min-w-0 flex-1">
-                <div class="w-10 h-10 rounded-xl bg-amber-100/80 group-hover:bg-amber-500 group-hover:text-white text-amber-800 flex items-center justify-center shrink-0 transition-colors mt-0.5" aria-hidden="true">
+                <div
+                  class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all shadow-xs"
+                  :class="project.isOwner
+                    ? 'bg-amber-500/15 text-amber-700 group-hover:bg-amber-500 group-hover:text-white'
+                    : 'bg-emerald-500/15 text-emerald-700 group-hover:bg-emerald-500 group-hover:text-white'"
+                  aria-hidden="true"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
                     <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
                   </svg>
                 </div>
                 <div class="min-w-0 flex-1">
-                  <h3 :title="project.name" class="text-base sm:text-lg font-extrabold text-stone-800 group-hover:text-amber-800 transition-colors break-words leading-snug">
+                  <h3 :title="project.name" class="text-base sm:text-lg font-extrabold text-stone-900 dark:text-white group-hover:text-amber-600 transition-colors break-words leading-snug">
                     {{ project.name }}
                   </h3>
+                  <p class="text-[11px] font-semibold text-stone-400 mt-0.5">
+                    Workspace #{{ project.id }}
+                  </p>
                 </div>
               </div>
 
               <span 
-                :class="project.isOwner ? 'bg-amber-100 text-amber-900 border-amber-300/80' : 'bg-stone-100 text-stone-600 border-stone-200'" 
+                :class="project.isOwner ? 'bg-amber-100 text-amber-900 border-amber-300/80' : 'bg-emerald-50 text-emerald-700 border-emerald-200'" 
                 class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border shrink-0 inline-flex items-center gap-1"
               >
                 <svg v-if="project.isOwner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-amber-700" aria-hidden="true">
@@ -363,19 +432,19 @@
             </div>
 
             <!-- Description -->
-            <p class="text-stone-500 text-xs sm:text-sm font-medium line-clamp-2 mb-5 break-words leading-relaxed">
+            <p class="text-stone-500 dark:text-slate-400 text-xs sm:text-sm font-medium line-clamp-2 mb-5 break-words leading-relaxed">
               {{ project.description || 'ไม่มีคำอธิบายรายละเอียดโปรเจกต์...' }}
             </p>
           </div>
 
           <!-- Card Footer: Owner Info & Actions (44x44px touch targets) -->
-          <div class="pt-3.5 border-t border-amber-100/90 flex justify-between items-center gap-2">
+          <div class="pt-3.5 border-t border-stone-100 dark:border-slate-800 flex justify-between items-center gap-2">
             <div class="flex items-center gap-2 min-w-0">
-              <div class="w-6 h-6 rounded-full bg-stone-200 text-stone-700 text-[11px] font-black flex items-center justify-center uppercase shrink-0" aria-hidden="true">
+              <div class="w-7 h-7 rounded-full bg-stone-200 text-stone-700 text-xs font-black flex items-center justify-center uppercase shrink-0" aria-hidden="true">
                 {{ (project.ownerName || 'O').charAt(0) }}
               </div>
               <span class="text-xs text-stone-500 font-semibold truncate">
-                โดย <span class="text-stone-700 font-bold">{{ project.ownerName }}</span>
+                โดย <span class="text-stone-800 font-bold">{{ project.ownerName }}</span>
               </span>
             </div>
 
@@ -384,7 +453,7 @@
                 v-if="project.isOwner" 
                 type="button"
                 @click.stop="openEditProjectModal(project)" 
-                class="min-h-[44px] min-w-[44px] bg-white hover:bg-stone-100 text-stone-600 hover:text-stone-900 font-bold text-xs px-3 py-2 rounded-xl border border-stone-200/90 transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                class="min-h-[42px] min-w-[42px] bg-stone-50 hover:bg-stone-100 text-stone-600 hover:text-stone-900 font-bold text-xs px-3 py-2 rounded-xl border border-stone-200/90 transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                 title="แก้ไขชื่อและรายละเอียดโปรเจกต์"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true">
@@ -392,7 +461,7 @@
                 </svg>
                 <span>แก้ไข</span>
               </button>
-              <span class="min-h-[44px] bg-[#f3e9d7] group-hover:bg-amber-600 text-amber-950 group-hover:text-white font-bold text-xs px-3.5 py-2 rounded-xl border border-amber-200/90 group-hover:border-amber-600 transition-all inline-flex items-center gap-1.5">
+              <span class="min-h-[42px] bg-amber-500/15 group-hover:bg-gradient-to-r group-hover:from-amber-500 group-hover:to-orange-500 text-amber-900 group-hover:text-white font-bold text-xs px-3.5 py-2 rounded-xl border border-amber-300/60 group-hover:border-transparent transition-all inline-flex items-center gap-1.5 shadow-2xs">
                 <span>เปิดบอร์ด</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
                   <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
