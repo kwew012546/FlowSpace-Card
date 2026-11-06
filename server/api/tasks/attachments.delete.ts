@@ -35,7 +35,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, message: 'คุณไม่มีสิทธิ์ลบไฟล์แนบในโปรเจกต์นี้ ❌' })
   }
 
-  removePhysicalUploadFiles([attachment.filePath])
+  if (attachment.filePath.startsWith('http://') || attachment.filePath.startsWith('https://')) {
+    await deleteFromR2(attachment.filePath)
+  } else {
+    removePhysicalUploadFiles([attachment.filePath])
+  }
 
   await prisma.attachment.delete({
     where: { id }

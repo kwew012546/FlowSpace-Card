@@ -45,6 +45,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'ขนาดไฟล์ต้องไม่เกิน 30MB ❌' })
   }
 
+  // ตรวจสอบพื้นที่รวมของระบบ (Hard Safety Cap 8GB) ป้องกันค่าบริการส่วนเกิน 100%
+  const quota = await checkStorageQuota(fileData.data.length)
+  if (!quota.allowed) {
+    throw createError({
+      statusCode: 413,
+      message: `พื้นที่จัดเก็บไฟล์ส่วนกลางเต็มโควต้าปลอดภัยแล้ว (ใช้งานไปแล้ว ${quota.currentGb} GB / 8.00 GB) กรุณาลบไฟล์เก่าออกก่อน ❌`
+    })
+  }
+
   const rawFilename = fileData.filename || 'unnamed'
   const extension = path.extname(rawFilename).toLowerCase().substring(1)
   const allowedExtensions = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'txt', 'csv']
@@ -55,28 +64,41 @@ export default defineEventHandler(async (event) => {
   // ป้องกัน Path Traversal ดึงเฉพาะ basename
   const baseName = path.basename(rawFilename).replace(/\s+/g, '_')
   const safeName = `${Date.now()}-${baseName}`
-  let storedFilePath = `/uploads/${safeName}`
+  let storedFilePath = ''
 
-  // สร้างโฟลเดอร์ uploads หากเขียนดิสก์ได้ (Local/Docker) และสำรองเป็น Base64 Data URL เมื่อรันบน Read-only Serverless (Vercel)
-  try {
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true })
+  // 1. ลองอัปโหลดขึ้น Cloudflare R2 ก่อนหากมีการตั้งค่า (ฟรีแบนด์วิดท์ ไม่กินพื้นที่ Neon DB)
+  if (isR2Configured()) {
+    try {
+      const mimeType = fileData.type || 'application/octet-stream'
+      storedFilePath = await uploadToR2(safeName, fileData.data, mimeType)
+    } catch (r2Err) {
+      console.warn('[Upload] Cloudflare R2 upload failed, falling back to local storage:', r2Err)
     }
+  }
 
-    const fileFullPath = path.join(uploadsDir, safeName)
-    fs.writeFileSync(fileFullPath, fileData.data)
-  } catch {
-    // shortcut: store <=4.5MB files as Data URL in Attachment.filePath TEXT column on read-only serverless disks, upgrade to S3/Blob for >4.5MB
-    const maxServerlessBytes = 4.5 * 1024 * 1024
-    if (fileData.data.length > maxServerlessBytes) {
-      throw createError({
-        statusCode: 400,
-        message: 'บนระบบคลาวด์ขนาดไฟล์แนบต้องไม่เกิน 4.5MB ❌'
-      })
+  // 2. หากไม่ได้ตั้งค่า R2 หรือส่งไม่สำเร็จ ให้ Fallback เก็บในเครื่อง/Base64 ตามเดิม
+  if (!storedFilePath) {
+    storedFilePath = `/uploads/${safeName}`
+    try {
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true })
+      }
+
+      const fileFullPath = path.join(uploadsDir, safeName)
+      fs.writeFileSync(fileFullPath, fileData.data)
+    } catch {
+      // shortcut: store <=4.5MB files as Data URL in Attachment.filePath TEXT column on read-only serverless disks, upgrade to S3/Blob for >4.5MB
+      const maxServerlessBytes = 4.5 * 1024 * 1024
+      if (fileData.data.length > maxServerlessBytes) {
+        throw createError({
+          statusCode: 400,
+          message: 'บนระบบคลาวด์ขนาดไฟล์แนบต้องไม่เกิน 4.5MB (หรือเชื่อมต่อ Cloudflare R2 เพื่อรองรับไฟล์ขนาดใหญ่) ❌'
+        })
+      }
+      const mimeType = fileData.type || 'application/octet-stream'
+      storedFilePath = `data:${mimeType};base64,${fileData.data.toString('base64')}`
     }
-    const mimeType = fileData.type || 'application/octet-stream'
-    storedFilePath = `data:${mimeType};base64,${fileData.data.toString('base64')}`
   }
 
   const attachment = await prisma.attachment.create({

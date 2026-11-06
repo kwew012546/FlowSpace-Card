@@ -38,24 +38,40 @@ export default defineEventHandler(async (event) => {
     updateData.isInviteActive = isInviteActive
   }
 
-  if (regenerateCode) {
-    updateData.inviteCode = randomBytes(3).toString('hex').toUpperCase()
-  }
-
-  if (Object.keys(updateData).length === 0) {
+  if (Object.keys(updateData).length === 0 && !regenerateCode) {
     return { success: true, data: project }
   }
 
-  const updatedProject = await prisma.project.update({
-    where: { id: Number(projectId) },
-    data: updateData,
-    select: {
-      id: true,
-      name: true,
-      inviteCode: true,
-      isInviteActive: true
+  let updatedProject: any = null
+  let attempts = 0
+  const maxAttempts = 5
+
+  while (attempts < maxAttempts) {
+    attempts++
+    try {
+      if (regenerateCode) {
+        updateData.inviteCode = randomBytes(3).toString('hex').toUpperCase()
+      }
+
+      updatedProject = await prisma.project.update({
+        where: { id: Number(projectId) },
+        data: updateData,
+        select: {
+          id: true,
+          name: true,
+          inviteCode: true,
+          isInviteActive: true
+        }
+      })
+      break
+    } catch (err: any) {
+      if (err.code === 'P2002' && regenerateCode && attempts < maxAttempts) {
+        console.warn(`[Regenerate InviteCode Collision] Retrying code generation (attempt ${attempts}/${maxAttempts})...`)
+        continue
+      }
+      throw err
     }
-  })
+  }
 
   // ส่งสัญญาณ Real-time บรอดแคสต์ให้อัปเดตสถานะรหัสทันที
   broadcastProjectUpdate(Number(projectId), 'TEAM_UPDATED')
