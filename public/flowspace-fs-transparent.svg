@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Drop Shadow for Interlocking Depth -->
+    <filter id="fsTransparentShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000000" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <!-- Interlocking FS Monogram (Transparent Vector Edition) -->
+  <g filter="url(#fsTransparentShadow)" transform="translate(18, 12)">
+    <!-- F Stem & Upper Beam (Warm Amber) -->
+    <path d="M124 396V144C124 126.327 138.327 112 156 112H296C313.673 112 328 126.327 328 144V148C328 165.673 313.673 180 296 180H196V232H268C285.673 232 300 246.327 300 264V268C300 285.673 285.673 300 268 300H196V396C196 404.837 188.837 412 180 412H140C131.163 412 124 404.837 124 396Z" fill="#F59E0B" />
+
+    <!-- Interlocking S Stroke (Vibrant Flame Orange) -->
+    <path d="M256 232C256 214.327 270.327 200 288 200H356C373.673 200 388 214.327 388 232V256C388 291.346 359.346 320 324 320H264C255.163 320 248 327.163 248 336V356C248 364.837 255.163 372 264 372H388V392C388 403.046 379.046 412 368 412H264C228.654 412 200 383.346 200 348V328C200 292.654 228.654 264 264 264H324C332.837 264 340 256.837 340 248V240C340 231.163 332.837 224 324 224H276C264.954 224 256 215.046 256 204V232Z" fill="#EA580C" />
+    
+    <!-- Accent Flow Dot -->
+    <circle cx="368" cy="144" r="18" fill="#F59E0B" />
+  </g>
+</svg>

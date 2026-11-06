@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Amber-to-Orange Linear Gradient -->
+    <linearGradient id="fsBg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="50%" stop-color="#EA580C" />
+      <stop offset="100%" stop-color="#C2410C" />
+    </linearGradient>
+
+    <!-- Subtle Inner Border Highlight -->
+    <linearGradient id="fsBorder" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FEF3C7" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#7C2D12" stop-opacity="0.3" />
+    </linearGradient>
+
+    <!-- Drop Shadow for Interlocking Depth -->
+    <filter id="fsShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#7C2D12" flood-opacity="0.45" />
+    </filter>
+
+    <filter id="fsGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base for App Icon / Vercel Avatar / Tab Favicon -->
+  <rect width="512" height="512" rx="124" fill="url(#fsBg)" />
+  <rect x="4" y="4" width="504" height="504" rx="120" fill="none" stroke="url(#fsBorder)" stroke-width="6" />
+
+  <!-- Interlocking FS Monogram (Design W2) -->
+  <g filter="url(#fsShadow)" transform="translate(18, 12)">
+    <!-- F Stem & Upper Beam (Pure White, Solid Architecture) -->
+    <path d="M124 396V144C124 126.327 138.327 112 156 112H296C313.673 112 328 126.327 328 144V148C328 165.673 313.673 180 296 180H196V232H268C285.673 232 300 246.327 300 264V268C300 285.673 285.673 300 268 300H196V396C196 404.837 188.837 412 180 412H140C131.163 412 124 404.837 124 396Z" fill="#FFFFFF" />
+
+    <!-- Interlocking S Stroke (Warm Cream, Weaves Through F) -->
+    <path d="M256 232C256 214.327 270.327 200 288 200H356C373.673 200 388 214.327 388 232V256C388 291.346 359.346 320 324 320H264C255.163 320 248 327.163 248 336V356C248 364.837 255.163 372 264 372H388V392C388 403.046 379.046 412 368 412H264C228.654 412 200 383.346 200 348V328C200 292.654 228.654 264 264 264H324C332.837 264 340 256.837 340 248V240C340 231.163 332.837 224 324 224H276C264.954 224 256 215.046 256 204V232Z" fill="#FFFBEB" fill-opacity="0.95" />
+    
+    <!-- Accent Flow Dot (Top Right Momentum Spark) -->
+    <circle cx="368" cy="144" r="18" fill="#FFFFFF" />
+  </g>
+</svg>
