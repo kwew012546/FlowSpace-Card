@@ -40,6 +40,11 @@ export default defineNuxtConfig({
         { name: 'twitter:image', content: 'https://flow-space-card.vercel.app/og-image.jpg' }
       ],
       link: [
+        { rel: 'icon', type: 'image/png', href: '/avatar.png' },
+        { rel: 'shortcut icon', href: '/avatar.png' },
+        { rel: 'icon', type: 'image/svg+xml', href: '/icon.svg' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
