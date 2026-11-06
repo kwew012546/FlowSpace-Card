@@ -36,43 +36,61 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const inviteCode = generateInviteCode()
+    let result: any = null
+    let attempts = 0
+    const maxAttempts = 5
 
-    const result = await prisma.$transaction(async (tx) => {
-      const newProject = await tx.project.create({
-        data: {
-          name: name.trim(),
-          description: description ? description.trim() : null,
-          ownerId: userId,
-          inviteCode: inviteCode
-        }
-      })
+    // ลูปสุ่มรหัสเชิญใหม่แบบอัตโนมัติหากเกิดกรณีชนกัน (P2002 Unique Constraint Collision)
+    while (attempts < maxAttempts) {
+      attempts++
+      try {
+        const inviteCode = generateInviteCode()
 
-      // Seed default columns (To Do, Doing, Done)
-      const defaults = [
-        { title: 'To Do', position: 0 },
-        { title: 'Doing', position: 1 },
-        { title: 'Done', position: 2 }
-      ]
-      for (const item of defaults) {
-        await tx.column.create({
-          data: {
-            projectId: newProject.id,
-            title: item.title,
-            position: item.position
+        result = await prisma.$transaction(async (tx) => {
+          const newProject = await tx.project.create({
+            data: {
+              name: name.trim(),
+              description: description ? description.trim() : null,
+              ownerId: userId,
+              inviteCode: inviteCode
+            }
+          })
+
+          // Seed default columns (To Do, Doing, Done)
+          const defaults = [
+            { title: 'To Do', position: 0 },
+            { title: 'Doing', position: 1 },
+            { title: 'Done', position: 2 }
+          ]
+          for (const item of defaults) {
+            await tx.column.create({
+              data: {
+                projectId: newProject.id,
+                title: item.title,
+                position: item.position
+              }
+            })
           }
+
+          await tx.projectMember.create({
+            data: {
+              userId: userId,
+              projectId: newProject.id
+            }
+          })
+
+          return newProject
         })
-      }
-
-      await tx.projectMember.create({
-        data: {
-          userId: userId,
-          projectId: newProject.id
+        break
+      } catch (txErr: any) {
+        // หากโค้ดซ้ำ ให้วนลูปสุ่มใหม่แบบเงียบๆ ป้องกัน Error 500 หลุดสู่หน้าจอ
+        if (txErr.code === 'P2002' && attempts < maxAttempts) {
+          console.warn(`[InviteCode Collision] Retrying code generation (attempt ${attempts}/${maxAttempts})...`)
+          continue
         }
-      })
-
-      return newProject
-    })
+        throw txErr
+      }
+    }
 
     return { success: true, message: 'สร้างโปรเจกต์สำเร็จ!', project: result }
   } catch (error: any) {

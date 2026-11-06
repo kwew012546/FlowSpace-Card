@@ -1952,9 +1952,12 @@ let isComponentMounted = false
 
 const scheduleSseReconnect = (delayMs = 3500) => {
   if (!isComponentMounted) return
+  // หากสลับแท็บหนีไปที่อื่น ระงับการต่อสายอัตโนมัติเพื่อประหยัดแบตเตอรี่และโควต้า Serverless
+  if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
   if (sseReconnectTimeout) clearTimeout(sseReconnectTimeout)
   sseReconnectTimeout = setTimeout(() => {
     if (!isComponentMounted) return
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
     // เมื่อเชื่อมต่อกลับมาใหม่ ดึงข้อมูลสดเพื่อซิงค์การเปลี่ยนแปลงที่พลาดไประหว่างสายหลุด
     Promise.allSettled([
       fetchTasks(),
@@ -2020,6 +2023,12 @@ const handleVisibilityChange = () => {
   if (document.visibilityState === 'visible' && isComponentMounted) {
     if (!eventSource) initSse()
     Promise.allSettled([fetchTasks(), fetchColumns(), fetchTeamAndRoles(), fetchNotifications()])
+  } else if (document.visibilityState === 'hidden') {
+    // ปิดการเชื่อมต่อ SSE ทันทีเมื่อผู้ใช้สลับแท็บหรือพับจอ ป้องกันการเรียกฟังก์ชันซ้ำๆ
+    if (eventSource) {
+      eventSource.close()
+      eventSource = null
+    }
   }
 }
 
