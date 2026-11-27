@@ -4,9 +4,6 @@ import jwt from 'jsonwebtoken'
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
-  // 1. ตรวจจับ Honeypot สกัดบอทอัตโนมัติ
-  verifyHoneypot(body)
-
   const password = body.password
   const email = body.email ? String(body.email).trim().toLowerCase() : ''
 
@@ -17,7 +14,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 2. ป้องกัน Multi-IP Distributed Credential Stuffing: ตรวจสอบการล็อคชั่วคราวจากการใส่ผิดเกิน 5 ครั้ง
+  // 1. ป้องกัน Multi-IP Distributed Credential Stuffing: ตรวจสอบการล็อคชั่วคราวจากการใส่ผิดเกิน 5 ครั้ง
   await checkFailedLoginLockout(email)
 
   try {

@@ -175,19 +175,6 @@
         </div>
 
         <form @submit.prevent="handleLogin" class="space-y-4" novalidate>
-          <!-- Honeypot Field (Invisible to humans, traps automated spam bots) -->
-          <div class="opacity-0 absolute -z-50 w-0 h-0 overflow-hidden pointer-events-none" aria-hidden="true" tabindex="-1">
-            <label for="login-website">Website</label>
-            <input 
-              id="login-website" 
-              v-model="website" 
-              type="text" 
-              name="website" 
-              tabindex="-1" 
-              autocomplete="off" 
-            />
-          </div>
-
           <!-- Email Field -->
           <div>
             <label for="login-email" class="block text-xs sm:text-sm font-bold text-stone-700 dark:text-slate-200 mb-1.5">
@@ -336,7 +323,6 @@ definePageMeta({
 
 const email = ref('')
 const password = ref('')
-const website = ref('')
 const isPasswordVisible = ref(false)
 const message = ref('')
 const isSuccess = ref(false)
@@ -377,8 +363,7 @@ const handleLogin = async () => {
       method: 'POST',
       body: { 
         email: email.value.trim(), 
-        password: password.value,
-        website: website.value 
+        password: password.value
       }
     })
     isSuccess.value = true

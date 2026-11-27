@@ -106,8 +106,9 @@ export function verifyHoneypot(body: any) {
     return
   }
 
-  // หากมีค่าในฟิลด์ดักบอท ให้ปฏิเสธคำขอทันทีโดยไม่เปลืองทรัพยากรฐานข้อมูลหรือ bcrypt
-  const honeypotValue = body.website || body._hp
+  // ป้องกันเฉพาะฟิลด์ดักบอทลับ (_fs_bot_honey_token หรือ _hp)
+  // จะไม่ดักจับฟิลด์ทั่วไปอย่าง website ที่ browser autofill / password manager อาจเผลอกรอกให้มนุษย์
+  const honeypotValue = body._fs_bot_honey_token || body._hp
   if (typeof honeypotValue === 'string' && honeypotValue.trim().length > 0) {
     throw createError({
       statusCode: 400,
