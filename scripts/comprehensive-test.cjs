@@ -4,8 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 
-const NEON_DB_URL = "postgresql://neondb_owner:npg_hu9Ldw3nmvDs@ep-gentle-bread-b3vkrbyi-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require";
-process.env.DATABASE_URL = process.env.DATABASE_URL || NEON_DB_URL;
+if (!process.env.DATABASE_URL) {
+  try {
+    const envContent = fs.readFileSync(path.join(__dirname, '..', '.env'), 'utf8');
+    const match = envContent.match(/DATABASE_URL=["']?([^"'\r\n]+)["']?/);
+    if (match) process.env.DATABASE_URL = match[1];
+  } catch {}
+}
 
 const prisma = new PrismaClient({
   datasources: {

@@ -196,6 +196,19 @@
 
         <!-- Registration Form -->
         <form v-else @submit.prevent="handleRegister" class="space-y-4" novalidate>
+          <!-- Honeypot Field (Invisible to humans, traps automated spam bots) -->
+          <div class="opacity-0 absolute -z-50 w-0 h-0 overflow-hidden pointer-events-none" aria-hidden="true" tabindex="-1">
+            <label for="register-website">Website</label>
+            <input 
+              id="register-website" 
+              v-model="website" 
+              type="text" 
+              name="website" 
+              tabindex="-1" 
+              autocomplete="off" 
+            />
+          </div>
+
           <!-- Username Field -->
           <div>
             <label for="register-username" class="block text-xs sm:text-sm font-bold text-stone-700 dark:text-slate-200 mb-1.5">
@@ -368,6 +381,7 @@ definePageMeta({
 const username = ref('')
 const email = ref('')
 const password = ref('')
+const website = ref('')
 const isPasswordVisible = ref(false)
 const message = ref('')
 const isSuccess = ref(false)
@@ -452,7 +466,12 @@ const handleRegister = async () => {
   try {
     const response = await $fetch('/api/auth/register', {
       method: 'POST',
-      body: { username: username.value.trim(), email: email.value.trim(), password: password.value }
+      body: { 
+        username: username.value.trim(), 
+        email: email.value.trim(), 
+        password: password.value,
+        website: website.value 
+      }
     })
     isSuccess.value = true
     message.value = response.message

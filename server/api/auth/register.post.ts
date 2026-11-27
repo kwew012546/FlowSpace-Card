@@ -3,6 +3,13 @@ import jwt from 'jsonwebtoken'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
+
+  // 1. ตรวจจับ Honeypot สกัดบอทอัตโนมัติ
+  verifyHoneypot(body)
+
+  // 2. ป้องกัน Multi-IP Mass Bot Registration (จำกัดสูงสุด 20 บัญชี/นาที รวมทั้งระบบ)
+  await checkGlobalRegisterLimit()
+
   const { username, password } = body
   const email = body.email ? String(body.email).trim().toLowerCase() : ''
 

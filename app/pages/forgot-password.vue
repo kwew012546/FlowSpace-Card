@@ -79,6 +79,19 @@
       </div>
 
       <form v-if="!isSuccess" @submit.prevent="handleForgotPassword" class="space-y-4" novalidate>
+        <!-- Honeypot Field (Invisible to humans, traps automated spam bots) -->
+        <div class="opacity-0 absolute -z-50 w-0 h-0 overflow-hidden pointer-events-none" aria-hidden="true" tabindex="-1">
+          <label for="forgot-website">Website</label>
+          <input 
+            id="forgot-website" 
+            v-model="website" 
+            type="text" 
+            name="website" 
+            tabindex="-1" 
+            autocomplete="off" 
+          />
+        </div>
+
         <div>
           <label for="forgot-email" class="block text-xs sm:text-sm font-bold text-stone-700 mb-1.5">
             อีเมลของคุณ <span class="text-stone-400 font-medium">(Email)</span>
@@ -155,6 +168,7 @@ definePageMeta({
 })
 
 const email = ref('')
+const website = ref('')
 const isLoading = ref(false)
 const message = ref('')
 const isSuccess = ref(false)
@@ -170,7 +184,10 @@ const handleForgotPassword = async () => {
   try {
     const res = await $fetch('/api/auth/forgot-password', {
       method: 'POST',
-      body: { email: email.value.trim() }
+      body: { 
+        email: email.value.trim(),
+        website: website.value 
+      }
     })
     isSuccess.value = true
     message.value = res.message || 'หากอีเมลนี้มีอยู่ในระบบ เราได้ส่งคำแนะนำไปให้เรียบร้อยแล้ว'

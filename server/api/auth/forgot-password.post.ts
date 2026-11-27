@@ -7,6 +7,10 @@ const forgotPasswordSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
+
+  // 1. ตรวจจับ Honeypot สกัดบอทอัตโนมัติ
+  verifyHoneypot(body)
+
   const parseResult = forgotPasswordSchema.safeParse(body)
 
   if (!parseResult.success) {
@@ -17,6 +21,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const { email } = parseResult.data
+
+  // 2. ป้องกัน Multi-IP / Distributed Email Bombing (จำกัดสูงสุด 3 ครั้งใน 15 นาทีต่ออีเมล)
+  await checkEmailForgotPasswordLimit(email)
 
   try {
     const user = await prisma.user.findUnique({
