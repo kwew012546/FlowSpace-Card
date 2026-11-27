@@ -3,6 +3,10 @@ import jwt from 'jsonwebtoken'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
+
+  // 1. ตรวจจับ Honeypot สกัดบอทอัตโนมัติ
+  verifyHoneypot(body)
+
   const password = body.password
   const email = body.email ? String(body.email).trim().toLowerCase() : ''
 
@@ -13,6 +17,9 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // 2. ป้องกัน Multi-IP Distributed Credential Stuffing: ตรวจสอบการล็อคชั่วคราวจากการใส่ผิดเกิน 5 ครั้ง
+  await checkFailedLoginLockout(email)
+
   try {
     await ensureDbSchema()
 
@@ -22,6 +29,13 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!user) {
+      const { remainingAttempts, isLocked } = await recordFailedLogin(email)
+      if (isLocked) {
+        throw createError({
+          statusCode: 429,
+          message: 'คุณใส่รหัสผ่านผิดติดต่อกันเกิน 5 ครั้ง บัญชีนี้ถูกระงับชั่วคราวเพื่อความปลอดภัย กรุณารออีก 15 นาที หรือใช้ปุ่ม "ลืมรหัสผ่าน" 🔒'
+        })
+      }
       throw createError({
         statusCode: 401,
         message: 'ไม่พบอีเมลนี้ในระบบ หรือรหัสผ่านไม่ถูกต้อง'
@@ -32,11 +46,22 @@ export default defineEventHandler(async (event) => {
     const isPasswordValid = await bcrypt.compare(password, user.password)
 
     if (!isPasswordValid) {
+      const { remainingAttempts, isLocked } = await recordFailedLogin(email)
+      if (isLocked) {
+        throw createError({
+          statusCode: 429,
+          message: 'คุณใส่รหัสผ่านผิดติดต่อกันเกิน 5 ครั้ง บัญชีนี้ถูกระงับชั่วคราวเพื่อความปลอดภัย กรุณารออีก 15 นาที หรือใช้ปุ่ม "ลืมรหัสผ่าน" 🔒'
+        })
+      }
+      const warning = remainingAttempts <= 2 ? ` (เหลือโอกาสอีก ${remainingAttempts} ครั้ง ก่อนถูกระงับชั่วคราว 15 นาที)` : ''
       throw createError({
         statusCode: 401,
-        message: 'ไม่พบอีเมลนี้ในระบบ หรือรหัสผ่านไม่ถูกต้อง'
+        message: `ไม่พบอีเมลนี้ในระบบ หรือรหัสผ่านไม่ถูกต้อง${warning}`
       })
     }
+
+    // 3. เมื่อรหัสผ่านถูกต้อง ล้างประวัติการใส่ผิดทันที
+    await resetFailedLogin(email)
 
     // 2.5 ตรวจสอบสถานะการยืนยันอีเมล
     if (!user.isVerified) {

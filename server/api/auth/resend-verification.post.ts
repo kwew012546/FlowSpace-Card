@@ -2,6 +2,10 @@ import jwt from 'jsonwebtoken'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
+
+  // 1. ตรวจจับ Honeypot สกัดบอทอัตโนมัติ
+  verifyHoneypot(body)
+
   const email = body?.email ? String(body.email).trim().toLowerCase() : ''
 
   if (!email) {
@@ -10,6 +14,9 @@ export default defineEventHandler(async (event) => {
       message: 'กรุณาระบุอีเมล'
     })
   }
+
+  // 2. ป้องกัน Multi-IP / Distributed Email Bombing (จำกัดสูงสุด 3 ครั้งใน 15 นาทีต่ออีเมล)
+  await checkEmailResendVerificationLimit(email)
 
   try {
     const user = await prisma.user.findUnique({
