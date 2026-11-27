@@ -81,14 +81,17 @@
       <form v-if="!isSuccess" @submit.prevent="handleForgotPassword" class="space-y-4" novalidate>
         <!-- Honeypot Field (Invisible to humans, traps automated spam bots) -->
         <div class="opacity-0 absolute -z-50 w-0 h-0 overflow-hidden pointer-events-none" aria-hidden="true" tabindex="-1">
-          <label for="forgot-website">Website</label>
+          <span class="sr-only">Security Check</span>
           <input 
-            id="forgot-website" 
-            v-model="website" 
+            id="forgot-hp-token" 
+            v-model="botTrap" 
             type="text" 
-            name="website" 
+            name="_fs_bot_honey_token" 
             tabindex="-1" 
-            autocomplete="off" 
+            autocomplete="new-password"
+            data-lpignore="true"
+            data-bwignore="true"
+            data-1p-ignore="true"
           />
         </div>
 
@@ -168,7 +171,7 @@ definePageMeta({
 })
 
 const email = ref('')
-const website = ref('')
+const botTrap = ref('')
 const isLoading = ref(false)
 const message = ref('')
 const isSuccess = ref(false)
@@ -186,7 +189,7 @@ const handleForgotPassword = async () => {
       method: 'POST',
       body: { 
         email: email.value.trim(),
-        website: website.value 
+        _fs_bot_honey_token: botTrap.value 
       }
     })
     isSuccess.value = true

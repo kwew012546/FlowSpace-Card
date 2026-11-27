@@ -198,14 +198,17 @@
         <form v-else @submit.prevent="handleRegister" class="space-y-4" novalidate>
           <!-- Honeypot Field (Invisible to humans, traps automated spam bots) -->
           <div class="opacity-0 absolute -z-50 w-0 h-0 overflow-hidden pointer-events-none" aria-hidden="true" tabindex="-1">
-            <label for="register-website">Website</label>
+            <span class="sr-only">Security Check</span>
             <input 
-              id="register-website" 
-              v-model="website" 
+              id="reg-hp-token" 
+              v-model="botTrap" 
               type="text" 
-              name="website" 
+              name="_fs_bot_honey_token" 
               tabindex="-1" 
-              autocomplete="off" 
+              autocomplete="new-password"
+              data-lpignore="true"
+              data-bwignore="true"
+              data-1p-ignore="true"
             />
           </div>
 
@@ -381,7 +384,7 @@ definePageMeta({
 const username = ref('')
 const email = ref('')
 const password = ref('')
-const website = ref('')
+const botTrap = ref('')
 const isPasswordVisible = ref(false)
 const message = ref('')
 const isSuccess = ref(false)
@@ -470,7 +473,7 @@ const handleRegister = async () => {
         username: username.value.trim(), 
         email: email.value.trim(), 
         password: password.value,
-        website: website.value 
+        _fs_bot_honey_token: botTrap.value 
       }
     })
     isSuccess.value = true

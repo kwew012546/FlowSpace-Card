@@ -53,24 +53,24 @@ async function runComprehensiveQASuite() {
     // TC-001: Forgot Password Honeypot
     const r1 = await makeRequest('/api/auth/forgot-password', 'POST', {
       email: 'bot@example.com',
-      website: 'https://spambot.xyz'
+      _fs_bot_honey_token: 'https://spambot.xyz'
     })
     recordTest('TC-001', 'Honeypot blocks bot on forgot-password with HTTP 400', 'P0', r1.status === 400, `Got: ${r1.status}`)
 
-    // TC-002: Login Honeypot
+    // TC-002: Login Immunity to Browser Autofill
     const r2 = await makeRequest('/api/auth/login', 'POST', {
       email: 'bot@example.com',
-      password: 'password',
-      website: 'Spam Value'
+      password: 'wrong-password',
+      website: 'https://flow-space-card.vercel.app' // Browser autofill simulation
     })
-    recordTest('TC-002', 'Honeypot blocks bot on login with HTTP 400', 'P0', r2.status === 400, `Got: ${r2.status}`)
+    recordTest('TC-002', 'Login allows browser autofill without false positive 400', 'P0', r2.status !== 400, `Got: ${r2.status}`)
 
     // TC-003: Register Honeypot
     const r3 = await makeRequest('/api/auth/register', 'POST', {
       username: 'bot',
       email: 'bot@example.com',
       password: 'password',
-      website: 'http://malicious.org'
+      _fs_bot_honey_token: 'http://malicious.org'
     })
     recordTest('TC-003', 'Honeypot blocks bot on register with HTTP 400', 'P0', r3.status === 400, `Got: ${r3.status}`)
   }
